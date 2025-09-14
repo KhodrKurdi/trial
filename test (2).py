@@ -10,6 +10,7 @@ Original file is located at
 import streamlit as st
 import pandas as pd
 import numpy as np
+import altair as alt   # <<--- this line is required
 
 st.set_page_config(page_title="Two Visuals Demo", layout="centered")
 
