@@ -11,25 +11,35 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-st.set_page_config(page_title="Test Streamlit App", layout="centered")
+st.set_page_config(page_title="Two Visuals Demo", layout="centered")
 
-st.title("📊 Streamlit Test App")
-st.write("This is a quick demo app to test Streamlit in Colab or locally.")
+st.title("📊 Streamlit Visualization App")
 
-# User input
-name = st.text_input("Enter your name:")
-if name:
-    st.success(f"Hello {name}, welcome to Streamlit! 🎉")
+# ---- Load Example Data ----
+# Replace this with your dataset
+df = pd.DataFrame({
+    "Category": ["A", "A", "B", "B", "C", "C"],
+    "Subgroup": ["X", "Y", "X", "Y", "X", "Y"],
+    "Value1": [10, 15, 20, 25, 30, 35],
+    "Value2": [5, 7, 15, 20, 25, 28]
+})
 
-# Slider demo
-age = st.slider("Select your age:", 0, 100, 25)
-st.write(f"✅ Your age is {age}")
+# ---- Scatter Plot ----
+st.subheader("🔹 Scatter Plot")
+scatter = alt.Chart(df).mark_circle(size=100).encode(
+    x="Value1",
+    y="Value2",
+    color="Category",
+    tooltip=["Category", "Subgroup", "Value1", "Value2"]
+).interactive()
+st.altair_chart(scatter, use_container_width=True)
 
-# Random DataFrame
-st.subheader("Random DataFrame Example")
-df = pd.DataFrame(np.random.randn(10, 3), columns=["A", "B", "C"])
-st.dataframe(df)
-
-# Chart
-st.subheader("Line Chart Example")
-st.line_chart(df)
+# ---- Clustered Column Chart ----
+st.subheader("🔹 Clustered Column Chart")
+bar = alt.Chart(df).mark_bar().encode(
+    x=alt.X("Category:N", title="Category"),
+    y=alt.Y("Value1:Q", title="Value"),
+    color="Subgroup:N",
+    column="Subgroup:N"
+).properties(width=150)
+st.altair_chart(bar, use_container_width=True)
