@@ -11,6 +11,9 @@ Original file is located at
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import subprocess
+import sys
+subprocess.check_call([sys.executable, "-m", "pip", "install", "plotly"])
 
 # Page configuration
 st.set_page_config(
