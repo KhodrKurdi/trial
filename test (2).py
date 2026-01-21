@@ -43,7 +43,7 @@ st.markdown("""
 @st.cache_data
 def load_data():
     # Load the numeric long format data
-    df = pd.read_csv('All_Departments_Long_Numeric.csv')
+df = pd.read_csv("All_Departments_Long_Numeric.csv.zip")
     
     # Extract year from Fillout Date
     df['Fillout Date (mm/dd/yy)'] = pd.to_datetime(df['Fillout Date (mm/dd/yy)'], errors='coerce')
