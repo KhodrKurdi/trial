@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from textblob import TextBlob
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # ============================================================
 # Page configuration
@@ -47,114 +47,94 @@ st.markdown("""
 # ============================================================
 if "mode" not in st.session_state:
     st.session_state.mode = None
-
 if "show_comments" not in st.session_state:
     st.session_state.show_comments = None
 
 # ============================================================
-# Sidebar: Data upload
+# Sidebar uploader
 # ============================================================
 with st.sidebar:
-    st.header("📂 Data Source")
-    st.caption("Upload CSV/ZIP/Parquet (Cloud uploads may fail >25MB).")
-
+    st.header("📂 Data Upload")
     uploaded_file = st.file_uploader(
-        "Upload survey data",
+        "Upload CSV / ZIP / Parquet",
         type=["csv", "zip", "parquet"]
     )
-
-    st.markdown("---")
-    st.header("ℹ️ Notes")
-    st.write("If you’re on Streamlit Cloud and your file is 75MB, convert it to **Parquet** to shrink it.")
 
 # ============================================================
 # Load data
 # ============================================================
 @st.cache_data
 def load_data(uploaded):
-    """
-    Load from uploaded file if provided, else fallback to local CSV.
-    Supports: CSV, ZIP (containing CSV), Parquet
-    """
     if uploaded is not None:
         name = uploaded.name.lower()
-
         if name.endswith(".parquet"):
             df = pd.read_parquet(uploaded)
-
         elif name.endswith(".zip"):
-            # pandas can read zipped CSV directly
             df = pd.read_csv(uploaded)
-
         else:
             df = pd.read_csv(uploaded)
-
     else:
-        # fallback (if you included it in repo locally)
+        # fallback file name (only if you included it in repo)
         df = pd.read_csv("All_Departments_Long_Numeric.csv")
 
-    # ---- Cleaning steps ----
+    # date + year
     df["Fillout Date (mm/dd/yy)"] = pd.to_datetime(df["Fillout Date (mm/dd/yy)"], errors="coerce")
     df["Year"] = df["Fillout Date (mm/dd/yy)"].dt.year
 
-    # Combine comments columns safely (in case one column doesn't exist)
+    # comment columns safe
     if "Q2_Comments" not in df.columns:
         df["Q2_Comments"] = np.nan
     if "Q2_Comments\n" not in df.columns:
         df["Q2_Comments\n"] = np.nan
 
     df["Comments_Combined"] = df["Q2_Comments"].fillna("") + " " + df["Q2_Comments\n"].fillna("")
-    df["Comments_Combined"] = df["Comments_Combined"].str.strip()
+    df["Comments_Combined"] = df["Comments_Combined"].astype(str).str.strip()
     df["Comments_Combined"] = df["Comments_Combined"].replace("", np.nan)
 
     return df
 
 # ============================================================
-# Sentiment analysis
+# Sentiment analysis (VADER)
 # ============================================================
 @st.cache_data
 def analyze_sentiment(text):
     if pd.isna(text) or str(text).strip() == "":
         return "Neutral", 0.0
-    try:
-        blob = TextBlob(str(text))
-        polarity = blob.sentiment.polarity
-        if polarity > 0.1:
-            return "Positive", polarity
-        elif polarity < -0.1:
-            return "Negative", polarity
-        else:
-            return "Neutral", polarity
-    except Exception:
-        return "Neutral", 0.0
+
+    analyzer = SentimentIntensityAnalyzer()
+    score = analyzer.polarity_scores(str(text))["compound"]
+
+    if score >= 0.05:
+        return "Positive", score
+    elif score <= -0.05:
+        return "Negative", score
+    else:
+        return "Neutral", score
 
 # ============================================================
-# Try loading data safely
+# Load df safely
 # ============================================================
 try:
     df = load_data(uploaded_file)
 except Exception as e:
-    st.error("❌ Could not load the data file.")
+    st.error("❌ Could not load dataset.")
     st.code(str(e))
     st.stop()
 
-# If no file uploaded and fallback file missing, you'll never reach here (it would error above)
 if df is None or len(df) == 0:
-    st.info("👈 Please upload a dataset from the sidebar to start.")
+    st.info("👈 Upload a dataset from the sidebar to start.")
     st.stop()
 
-# Add sentiment analysis
+# Add sentiment
 df["Sentiment"], df["Sentiment_Score"] = zip(*df["Comments_Combined"].apply(analyze_sentiment))
 
 # ============================================================
-# Main title
+# Title
 # ============================================================
 st.markdown('<div class="main-header">📊 AUBMC Behavior Survey Dashboard</div>', unsafe_allow_html=True)
 st.markdown("---")
 
-# ============================================================
 # Mode selection
-# ============================================================
 col1, col2 = st.columns(2)
 
 with col1:
@@ -251,10 +231,12 @@ if st.session_state.mode == "individual":
                 positive_count = sentiment_counts.get("Positive", 0)
                 if st.button(f"✅ Positive: {positive_count}", key="positive"):
                     st.session_state.show_comments = "Positive"
+
             with c2:
                 neutral_count = sentiment_counts.get("Neutral", 0)
                 if st.button(f"➖ Neutral: {neutral_count}", key="neutral"):
                     st.session_state.show_comments = "Neutral"
+
             with c3:
                 negative_count = sentiment_counts.get("Negative", 0)
                 if st.button(f"❌ Negative: {negative_count}", key="negative"):
@@ -506,8 +488,8 @@ elif st.session_state.mode == "departmental":
 # ============================================================================
 else:
     st.info("👆 Please select a report type above to get started.")
-    st.subheader("📊 Overall Statistics")
 
+    st.subheader("📊 Overall Statistics")
     c1, c2, c3 = st.columns(3)
     with c1:
         st.metric("Total Physicians", f"{df['Subject ID'].nunique():,}")
