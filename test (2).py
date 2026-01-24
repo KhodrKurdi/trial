@@ -3,21 +3,18 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from plotly.subplots import make_subplots
+from datetime import datetime
 
-# ============================================================
 # Page configuration
-# ============================================================
 st.set_page_config(
-    page_title="AUBMC Behavior Survey Dashboard",
-    page_icon="📊",
+    page_title="AUBMC Physician Performance Dashboard",
+    page_icon="🏥",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ============================================================
 # Custom CSS
-# ============================================================
 st.markdown("""
 <style>
     .main-header {
@@ -26,493 +23,930 @@ st.markdown("""
         color: #1f77b4;
         text-align: center;
         padding: 1rem;
+        margin-bottom: 2rem;
     }
     .metric-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.5rem;
+        border-radius: 10px;
+        color: white;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+    .metric-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    .info-box {
         background-color: #f0f2f6;
         padding: 1rem;
-        border-radius: 0.5rem;
+        border-radius: 8px;
         border-left: 4px solid #1f77b4;
+        margin: 1rem 0;
     }
-    .stButton>button {
-        width: 100%;
+    .warning-box {
+        background-color: #fff3cd;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #ffc107;
+        margin: 1rem 0;
+    }
+    .success-box {
+        background-color: #d4edda;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+        margin: 1rem 0;
+    }
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2rem;
+    }
+    .stTabs [data-baseweb="tab"] {
         height: 60px;
-        font-size: 1.2rem;
-        font-weight: bold;
+        font-size: 1.1rem;
+        font-weight: 600;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# ============================================================
-# Session state init (DO THIS EARLY)
-# ============================================================
-if "mode" not in st.session_state:
-    st.session_state.mode = None
-if "show_comments" not in st.session_state:
-    st.session_state.show_comments = None
-
-# ============================================================
-# Sidebar uploader
-# ============================================================
-with st.sidebar:
-    st.header("📂 Data Upload")
-    uploaded_file = st.file_uploader(
-        "Upload CSV / ZIP / Parquet",
-        type=["csv", "zip", "parquet"]
+# Load data function
+@st.cache_data
+def load_data():
+    """Load and merge behavior survey data with physician indicators."""
+    
+    # Load behavior survey statistics (from your analysis)
+    try:
+        doctor_stats = pd.read_csv('Doctor_Statistics_2025.csv')
+        
+        # Parse years from behavior survey if available
+        # Assuming you have year information in the data
+        doctor_stats['Survey_Year'] = 2025  # Adjust based on your data
+        
+    except FileNotFoundError:
+        st.error("❌ Doctor_Statistics_2025.csv not found. Please run the analysis notebook first.")
+        return None, None
+    
+    # Load physician indicators
+    try:
+        indicators = pd.read_csv('Physicians_Indicators_Anonymized.csv')
+        
+        # Clean fiscal cycle to extract year
+        indicators['Year'] = indicators['FiscalCycle'].str.extract(r'(\d{4})-\d{4}').astype(float)
+        
+        # Parse contract date
+        indicators['ContractEffectiveDate'] = pd.to_datetime(indicators['ContractEffectiveDate'], errors='coerce')
+        indicators['Years_of_Service'] = (datetime.now() - indicators['ContractEffectiveDate']).dt.days / 365.25
+        
+    except FileNotFoundError:
+        st.error("❌ Physicians_Indicators_Anonymized.csv not found. Please upload the file.")
+        return None, None
+    
+    # Merge datasets on physician ID
+    # Survey uses 'Subject ID', Indicators uses 'Aubnetid'
+    merged = doctor_stats.merge(
+        indicators, 
+        left_on='Subject ID', 
+        right_on='Aubnetid', 
+        how='left'
     )
+    
+    return doctor_stats, indicators, merged
 
-# ============================================================
 # Load data
-# ============================================================
-@st.cache_data
-def load_data(uploaded):
-    if uploaded is not None:
-        name = uploaded.name.lower()
-        if name.endswith(".parquet"):
-            df = pd.read_parquet(uploaded)
-        elif name.endswith(".zip"):
-            df = pd.read_csv(uploaded)
-        else:
-            df = pd.read_csv(uploaded)
-    else:
-        # fallback file name (only if you included it in repo)
-        df = pd.read_csv("All_Departments_Long_Numeric.csv")
+with st.spinner('Loading data...'):
+    doctor_stats, indicators, merged = load_data()
 
-    # date + year
-    df["Fillout Date (mm/dd/yy)"] = pd.to_datetime(df["Fillout Date (mm/dd/yy)"], errors="coerce")
-    df["Year"] = df["Fillout Date (mm/dd/yy)"].dt.year
-
-    # comment columns safe
-    if "Q2_Comments" not in df.columns:
-        df["Q2_Comments"] = np.nan
-    if "Q2_Comments\n" not in df.columns:
-        df["Q2_Comments\n"] = np.nan
-
-    df["Comments_Combined"] = df["Q2_Comments"].fillna("") + " " + df["Q2_Comments\n"].fillna("")
-    df["Comments_Combined"] = df["Comments_Combined"].astype(str).str.strip()
-    df["Comments_Combined"] = df["Comments_Combined"].replace("", np.nan)
-
-    return df
-
-# ============================================================
-# Sentiment analysis (VADER)
-# ============================================================
-@st.cache_data
-def analyze_sentiment(text):
-    if pd.isna(text) or str(text).strip() == "":
-        return "Neutral", 0.0
-
-    analyzer = SentimentIntensityAnalyzer()
-    score = analyzer.polarity_scores(str(text))["compound"]
-
-    if score >= 0.05:
-        return "Positive", score
-    elif score <= -0.05:
-        return "Negative", score
-    else:
-        return "Neutral", score
-
-# ============================================================
-# Load df safely
-# ============================================================
-try:
-    df = load_data(uploaded_file)
-except Exception as e:
-    st.error("❌ Could not load dataset.")
-    st.code(str(e))
+if doctor_stats is None or indicators is None:
     st.stop()
 
-if df is None or len(df) == 0:
-    st.info("👈 Upload a dataset from the sidebar to start.")
-    st.stop()
+# Main header
+st.markdown('<div class="main-header">🏥 AUBMC Physician Performance Dashboard</div>', unsafe_allow_html=True)
 
-# Add sentiment
-df["Sentiment"], df["Sentiment_Score"] = zip(*df["Comments_Combined"].apply(analyze_sentiment))
+# Sidebar - Mode selection
+st.sidebar.header("📊 Dashboard Mode")
+mode = st.sidebar.radio(
+    "Select View:",
+    ["🏠 Overview", "👤 Individual Physician", "🏥 Departmental Analysis"],
+    label_visibility="collapsed"
+)
 
-# ============================================================
-# Title
-# ============================================================
-st.markdown('<div class="main-header">📊 AUBMC Behavior Survey Dashboard</div>', unsafe_allow_html=True)
-st.markdown("---")
-
-# Mode selection
-col1, col2 = st.columns(2)
-
-with col1:
-    if st.button("👤 Individual Physician Report", use_container_width=True):
-        st.session_state.mode = "individual"
-
-with col2:
-    if st.button("🏥 Departmental Report", use_container_width=True):
-        st.session_state.mode = "departmental"
-
-st.markdown("---")
+st.sidebar.markdown("---")
 
 # ============================================================================
-# INDIVIDUAL PHYSICIAN REPORT
+# OVERVIEW MODE
 # ============================================================================
-if st.session_state.mode == "individual":
-    st.header("👤 Individual Physician Report")
-
-    with st.sidebar:
-        st.header("🔍 Filters")
-
-        physicians = sorted(df["Subject ID"].dropna().unique())
-        selected_physician = st.selectbox("Select Physician", physicians)
-
-        years = sorted(df["Year"].dropna().unique())
-        selected_years = st.multiselect("Select Year(s)", years, default=years)
-
-        sources = sorted(df["Source"].dropna().unique())
-        selected_source = st.multiselect("Select Department(s)", sources, default=sources)
-
-    physician_data = df[
-        (df["Subject ID"] == selected_physician) &
-        (df["Year"].isin(selected_years)) &
-        (df["Source"].isin(selected_source))
-    ]
-
-    if len(physician_data) == 0:
-        st.warning("No data available for selected filters.")
-    else:
-        st.subheader("📈 Overview")
-        c1, c2, c3, c4 = st.columns(4)
-
-        with c1:
-            overall_avg = physician_data["Response_Numeric"].mean()
-            st.metric("Overall Average Score", f"{overall_avg:.2f}/5.00")
-        with c2:
-            st.metric("Total Responses", f"{len(physician_data):,}")
-        with c3:
-            st.metric("Unique Evaluators", f"{physician_data['Rater Name'].nunique():,}")
-        with c4:
-            st.metric("Score Std Dev", f"{physician_data['Response_Numeric'].std():.2f}")
-
-        st.markdown("---")
-
-        st.subheader("📊 Average Score by Year")
-        yearly_avg = physician_data.groupby("Year")["Response_Numeric"].agg(["mean", "count"]).reset_index()
-        yearly_avg.columns = ["Year", "Average_Score", "Count"]
-
-        fig_yearly = go.Figure()
-        fig_yearly.add_trace(go.Bar(
-            x=yearly_avg["Year"],
-            y=yearly_avg["Average_Score"],
-            text=yearly_avg["Average_Score"].round(2),
-            textposition="outside",
-            hovertemplate="<b>Year %{x}</b><br>Average: %{y:.2f}<br>Responses: %{customdata}<extra></extra>",
-            customdata=yearly_avg["Count"]
-        ))
-        fig_yearly.update_layout(
-            xaxis_title="Year",
-            yaxis_title="Average Score",
-            yaxis_range=[0, 5],
-            height=400,
-            showlegend=False
-        )
-        st.plotly_chart(fig_yearly, use_container_width=True)
-
-        st.dataframe(
-            yearly_avg.style.format({"Average_Score": "{:.2f}", "Count": "{:,}"}),
-            use_container_width=True
-        )
-
-        st.markdown("---")
-
-        st.subheader("💬 Comment Sentiment Analysis")
-        comments_data = physician_data[physician_data["Comments_Combined"].notna()].copy()
-
-        if len(comments_data) == 0:
-            st.info("No comments available for selected filters.")
+if mode == "🏠 Overview":
+    st.header("📊 System Overview")
+    
+    # Key metrics
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown("""
+        <div class="metric-card">
+            <div class="metric-label">Total Physicians</div>
+            <div class="metric-value">{}</div>
+        </div>
+        """.format(len(doctor_stats)), unsafe_allow_html=True)
+    
+    with col2:
+        avg_score = doctor_stats['Avg_Score'].mean()
+        st.markdown("""
+        <div class="metric-card">
+            <div class="metric-label">Average Behavior Score</div>
+            <div class="metric-value">{:.2f}/5.0</div>
+        </div>
+        """.format(avg_score), unsafe_allow_html=True)
+    
+    with col3:
+        total_evaluations = doctor_stats['Num_Evaluations'].sum()
+        st.markdown("""
+        <div class="metric-card">
+            <div class="metric-label">Total Evaluations</div>
+            <div class="metric-value">{:,}</div>
+        </div>
+        """.format(total_evaluations), unsafe_allow_html=True)
+    
+    with col4:
+        if 'Department' in indicators.columns:
+            num_depts = indicators['Department'].nunique()
         else:
-            c1, c2, c3 = st.columns(3)
-            sentiment_counts = comments_data["Sentiment"].value_counts()
-
-            with c1:
-                positive_count = sentiment_counts.get("Positive", 0)
-                if st.button(f"✅ Positive: {positive_count}", key="positive"):
-                    st.session_state.show_comments = "Positive"
-
-            with c2:
-                neutral_count = sentiment_counts.get("Neutral", 0)
-                if st.button(f"➖ Neutral: {neutral_count}", key="neutral"):
-                    st.session_state.show_comments = "Neutral"
-
-            with c3:
-                negative_count = sentiment_counts.get("Negative", 0)
-                if st.button(f"❌ Negative: {negative_count}", key="negative"):
-                    st.session_state.show_comments = "Negative"
-
-            if st.session_state.show_comments is not None:
-                sentiment_filter = st.session_state.show_comments
-                filtered_comments = comments_data[comments_data["Sentiment"] == sentiment_filter]
-
-                st.markdown(f"### {sentiment_filter} Comments ({len(filtered_comments)})")
-
-                if len(filtered_comments) > 0:
-                    display_df = filtered_comments[["Year", "Raters Group", "Comments_Combined", "Sentiment_Score"]].copy()
-                    display_df.columns = ["Year", "Rater Group", "Comment", "Sentiment Score"]
-                    display_df = display_df.sort_values("Year", ascending=False)
-
-                    st.dataframe(
-                        display_df.style.format({"Sentiment Score": "{:.2f}"}),
-                        use_container_width=True,
-                        height=400
-                    )
-
-                    csv = display_df.to_csv(index=False)
-                    st.download_button(
-                        label=f"Download {sentiment_filter} Comments CSV",
-                        data=csv,
-                        file_name=f"{selected_physician}_{sentiment_filter}_comments.csv",
-                        mime="text/csv"
-                    )
-                else:
-                    st.info(f"No {sentiment_filter} comments found.")
-
-            st.markdown("### Sentiment Distribution")
-            fig_sentiment = px.pie(
-                values=sentiment_counts.values,
-                names=sentiment_counts.index
-            )
-            st.plotly_chart(fig_sentiment, use_container_width=True)
-
-        st.markdown("---")
-
-        st.subheader("📋 Score Breakdown by Question")
-        question_avg = physician_data.groupby("Question")["Response_Numeric"].agg(["mean", "count"]).reset_index()
-        question_avg.columns = ["Question", "Average_Score", "Count"]
-        question_avg = question_avg.sort_values("Average_Score")
-        question_avg["Question_Short"] = question_avg["Question"].astype(str).str[:50] + "..."
-
-        fig_questions = px.bar(
-            question_avg,
-            x="Average_Score",
-            y="Question_Short",
-            orientation="h",
-            text="Average_Score",
-            color="Average_Score",
-            color_continuous_scale="RdYlGn"
-        )
-        fig_questions.update_traces(texttemplate="%{text:.2f}", textposition="outside")
-        fig_questions.update_layout(
-            xaxis_title="Average Score",
-            yaxis_title="Question",
-            xaxis_range=[0, 5],
-            height=max(400, len(question_avg) * 25),
-            showlegend=False
-        )
-        st.plotly_chart(fig_questions, use_container_width=True)
-
-        st.markdown("---")
-
-        st.subheader("👥 Score by Rater Group")
-        rater_avg = physician_data.groupby("Raters Group")["Response_Numeric"].agg(["mean", "count"]).reset_index()
-        rater_avg.columns = ["Rater_Group", "Average_Score", "Count"]
-        rater_avg = rater_avg.sort_values("Average_Score", ascending=False)
-
-        fig_rater = px.bar(
-            rater_avg,
-            x="Rater_Group",
-            y="Average_Score",
-            text="Average_Score",
-            color="Average_Score",
-            color_continuous_scale="RdYlGn"
-        )
-        fig_rater.update_traces(texttemplate="%{text:.2f}", textposition="outside")
-        fig_rater.update_layout(
-            xaxis_title="Rater Group",
-            yaxis_title="Average Score",
-            yaxis_range=[0, 5],
-            height=400
-        )
-        st.plotly_chart(fig_rater, use_container_width=True)
-
-# ============================================================================
-# DEPARTMENTAL REPORT
-# ============================================================================
-elif st.session_state.mode == "departmental":
-    st.header("🏥 Departmental Report")
-
-    with st.sidebar:
-        st.header("🔍 Filters")
-        years = sorted(df["Year"].dropna().unique())
-        selected_years = st.multiselect("Select Year(s)", years, default=years)
-
-        sources = sorted(df["Source"].dropna().unique())
-        selected_sources = st.multiselect("Select Department(s)", sources, default=sources)
-
-    dept_data = df[
-        (df["Year"].isin(selected_years)) &
-        (df["Source"].isin(selected_sources))
-    ]
-
-    if len(dept_data) == 0:
-        st.warning("No data available for selected filters.")
-    else:
-        st.subheader("📈 Overview")
-        c1, c2, c3, c4 = st.columns(4)
-
-        with c1:
-            st.metric("Overall Average Score", f"{dept_data['Response_Numeric'].mean():.2f}/5.00")
-        with c2:
-            st.metric("Total Physicians", f"{dept_data['Subject ID'].nunique():,}")
-        with c3:
-            st.metric("Total Responses", f"{len(dept_data):,}")
-        with c4:
-            st.metric("Total Evaluators", f"{dept_data['Rater Name'].nunique():,}")
-
-        st.markdown("---")
-
-        st.subheader("📊 Average Score by Department and Year")
-        dept_year_avg = dept_data.groupby(["Source", "Year"])["Response_Numeric"].agg(["mean", "count"]).reset_index()
-        dept_year_avg.columns = ["Department", "Year", "Average_Score", "Count"]
-
-        fig_dept_year = px.line(
-            dept_year_avg,
-            x="Year",
-            y="Average_Score",
-            color="Department",
-            markers=True,
-            text="Average_Score"
-        )
-        fig_dept_year.update_traces(texttemplate="%{text:.2f}", textposition="top center")
-        fig_dept_year.update_layout(
-            xaxis_title="Year",
-            yaxis_title="Average Score",
-            yaxis_range=[0, 5],
-            height=500
-        )
-        st.plotly_chart(fig_dept_year, use_container_width=True)
-
-        st.markdown("---")
-
-        st.subheader("🏆 Department Comparison")
-        dept_stats = dept_data.groupby("Source").agg(
-            Average_Score=("Response_Numeric", "mean"),
-            Std_Dev=("Response_Numeric", "std"),
-            Total_Responses=("Response_Numeric", "count"),
-            Num_Physicians=("Subject ID", "nunique")
-        ).reset_index()
-
-        dept_stats = dept_stats.sort_values("Average_Score", ascending=False)
-
-        fig_dept = px.bar(
-            dept_stats,
-            x="Source",
-            y="Average_Score",
-            text="Average_Score",
-            color="Average_Score",
-            color_continuous_scale="RdYlGn"
-        )
-        fig_dept.update_traces(texttemplate="%{text:.2f}", textposition="outside")
-        fig_dept.update_layout(
-            xaxis_title="Department",
-            yaxis_title="Average Score",
-            yaxis_range=[0, 5],
-            height=400
-        )
-        st.plotly_chart(fig_dept, use_container_width=True)
-
-        st.dataframe(
-            dept_stats.style.format({
-                "Average_Score": "{:.2f}",
-                "Std_Dev": "{:.2f}",
-                "Total_Responses": "{:,}",
-                "Num_Physicians": "{:,}"
-            }),
-            use_container_width=True
-        )
-
-        st.markdown("---")
-
-        st.subheader("🌟 Top & Bottom Performers")
-        physician_avg = dept_data.groupby("Subject ID").agg(
-            Average_Score=("Response_Numeric", "mean"),
-            Department=("Source", "first")
-        ).reset_index().rename(columns={"Subject ID": "Physician_ID"})
-
-        physician_avg = physician_avg.sort_values("Average_Score", ascending=False)
-
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown("#### 🏆 Top 10 Performers")
-            st.dataframe(physician_avg.head(10).style.format({"Average_Score": "{:.2f}"}), use_container_width=True)
-
-        with c2:
-            st.markdown("#### ⚠️ Bottom 10 Performers")
-            st.dataframe(physician_avg.tail(10).sort_values("Average_Score").style.format({"Average_Score": "{:.2f}"}), use_container_width=True)
-
-        st.markdown("---")
-
-        st.subheader("💬 Comment Sentiment by Department")
-        comments_dept = dept_data[dept_data["Comments_Combined"].notna()].copy()
-
-        if len(comments_dept) > 0:
-            sentiment_dept = comments_dept.groupby(["Source", "Sentiment"]).size().reset_index(name="Count")
-            fig_sentiment_dept = px.bar(
-                sentiment_dept,
-                x="Source",
-                y="Count",
-                color="Sentiment",
-                barmode="group"
-            )
-            fig_sentiment_dept.update_layout(
-                xaxis_title="Department",
-                yaxis_title="Number of Comments",
-                height=400
-            )
-            st.plotly_chart(fig_sentiment_dept, use_container_width=True)
-        else:
-            st.info("No comments available for selected filters.")
-
-        st.markdown("---")
-
-        st.subheader("📈 Score Distribution")
-        fig_hist = px.histogram(
-            dept_data,
-            x="Response_Numeric",
-            color="Source",
-            nbins=20,
-            barmode="overlay",
-            opacity=0.7
-        )
-        fig_hist.update_layout(
-            xaxis_title="Score",
-            yaxis_title="Frequency",
-            height=400
-        )
-        st.plotly_chart(fig_hist, use_container_width=True)
-
-# ============================================================================
-# HOME PAGE
-# ============================================================================
-else:
-    st.info("👆 Please select a report type above to get started.")
-
-    st.subheader("📊 Overall Statistics")
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.metric("Total Physicians", f"{df['Subject ID'].nunique():,}")
-    with c2:
-        st.metric("Total Responses", f"{len(df):,}")
-    with c3:
-        st.metric("Average Score", f"{df['Response_Numeric'].mean():.2f}/5.00")
-
+            num_depts = doctor_stats.get('Source', pd.Series()).nunique()
+        st.markdown("""
+        <div class="metric-card">
+            <div class="metric-label">Departments</div>
+            <div class="metric-value">{}</div>
+        </div>
+        """.format(num_depts), unsafe_allow_html=True)
+    
     st.markdown("---")
+    
+    # Distribution charts
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("📈 Score Distribution")
+        fig = px.histogram(
+            doctor_stats, 
+            x='Avg_Score',
+            nbins=30,
+            title="Distribution of Physician Behavior Scores",
+            labels={'Avg_Score': 'Average Score', 'count': 'Number of Physicians'},
+            color_discrete_sequence=['#667eea']
+        )
+        fig.add_vline(x=avg_score, line_dash="dash", line_color="red", 
+                     annotation_text=f"Mean: {avg_score:.2f}")
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        st.subheader("💬 Comment Sentiment")
+        if 'Sentiment_Negative' in doctor_stats.columns:
+            sentiment_data = pd.DataFrame({
+                'Sentiment': ['Positive', 'Neutral', 'Negative'],
+                'Count': [
+                    doctor_stats.get('Sentiment_Positive', pd.Series([0])).sum(),
+                    doctor_stats.get('Sentiment_Neutral', pd.Series([0])).sum(),
+                    doctor_stats.get('Sentiment_Negative', pd.Series([0])).sum()
+                ]
+            })
+            fig = px.pie(
+                sentiment_data, 
+                values='Count', 
+                names='Sentiment',
+                title="Overall Sentiment Distribution",
+                color='Sentiment',
+                color_discrete_map={'Positive': '#28a745', 'Neutral': '#ffc107', 'Negative': '#dc3545'}
+            )
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Top and bottom performers
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("🌟 Top 10 Performers")
+        top_10 = doctor_stats.nlargest(10, 'Avg_Score')[['Subject ID', 'Avg_Score', 'Num_Evaluations']]
+        top_10['Rank'] = range(1, 11)
+        top_10 = top_10[['Rank', 'Subject ID', 'Avg_Score', 'Num_Evaluations']]
+        st.dataframe(
+            top_10.style.format({'Avg_Score': '{:.3f}', 'Num_Evaluations': '{:,.0f}'}),
+            use_container_width=True,
+            hide_index=True
+        )
+    
+    with col2:
+        st.subheader("⚠️ Bottom 10 Performers")
+        bottom_10 = doctor_stats.nsmallest(10, 'Avg_Score')[['Subject ID', 'Avg_Score', 'Num_Evaluations']]
+        bottom_10['Rank'] = range(1, 11)
+        bottom_10 = bottom_10[['Rank', 'Subject ID', 'Avg_Score', 'Num_Evaluations']]
+        st.dataframe(
+            bottom_10.style.format({'Avg_Score': '{:.3f}', 'Num_Evaluations': '{:,.0f}'}),
+            use_container_width=True,
+            hide_index=True
+        )
 
-    st.subheader("📈 Responses Over Time")
-    responses_by_year = df.groupby("Year").size().reset_index(name="Count")
+# ============================================================================
+# INDIVIDUAL PHYSICIAN MODE
+# ============================================================================
+elif mode == "👤 Individual Physician":
+    st.header("👤 Individual Physician Report")
+    
+    # Sidebar filters
+    st.sidebar.header("🔍 Filters")
+    
+    # Physician selection
+    physicians = sorted(doctor_stats['Subject ID'].unique())
+    selected_physician = st.sidebar.selectbox("Select Physician", physicians)
+    
+    # Year filter if available
+    if 'Year' in indicators.columns:
+        available_years = sorted(indicators['Year'].dropna().unique())
+        if len(available_years) > 0:
+            selected_years = st.sidebar.multiselect(
+                "Select Year(s) for Indicators",
+                available_years,
+                default=available_years
+            )
+        else:
+            selected_years = []
+    else:
+        selected_years = []
+    
+    # Get physician data
+    phys_behavior = doctor_stats[doctor_stats['Subject ID'] == selected_physician].iloc[0]
+    
+    if 'Year' in indicators.columns and len(selected_years) > 0:
+        phys_indicators = indicators[
+            (indicators['Aubnetid'] == selected_physician) &
+            (indicators['Year'].isin(selected_years))
+        ]
+    else:
+        phys_indicators = indicators[indicators['Aubnetid'] == selected_physician]
+    
+    # Overview cards
+    st.subheader("📋 Performance Overview")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        score = phys_behavior['Avg_Score']
+        color = "#28a745" if score >= 4.5 else "#ffc107" if score >= 4.0 else "#dc3545"
+        st.markdown(f"""
+        <div class="metric-card" style="background: {color};">
+            <div class="metric-label">Behavior Score</div>
+            <div class="metric-value">{score:.2f}</div>
+            <div class="metric-label">out of 5.0</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        num_eval = phys_behavior['Num_Evaluations']
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Evaluations</div>
+            <div class="metric-value">{num_eval:,.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        num_evaluators = phys_behavior.get('Num_Evaluators', 0)
+        st.markdown(f"""
+        <div class="metric-card">
+            <div class="metric-label">Evaluators</div>
+            <div class="metric-value">{num_evaluators:.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        neg_comments = phys_behavior.get('Negative_Comment_Count', 0)
+        color = "#28a745" if neg_comments == 0 else "#ffc107" if neg_comments < 3 else "#dc3545"
+        st.markdown(f"""
+        <div class="metric-card" style="background: {color};">
+            <div class="metric-label">Negative Comments</div>
+            <div class="metric-value">{neg_comments:.0f}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # Tabs for different analyses
+    tab1, tab2, tab3, tab4 = st.tabs(["📈 Trends", "📊 Performance Metrics", "💬 Comments", "🏥 Clinical Indicators"])
+    
+    # Tab 1: Trends
+    with tab1:
+        st.subheader("📈 Multi-Year Trend Analysis")
+        
+        if len(phys_indicators) > 0:
+            # Prepare trend data
+            trend_data = []
+            
+            for _, row in phys_indicators.iterrows():
+                year = row.get('Year', 'Unknown')
+                trend_data.append({
+                    'Year': year,
+                    'Metric': 'Clinic Visits',
+                    'Value': row.get('ClinicVisits', 0)
+                })
+                trend_data.append({
+                    'Year': year,
+                    'Metric': 'Waiting Time (min)',
+                    'Value': row.get('ClinicWaitingTime', 0)
+                })
+                trend_data.append({
+                    'Year': year,
+                    'Metric': 'Patient Complaints',
+                    'Value': row.get('PatientComplaints', 0)
+                })
+            
+            trend_df = pd.DataFrame(trend_data)
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Clinic visits trend
+                visits_data = trend_df[trend_df['Metric'] == 'Clinic Visits']
+                fig = px.line(
+                    visits_data,
+                    x='Year',
+                    y='Value',
+                    markers=True,
+                    title="Clinic Visits Over Time",
+                    labels={'Value': 'Number of Visits', 'Year': 'Fiscal Year'}
+                )
+                fig.update_traces(line_color='#667eea', line_width=3, marker_size=10)
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with col2:
+                # Waiting time trend
+                wait_data = trend_df[trend_df['Metric'] == 'Waiting Time (min)']
+                fig = px.line(
+                    wait_data,
+                    x='Year',
+                    y='Value',
+                    markers=True,
+                    title="Average Waiting Time Over Time",
+                    labels={'Value': 'Minutes', 'Year': 'Fiscal Year'}
+                )
+                fig.update_traces(line_color='#ff7f0e', line_width=3, marker_size=10)
+                st.plotly_chart(fig, use_container_width=True)
+            
+            # Combined metrics table
+            st.subheader("📋 Historical Metrics")
+            display_df = phys_indicators[['FiscalCycle', 'ClinicVisits', 'ClinicWaitingTime', 'PatientComplaints']].copy()
+            display_df.columns = ['Fiscal Cycle', 'Clinic Visits', 'Avg Wait Time (min)', 'Complaints']
+            st.dataframe(
+                display_df.style.format({
+                    'Clinic Visits': '{:,.0f}',
+                    'Avg Wait Time (min)': '{:.2f}',
+                    'Complaints': '{:.0f}'
+                }),
+                use_container_width=True,
+                hide_index=True
+            )
+        else:
+            st.info("ℹ️ No clinical indicator data available for this physician.")
+    
+    # Tab 2: Performance Metrics
+    with tab2:
+        st.subheader("📊 Detailed Performance Breakdown")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Score breakdown
+            st.markdown("### Behavior Score Analysis")
+            
+            metrics = {
+                'Average Score': phys_behavior['Avg_Score'],
+                'Standard Deviation': phys_behavior['Std_Dev'],
+                'Min Score': phys_behavior['Min_Score'],
+                'Max Score': phys_behavior['Max_Score'],
+                'Score Range': phys_behavior['Max_Score'] - phys_behavior['Min_Score']
+            }
+            
+            for metric, value in metrics.items():
+                st.metric(metric, f"{value:.3f}")
+            
+            # Comparison to average
+            overall_avg = doctor_stats['Avg_Score'].mean()
+            diff = phys_behavior['Avg_Score'] - overall_avg
+            
+            if diff > 0:
+                st.success(f"✅ {diff:.3f} points above institutional average")
+            elif diff < 0:
+                st.warning(f"⚠️ {abs(diff):.3f} points below institutional average")
+            else:
+                st.info("ℹ️ At institutional average")
+        
+        with col2:
+            # Gauge chart for behavior score
+            st.markdown("### Behavior Score Gauge")
+            
+            fig = go.Figure(go.Indicator(
+                mode="gauge+number+delta",
+                value=phys_behavior['Avg_Score'],
+                domain={'x': [0, 1], 'y': [0, 1]},
+                title={'text': "Behavior Score"},
+                delta={'reference': overall_avg, 'increasing': {'color': "green"}},
+                gauge={
+                    'axis': {'range': [None, 5], 'tickwidth': 1},
+                    'bar': {'color': "darkblue"},
+                    'steps': [
+                        {'range': [0, 3], 'color': "lightgray"},
+                        {'range': [3, 4], 'color': "gray"},
+                        {'range': [4, 5], 'color': "lightgreen"}
+                    ],
+                    'threshold': {
+                        'line': {'color': "red", 'width': 4},
+                        'thickness': 0.75,
+                        'value': 4.5
+                    }
+                }
+            ))
+            fig.update_layout(height=350)
+            st.plotly_chart(fig, use_container_width=True)
+        
+        # Percentile ranking
+        st.markdown("---")
+        st.markdown("### 📊 Percentile Ranking")
+        
+        percentile = (doctor_stats['Avg_Score'] < phys_behavior['Avg_Score']).sum() / len(doctor_stats) * 100
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.markdown(f"""
+            <div class="info-box" style="text-align: center;">
+                <h2 style="margin: 0;">{percentile:.1f}th Percentile</h2>
+                <p>This physician scores better than {percentile:.1f}% of all physicians</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    # Tab 3: Comments
+    with tab3:
+        st.subheader("💬 Comment Analysis")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            pos_count = phys_behavior.get('Sentiment_Positive', 0)
+            st.markdown(f"""
+            <div class="success-box">
+                <h3 style="margin: 0;">✅ Positive</h3>
+                <h1 style="margin: 0.5rem 0;">{pos_count:.0f}</h1>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            neu_count = phys_behavior.get('Sentiment_Neutral', 0)
+            st.markdown(f"""
+            <div class="info-box">
+                <h3 style="margin: 0;">➖ Neutral</h3>
+                <h1 style="margin: 0.5rem 0;">{neu_count:.0f}</h1>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            neg_count = phys_behavior.get('Sentiment_Negative', 0)
+            st.markdown(f"""
+            <div class="warning-box">
+                <h3 style="margin: 0;">❌ Negative</h3>
+                <h1 style="margin: 0.5rem 0;">{neg_count:.0f}</h1>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Sentiment pie chart
+        total_comments = pos_count + neu_count + neg_count
+        if total_comments > 0:
+            sentiment_data = pd.DataFrame({
+                'Sentiment': ['Positive', 'Neutral', 'Negative'],
+                'Count': [pos_count, neu_count, neg_count]
+            })
+            
+            fig = px.pie(
+                sentiment_data,
+                values='Count',
+                names='Sentiment',
+                title="Sentiment Distribution",
+                color='Sentiment',
+                color_discrete_map={'Positive': '#28a745', 'Neutral': '#ffc107', 'Negative': '#dc3545'}
+            )
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Negative percentage
+            neg_pct = phys_behavior.get('Negative_Comment_Pct', 0)
+            if neg_pct > 0:
+                if neg_pct > 30:
+                    st.warning(f"⚠️ {neg_pct:.1f}% of comments are negative - may need attention")
+                else:
+                    st.info(f"ℹ️ {neg_pct:.1f}% of comments are negative")
+    
+    # Tab 4: Clinical Indicators
+    with tab4:
+        st.subheader("🏥 Clinical Performance Indicators")
+        
+        if len(phys_indicators) > 0:
+            latest = phys_indicators.iloc[-1]  # Most recent data
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("### Latest Period Metrics")
+                st.markdown(f"**Fiscal Cycle:** {latest.get('FiscalCycle', 'N/A')}")
+                st.markdown(f"**Department:** {latest.get('Department', 'N/A')}")
+                
+                st.metric("Clinic Visits", f"{latest.get('ClinicVisits', 0):,.0f}")
+                st.metric("Avg Waiting Time", f"{latest.get('ClinicWaitingTime', 0):.1f} min")
+                st.metric("Patient Complaints", f"{latest.get('PatientComplaints', 0):.0f}")
+                
+                # Years of service
+                if 'Years_of_Service' in latest and not pd.isna(latest['Years_of_Service']):
+                    st.metric("Years of Service", f"{latest['Years_of_Service']:.1f} years")
+            
+            with col2:
+                st.markdown("### Performance Indicators")
+                
+                # Create a radar chart if we have multiple years
+                if len(phys_indicators) > 1:
+                    categories = ['Clinic Visits', 'Waiting Time', 'Complaints']
+                    
+                    fig = go.Figure()
+                    
+                    for idx, row in phys_indicators.iterrows():
+                        fig.add_trace(go.Scatterpolar(
+                            r=[
+                                row.get('ClinicVisits', 0) / 100,  # Normalize
+                                100 - row.get('ClinicWaitingTime', 0),  # Inverse (lower is better)
+                                100 - row.get('PatientComplaints', 0) * 10  # Inverse
+                            ],
+                            theta=categories,
+                            fill='toself',
+                            name=str(row.get('FiscalCycle', 'Unknown'))
+                        ))
+                    
+                    fig.update_layout(
+                        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+                        showlegend=True,
+                        title="Multi-Year Comparison"
+                    )
+                    
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("ℹ️ Multiple years needed for trend comparison")
+        else:
+            st.info("ℹ️ No clinical indicator data available for this physician.")
 
-    fig_overview = px.bar(
-        responses_by_year,
-        x="Year",
-        y="Count",
-        text="Count"
+# ============================================================================
+# DEPARTMENTAL ANALYSIS MODE
+# ============================================================================
+elif mode == "🏥 Departmental Analysis":
+    st.header("🏥 Departmental Performance Analysis")
+    
+    # Determine which department column to use
+    if 'Department' in merged.columns:
+        dept_col = 'Department'
+        departments = sorted(merged[dept_col].dropna().unique())
+    elif 'Source' in doctor_stats.columns:
+        dept_col = 'Source'
+        departments = sorted(doctor_stats[dept_col].dropna().unique())
+    else:
+        st.error("No department information available in the data.")
+        st.stop()
+    
+    # Sidebar filters
+    st.sidebar.header("🔍 Filters")
+    selected_departments = st.sidebar.multiselect(
+        "Select Department(s)",
+        departments,
+        default=departments
     )
-    fig_overview.update_traces(texttemplate="%{text:,}", textposition="outside")
-    fig_overview.update_layout(
-        xaxis_title="Year",
-        yaxis_title="Number of Responses",
-        height=400
-    )
-    st.plotly_chart(fig_overview, use_container_width=True)
+    
+    if len(selected_departments) == 0:
+        st.warning("⚠️ Please select at least one department")
+        st.stop()
+    
+    # Filter data
+    if dept_col in doctor_stats.columns:
+        dept_data = doctor_stats[doctor_stats[dept_col].isin(selected_departments)]
+    else:
+        dept_data = merged[merged[dept_col].isin(selected_departments)]
+    
+    # Overview metrics
+    st.subheader("📊 Departmental Overview")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric("Selected Departments", len(selected_departments))
+    
+    with col2:
+        total_physicians = len(dept_data)
+        st.metric("Total Physicians", f"{total_physicians:,}")
+    
+    with col3:
+        avg_dept_score = dept_data['Avg_Score'].mean()
+        st.metric("Average Behavior Score", f"{avg_dept_score:.2f}/5.0")
+    
+    with col4:
+        total_eval = dept_data['Num_Evaluations'].sum()
+        st.metric("Total Evaluations", f"{total_eval:,}")
+    
+    st.markdown("---")
+    
+    # Tabs for different analyses
+    tab1, tab2, tab3, tab4 = st.tabs(["📊 Comparison", "📈 Rankings", "💬 Sentiment", "🎯 Insights"])
+    
+    # Tab 1: Department Comparison
+    with tab1:
+        st.subheader("📊 Department Performance Comparison")
+        
+        # Group by department
+        dept_summary = dept_data.groupby(dept_col).agg({
+            'Avg_Score': ['mean', 'std', 'count'],
+            'Num_Evaluations': 'sum',
+            'Num_Evaluators': 'mean'
+        }).round(3)
+        
+        dept_summary.columns = ['_'.join(col).strip('_') for col in dept_summary.columns]
+        dept_summary = dept_summary.rename(columns={
+            'Avg_Score_mean': 'Avg_Score',
+            'Avg_Score_std': 'Score_StdDev',
+            'Avg_Score_count': 'Num_Physicians',
+            'Num_Evaluations': 'Total_Evaluations',
+            'Num_Evaluators': 'Avg_Evaluators'
+        })
+        dept_summary = dept_summary.reset_index()
+        dept_summary = dept_summary.sort_values('Avg_Score', ascending=False)
+        
+        # Bar chart comparison
+        fig = px.bar(
+            dept_summary,
+            x=dept_col,
+            y='Avg_Score',
+            color='Avg_Score',
+            title="Average Behavior Score by Department",
+            labels={'Avg_Score': 'Average Score'},
+            color_continuous_scale='RdYlGn',
+            text='Avg_Score'
+        )
+        fig.update_traces(texttemplate='%{text:.2f}', textposition='outside')
+        fig.update_layout(height=500)
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Department summary table
+        st.markdown("### 📋 Department Statistics")
+        st.dataframe(
+            dept_summary.style.format({
+                'Avg_Score': '{:.3f}',
+                'Score_StdDev': '{:.3f}',
+                'Num_Physicians': '{:.0f}',
+                'Total_Evaluations': '{:,.0f}',
+                'Avg_Evaluators': '{:.1f}'
+            }),
+            use_container_width=True,
+            hide_index=True
+        )
+        
+        # Box plot for distribution
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            fig = px.box(
+                dept_data,
+                x=dept_col,
+                y='Avg_Score',
+                title="Score Distribution by Department",
+                labels={'Avg_Score': 'Behavior Score'},
+                color=dept_col
+            )
+            fig.update_xaxis(tickangle=45)
+            st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            fig = px.violin(
+                dept_data,
+                x=dept_col,
+                y='Avg_Score',
+                title="Score Density by Department",
+                labels={'Avg_Score': 'Behavior Score'},
+                color=dept_col,
+                box=True
+            )
+            fig.update_xaxis(tickangle=45)
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Tab 2: Rankings
+    with tab2:
+        st.subheader("📈 Departmental Rankings")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("### 🏆 Top Performing Departments")
+            top_depts = dept_summary.nlargest(10, 'Avg_Score')
+            top_depts['Rank'] = range(1, len(top_depts) + 1)
+            display_cols = ['Rank', dept_col, 'Avg_Score', 'Num_Physicians', 'Total_Evaluations']
+            st.dataframe(
+                top_depts[display_cols].style.format({
+                    'Avg_Score': '{:.3f}',
+                    'Num_Physicians': '{:.0f}',
+                    'Total_Evaluations': '{:,.0f}'
+                }),
+                use_container_width=True,
+                hide_index=True
+            )
+        
+        with col2:
+            st.markdown("### ⚠️ Departments Needing Attention")
+            bottom_depts = dept_summary.nsmallest(10, 'Avg_Score')
+            bottom_depts['Rank'] = range(1, len(bottom_depts) + 1)
+            st.dataframe(
+                bottom_depts[display_cols].style.format({
+                    'Avg_Score': '{:.3f}',
+                    'Num_Physicians': '{:.0f}',
+                    'Total_Evaluations': '{:,.0f}'
+                }),
+                use_container_width=True,
+                hide_index=True
+            )
+        
+        # Score vs number of physicians scatter
+        st.markdown("---")
+        st.markdown("### 📊 Score vs Department Size")
+        
+        fig = px.scatter(
+            dept_summary,
+            x='Num_Physicians',
+            y='Avg_Score',
+            size='Total_Evaluations',
+            color='Avg_Score',
+            hover_name=dept_col,
+            title="Department Score vs Size",
+            labels={
+                'Num_Physicians': 'Number of Physicians',
+                'Avg_Score': 'Average Score',
+                'Total_Evaluations': 'Total Evaluations'
+            },
+            color_continuous_scale='RdYlGn'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Tab 3: Sentiment Analysis
+    with tab3:
+        st.subheader("💬 Comment Sentiment by Department")
+        
+        if 'Sentiment_Negative' in dept_data.columns:
+            # Aggregate sentiment by department
+            sentiment_dept = dept_data.groupby(dept_col).agg({
+                'Sentiment_Positive': 'sum',
+                'Sentiment_Neutral': 'sum',
+                'Sentiment_Negative': 'sum',
+                'Total_Comments': 'sum'
+            }).reset_index()
+            
+            # Melt for grouped bar chart
+            sentiment_melted = sentiment_dept.melt(
+                id_vars=[dept_col],
+                value_vars=['Sentiment_Positive', 'Sentiment_Neutral', 'Sentiment_Negative'],
+                var_name='Sentiment',
+                value_name='Count'
+            )
+            sentiment_melted['Sentiment'] = sentiment_melted['Sentiment'].str.replace('Sentiment_', '')
+            
+            # Grouped bar chart
+            fig = px.bar(
+                sentiment_melted,
+                x=dept_col,
+                y='Count',
+                color='Sentiment',
+                title="Comment Sentiment Distribution by Department",
+                labels={'Count': 'Number of Comments'},
+                color_discrete_map={'Positive': '#28a745', 'Neutral': '#ffc107', 'Negative': '#dc3545'},
+                barmode='group'
+            )
+            fig.update_xaxis(tickangle=45)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Calculate negative percentage
+            sentiment_dept['Negative_Pct'] = (
+                sentiment_dept['Sentiment_Negative'] / sentiment_dept['Total_Comments'] * 100
+            ).fillna(0)
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # Negative percentage by department
+                fig = px.bar(
+                    sentiment_dept.sort_values('Negative_Pct', ascending=False),
+                    x=dept_col,
+                    y='Negative_Pct',
+                    title="Negative Comment Percentage by Department",
+                    labels={'Negative_Pct': 'Negative %'},
+                    color='Negative_Pct',
+                    color_continuous_scale='Reds'
+                )
+                fig.update_xaxis(tickangle=45)
+                st.plotly_chart(fig, use_container_width=True)
+            
+            with col2:
+                # Total comments by department
+                fig = px.bar(
+                    sentiment_dept.sort_values('Total_Comments', ascending=False),
+                    x=dept_col,
+                    y='Total_Comments',
+                    title="Total Comments by Department",
+                    labels={'Total_Comments': 'Total Comments'},
+                    color='Total_Comments',
+                    color_continuous_scale='Blues'
+                )
+                fig.update_xaxis(tickangle=45)
+                st.plotly_chart(fig, use_container_width=True)
+    
+    # Tab 4: Insights
+    with tab4:
+        st.subheader("🎯 Key Insights & Recommendations")
+        
+        # Find best and worst departments
+        best_dept = dept_summary.iloc[0]
+        worst_dept = dept_summary.iloc[-1]
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("### 🌟 Best Performing Department")
+            st.markdown(f"""
+            <div class="success-box">
+                <h3>{best_dept[dept_col]}</h3>
+                <p><strong>Average Score:</strong> {best_dept['Avg_Score']:.3f}/5.0</p>
+                <p><strong>Physicians:</strong> {best_dept['Num_Physicians']:.0f}</p>
+                <p><strong>Evaluations:</strong> {best_dept['Total_Evaluations']:,.0f}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("### ⚠️ Department Needing Most Attention")
+            st.markdown(f"""
+            <div class="warning-box">
+                <h3>{worst_dept[dept_col]}</h3>
+                <p><strong>Average Score:</strong> {worst_dept['Avg_Score']:.3f}/5.0</p>
+                <p><strong>Physicians:</strong> {worst_dept['Num_Physicians']:.0f}</p>
+                <p><strong>Evaluations:</strong> {worst_dept['Total_Evaluations']:,.0f}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Variability analysis
+        st.markdown("---")
+        st.markdown("### 📊 Consistency Analysis")
+        
+        high_variability = dept_summary[dept_summary['Score_StdDev'] > dept_summary['Score_StdDev'].quantile(0.75)]
+        
+        if len(high_variability) > 0:
+            st.warning(f"⚠️ **{len(high_variability)} departments** show high score variability:")
+            for _, dept in high_variability.iterrows():
+                st.markdown(f"- **{dept[dept_col]}**: StdDev = {dept['Score_StdDev']:.3f}")
+            st.markdown("*High variability may indicate inconsistent performance or diverse physician populations*")
+        
+        # Recommendations
+        st.markdown("---")
+        st.markdown("### 💡 Recommendations")
+        
+        recommendations = []
+        
+        # Low score departments
+        low_score_depts = dept_summary[dept_summary['Avg_Score'] < dept_summary['Avg_Score'].quantile(0.25)]
+        if len(low_score_depts) > 0:
+            recommendations.append(f"🎯 **Priority Training**: {', '.join(low_score_depts[dept_col].tolist())} - scores below 25th percentile")
+        
+        # High negative sentiment
+        if 'Sentiment_Negative' in dept_data.columns:
+            high_neg = sentiment_dept[sentiment_dept['Negative_Pct'] > 20]
+            if len(high_neg) > 0:
+                recommendations.append(f"💬 **Address Feedback**: {', '.join(high_neg[dept_col].tolist())} - >20% negative comments")
+        
+        # High variability
+        if len(high_variability) > 0:
+            recommendations.append(f"📊 **Standardize Practices**: {', '.join(high_variability[dept_col].tolist())} - high performance variability")
+        
+        # Small sample size
+        small_sample = dept_summary[dept_summary['Total_Evaluations'] < dept_summary['Total_Evaluations'].quantile(0.25)]
+        if len(small_sample) > 0:
+            recommendations.append(f"📝 **Increase Evaluation Participation**: {', '.join(small_sample[dept_col].tolist())} - low evaluation counts")
+        
+        if recommendations:
+            for rec in recommendations:
+                st.markdown(rec)
+        else:
+            st.success("✅ All departments performing within acceptable ranges!")
+
+# Footer
+st.markdown("---")
+st.markdown("""
+<div style="text-align: center; color: gray; padding: 2rem;">
+    <p>AUBMC Physician Performance Dashboard | Data updated: 2025</p>
+    <p><em>For internal use only</em></p>
+</div>
+""", unsafe_allow_html=True)
