@@ -81,7 +81,7 @@ def load_data():
     
     # Load behavior survey statistics (from your analysis)
     try:
-        doctor_stats = pd.read_csv('Doctor_Statistics_2025.csv')
+        doctor_stats = pd.read_csv('Doctor_Statistics_2025 (1).csv')
         
         # Parse years from behavior survey if available
         # Assuming you have year information in the data
