@@ -93,18 +93,53 @@ def load_data():
     
     # Load behavior survey statistics
     try:
-        doctor_stats = pd.read_csv('Doctor_Statistics_2025 (1).csv')
+        doctor_stats = pd.read_csv('Doctor_Statistics_2025.csv')
     except FileNotFoundError:
         doctor_stats = None
     
-    # Try to load multi-year behavior data - PARQUET ONLY
+    # Try to load multi-year behavior data - SPLIT YEARLY FILES
     behavior_by_year = None
     has_multi_year = False
     
-    # Load from Parquet only (faster, smaller, preferred)
-    if os.path.exists('All_Departments_Long_Numeric.parquet'):
+    # Try to load split yearly files (All_Departments_2023.csv, All_Departments_2024.csv, etc.)
+    yearly_files = []
+    for year in range(2020, 2026):  # Check years 2020-2025
+        filename = f'All_Departments_{year}.csv'
+        if os.path.exists(filename):
+            yearly_files.append(filename)
+    
+    if len(yearly_files) > 0:
         try:
-            behavior_long = pd.read_parquet('All_Departments_Long_Numeric.parquet')
+            # Load and combine all yearly files
+            all_data = []
+            for filename in yearly_files:
+                df_year = pd.read_csv(filename)
+                all_data.append(df_year)
+            
+            behavior_long = pd.concat(all_data, ignore_index=True)
+            
+            # Parse dates if needed
+            if 'Fillout Date (mm/dd/yy)' in behavior_long.columns:
+                behavior_long['Fillout Date (mm/dd/yy)'] = pd.to_datetime(
+                    behavior_long['Fillout Date (mm/dd/yy)'], errors='coerce'
+                )
+                behavior_long['Year'] = behavior_long['Fillout Date (mm/dd/yy)'].dt.year
+            
+            # Aggregate by physician and year
+            behavior_by_year = behavior_long.groupby(['Subject ID', 'Year']).agg({
+                'Response': 'mean'
+            }).reset_index()
+            behavior_by_year.columns = ['Subject ID', 'Year', 'Avg_Score']
+            has_multi_year = len(yearly_files) > 1
+            
+        except Exception as e:
+            st.warning(f"⚠️ Error loading yearly files: {e}")
+            behavior_by_year = None
+    
+    # If no yearly files, try the original single file
+    if behavior_by_year is None and os.path.exists('All_Departments_Long_Numeric.csv'):
+        try:
+            behavior_long = pd.read_csv('All_Departments_Long_Numeric.csv')
             if 'Fillout Date (mm/dd/yy)' in behavior_long.columns:
                 behavior_long['Fillout Date (mm/dd/yy)'] = pd.to_datetime(
                     behavior_long['Fillout Date (mm/dd/yy)'], errors='coerce'
@@ -117,24 +152,13 @@ def load_data():
             behavior_by_year.columns = ['Subject ID', 'Year', 'Avg_Score']
             has_multi_year = True
         except Exception as e:
-            st.warning(f"⚠️ Error loading Parquet: {e}")
-            # Fall back to single-year stats
-            if doctor_stats is not None:
-                behavior_by_year = doctor_stats.copy()
-                behavior_by_year['Year'] = 2025
-                has_multi_year = False
-            else:
-                behavior_by_year = None
-                has_multi_year = False
-    else:
-        # Parquet file not found - use single-year stats
-        if doctor_stats is not None:
-            behavior_by_year = doctor_stats.copy()
-            behavior_by_year['Year'] = 2025
-            has_multi_year = False
-        else:
-            behavior_by_year = None
-            has_multi_year = False
+            st.warning(f"⚠️ Error loading CSV: {e}")
+    
+    # Final fallback: use single-year stats
+    if behavior_by_year is None and doctor_stats is not None:
+        behavior_by_year = doctor_stats.copy()
+        behavior_by_year['Year'] = 2025
+        has_multi_year = False
     
     return indicators, doctor_stats, behavior_by_year, has_multi_year
 
