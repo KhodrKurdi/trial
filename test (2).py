@@ -93,7 +93,7 @@ def load_data():
     
     # Load behavior survey statistics
     try:
-        doctor_stats = pd.read_csv('Doctor_Statistics_2025.csv')
+        doctor_stats = pd.read_csv('Doctor_Statistics_2025 (1).csv')
     except FileNotFoundError:
         doctor_stats = None
     
