@@ -93,15 +93,15 @@ def load_data():
     
     # Load behavior survey statistics
     try:
-        doctor_stats = pd.read_csv('Doctor_Statistics_2025 (1).csv')
+        doctor_stats = pd.read_csv('Doctor_Statistics_2025.csv')
     except FileNotFoundError:
         doctor_stats = None
     
-    # Try to load multi-year behavior data - PARQUET OR CSV
+    # Try to load multi-year behavior data - PARQUET ONLY
     behavior_by_year = None
     has_multi_year = False
     
-    # Try Parquet first (faster, smaller)
+    # Load from Parquet only (faster, smaller, preferred)
     if os.path.exists('All_Departments_Long_Numeric.parquet'):
         try:
             behavior_long = pd.read_parquet('All_Departments_Long_Numeric.parquet')
@@ -116,25 +116,9 @@ def load_data():
             }).reset_index()
             behavior_by_year.columns = ['Subject ID', 'Year', 'Avg_Score']
             has_multi_year = True
-        except Exception:
-            pass
-    
-    # Fall back to CSV if Parquet not available
-    if behavior_by_year is None:
-        try:
-            behavior_long = pd.read_csv('All_Departments_Long_Numeric.csv')
-            if 'Fillout Date (mm/dd/yy)' in behavior_long.columns:
-                behavior_long['Fillout Date (mm/dd/yy)'] = pd.to_datetime(
-                    behavior_long['Fillout Date (mm/dd/yy)'], errors='coerce'
-                )
-                behavior_long['Year'] = behavior_long['Fillout Date (mm/dd/yy)'].dt.year
-            
-            behavior_by_year = behavior_long.groupby(['Subject ID', 'Year']).agg({
-                'Response': 'mean'
-            }).reset_index()
-            behavior_by_year.columns = ['Subject ID', 'Year', 'Avg_Score']
-            has_multi_year = True
-        except FileNotFoundError:
+        except Exception as e:
+            st.warning(f"⚠️ Error loading Parquet: {e}")
+            # Fall back to single-year stats
             if doctor_stats is not None:
                 behavior_by_year = doctor_stats.copy()
                 behavior_by_year['Year'] = 2025
@@ -142,6 +126,15 @@ def load_data():
             else:
                 behavior_by_year = None
                 has_multi_year = False
+    else:
+        # Parquet file not found - use single-year stats
+        if doctor_stats is not None:
+            behavior_by_year = doctor_stats.copy()
+            behavior_by_year['Year'] = 2025
+            has_multi_year = False
+        else:
+            behavior_by_year = None
+            has_multi_year = False
     
     return indicators, doctor_stats, behavior_by_year, has_multi_year
 
