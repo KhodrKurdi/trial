@@ -758,7 +758,7 @@ elif mode == "🏥 Departmental Analysis":
                     color='Avg_Visits',
                     color_continuous_scale='Blues'
                 )
-                fig.update_xaxis(tickangle=45)
+                fig.update_layout(xaxis_tickangle=45)
                 st.plotly_chart(fig, use_container_width=True)
             
             with col2:
@@ -769,7 +769,7 @@ elif mode == "🏥 Departmental Analysis":
                     color='Avg_Wait',
                     color_continuous_scale='Reds_r'
                 )
-                fig.update_xaxis(tickangle=45)
+                fig.update_layout(xaxis_tickangle=45)
                 st.plotly_chart(fig, use_container_width=True)
             
             with col3:
@@ -780,7 +780,7 @@ elif mode == "🏥 Departmental Analysis":
                     color='Avg_Complaints',
                     color_continuous_scale='Oranges'
                 )
-                fig.update_xaxis(tickangle=45)
+                fig.update_layout(xaxis_tickangle=45)
                 st.plotly_chart(fig, use_container_width=True)
             
             # Table
@@ -815,7 +815,7 @@ elif mode == "🏥 Departmental Analysis":
                 text='Avg_Score'
             )
             fig.update_traces(texttemplate='%{text:.2f}', textposition='outside')
-            fig.update_xaxis(tickangle=45)
+            fig.update_layout(xaxis_tickangle=45)
             fig.update_layout(yaxis_range=[0, 5.5])
             st.plotly_chart(fig, use_container_width=True)
             
@@ -826,7 +826,7 @@ elif mode == "🏥 Departmental Analysis":
                 title="Score Distribution by Department",
                 color=dept_col
             )
-            fig.update_xaxis(tickangle=45)
+            fig.update_layout(xaxis_tickangle=45)
             st.plotly_chart(fig, use_container_width=True)
             
             # Table
