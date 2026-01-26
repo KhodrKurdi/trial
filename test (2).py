@@ -273,6 +273,91 @@ if mode == "🏠 Overview":
                 )
                 st.plotly_chart(fig, use_container_width=True)
         
+
+        # Add Funnel Plot in Overview
+        st.markdown("---")
+        st.subheader("🎯 Outlier Detection - Funnel Plot")
+        
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            # Calculate overall statistics
+            overall_mean = doctor_stats['Avg_Score'].mean()
+            overall_std = doctor_stats['Avg_Score'].std()
+            
+            # Create sample size range
+            min_evals = doctor_stats['Num_Evaluations'].min()
+            max_evals = doctor_stats['Num_Evaluations'].max()
+            sample_sizes = np.linspace(max(min_evals, 10), max_evals, 100)
+            
+            # Calculate control limits
+            se = overall_std / np.sqrt(sample_sizes)
+            upper_95 = overall_mean + 1.96 * se
+            lower_95 = overall_mean - 1.96 * se
+            
+            # Create plot
+            fig = go.Figure()
+            
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=upper_95,
+                name='95% Upper', line=dict(color='orange', dash='dot', width=2)
+            ))
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=[overall_mean]*len(sample_sizes),
+                name=f'Average ({overall_mean:.2f})', line=dict(color='blue', width=3)
+            ))
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=lower_95,
+                name='95% Lower', line=dict(color='orange', dash='dot', width=2)
+            ))
+            fig.add_trace(go.Scatter(
+                x=doctor_stats['Num_Evaluations'], y=doctor_stats['Avg_Score'],
+                mode='markers', name='Physicians',
+                marker=dict(size=8, color=doctor_stats['Avg_Score'], 
+                           colorscale='RdYlGn', showscale=True),
+                text=doctor_stats['Subject ID'],
+                hovertemplate='<b>%{text}</b><br>Score: %{y:.2f}<br>Evals: %{x}<extra></extra>'
+            ))
+            
+            fig.update_layout(
+                title="Physician Performance vs Sample Size",
+                xaxis_title="Number of Evaluations",
+                yaxis_title="Average Score",
+                height=450
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            st.markdown("### 📊 Interpretation")
+            st.markdown("""
+            **Funnel Plot shows:**
+            - Blue line = Average
+            - Orange lines = 95% limits
+            - Dots = Physicians
+            
+            **Outside orange lines:**
+            - Above = Exceptional ⭐
+            - Below = Needs attention ⚠️
+            
+            **Why funnel shape?**
+            Few evaluations → More variation OK
+            Many evaluations → Less variation expected
+            """)
+            
+            # Count outliers
+            outlier_count = 0
+            for idx, row in doctor_stats.iterrows():
+                n = row['Num_Evaluations']
+                if n >= 10:
+                    se_p = overall_std / np.sqrt(n)
+                    upper = overall_mean + 1.96 * se_p
+                    lower = overall_mean - 1.96 * se_p
+                    if row['Avg_Score'] > upper or row['Avg_Score'] < lower:
+                        outlier_count += 1
+            
+            st.metric("Statistical Outliers", outlier_count)
+            st.metric("% Outliers", f"{(outlier_count/len(doctor_stats)*100):.1f}%")
+
         # Top and bottom performers
         st.markdown("---")
         col1, col2 = st.columns(2)
@@ -718,11 +803,12 @@ elif mode == "🏥 Departmental Analysis":
     st.markdown("---")
     
     # TABS
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📊 Clinic Metrics",
         "⭐ Behavior Scores", 
         "📈 Rankings",
-        "🎯 Insights"
+        "🎯 Outlier Analysis",
+        "💡 Insights"
     ])
     
     # TAB 1: Clinic Metrics
@@ -855,8 +941,236 @@ elif mode == "🏥 Departmental Analysis":
                 bottom['Rank'] = range(1, len(bottom) + 1)
                 st.dataframe(bottom[['Rank', dept_col, 'Avg_Score']], hide_index=True)
     
-    # TAB 4: Insights
+    # TAB 4: Outlier Analysis (Funnel Plots)
     with tab4:
+        st.subheader("🎯 Outlier Analysis - Funnel Plots")
+        
+        st.markdown("""
+        Funnel plots help identify providers performing **significantly different** from the average, 
+        accounting for sample size. Points outside the control limits are statistical outliers.
+        """)
+        
+        if dept_data_stats is not None:
+            # Calculate overall statistics
+            overall_mean = dept_data_stats['Avg_Score'].mean()
+            overall_std = dept_data_stats['Avg_Score'].std()
+            
+            # Create sample size range for control limits
+            min_evals = dept_data_stats['Num_Evaluations'].min()
+            max_evals = dept_data_stats['Num_Evaluations'].max()
+            sample_sizes = np.linspace(max(min_evals, 10), max_evals, 100)
+            
+            # Calculate control limits (95% and 99.8% confidence intervals)
+            se = overall_std / np.sqrt(sample_sizes)
+            upper_95 = overall_mean + 1.96 * se
+            lower_95 = overall_mean - 1.96 * se
+            upper_99 = overall_mean + 3.09 * se
+            lower_99 = overall_mean - 3.09 * se
+            
+            # Create funnel plot
+            fig = go.Figure()
+            
+            # Add control limit lines
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=upper_99,
+                name='99.8% Upper Limit',
+                line=dict(color='red', dash='dash', width=2),
+                showlegend=True
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=upper_95,
+                name='95% Upper Limit',
+                line=dict(color='orange', dash='dot', width=2),
+                showlegend=True
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=[overall_mean]*len(sample_sizes),
+                name=f'Average ({overall_mean:.2f})',
+                line=dict(color='blue', width=3),
+                showlegend=True
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=lower_95,
+                name='95% Lower Limit',
+                line=dict(color='orange', dash='dot', width=2),
+                showlegend=True
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=lower_99,
+                name='99.8% Lower Limit',
+                line=dict(color='red', dash='dash', width=2),
+                showlegend=True
+            ))
+            
+            # Add actual physician data points
+            fig.add_trace(go.Scatter(
+                x=dept_data_stats['Num_Evaluations'],
+                y=dept_data_stats['Avg_Score'],
+                mode='markers',
+                name='Physicians',
+                marker=dict(
+                    size=10,
+                    color=dept_data_stats['Avg_Score'],
+                    colorscale='RdYlGn',
+                    showscale=True,
+                    colorbar=dict(title="Score"),
+                    line=dict(color='white', width=1)
+                ),
+                text=dept_data_stats['Subject ID'],
+                hovertemplate='<b>%{text}</b><br>Score: %{y:.2f}<br>Evaluations: %{x}<extra></extra>',
+                showlegend=True
+            ))
+            
+            fig.update_layout(
+                title="Funnel Plot: Physician Behavior Scores",
+                xaxis_title="Number of Evaluations",
+                yaxis_title="Average Behavior Score",
+                yaxis_range=[max(0, overall_mean - 4*overall_std), min(5, overall_mean + 4*overall_std)],
+                height=600,
+                hovermode='closest'
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Identify outliers
+            st.markdown("---")
+            st.markdown("### 🚨 Identified Outliers")
+            
+            # Calculate which physicians are outliers
+            outliers = []
+            for idx, row in dept_data_stats.iterrows():
+                n_evals = row['Num_Evaluations']
+                score = row['Avg_Score']
+                
+                if n_evals >= 10:  # Only check if sufficient sample size
+                    se_physician = overall_std / np.sqrt(n_evals)
+                    upper_95_physician = overall_mean + 1.96 * se_physician
+                    lower_95_physician = overall_mean - 1.96 * se_physician
+                    upper_99_physician = overall_mean + 3.09 * se_physician
+                    lower_99_physician = overall_mean - 3.09 * se_physician
+                    
+                    if score > upper_99_physician:
+                        outliers.append({
+                            'Physician': row['Subject ID'],
+                            'Score': score,
+                            'Evaluations': n_evals,
+                            'Status': '🌟 Exceptional (>99.8%)',
+                            'Type': 'High'
+                        })
+                    elif score > upper_95_physician:
+                        outliers.append({
+                            'Physician': row['Subject ID'],
+                            'Score': score,
+                            'Evaluations': n_evals,
+                            'Status': '✅ Above Average (>95%)',
+                            'Type': 'High'
+                        })
+                    elif score < lower_99_physician:
+                        outliers.append({
+                            'Physician': row['Subject ID'],
+                            'Score': score,
+                            'Evaluations': n_evals,
+                            'Status': '🚨 Critical (<99.8%)',
+                            'Type': 'Low'
+                        })
+                    elif score < lower_95_physician:
+                        outliers.append({
+                            'Physician': row['Subject ID'],
+                            'Score': score,
+                            'Evaluations': n_evals,
+                            'Status': '⚠️ Below Average (<95%)',
+                            'Type': 'Low'
+                        })
+            
+            if len(outliers) > 0:
+                outliers_df = pd.DataFrame(outliers)
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("#### 🚨 Need Attention (Below Limits)")
+                    low_outliers = outliers_df[outliers_df['Type'] == 'Low'].sort_values('Score')
+                    if len(low_outliers) > 0:
+                        st.dataframe(
+                            low_outliers[['Physician', 'Score', 'Evaluations', 'Status']],
+                            use_container_width=True,
+                            hide_index=True
+                        )
+                    else:
+                        st.success("✅ No physicians below control limits")
+                
+                with col2:
+                    st.markdown("#### 🌟 Exceptional Performance (Above Limits)")
+                    high_outliers = outliers_df[outliers_df['Type'] == 'High'].sort_values('Score', ascending=False)
+                    if len(high_outliers) > 0:
+                        st.dataframe(
+                            high_outliers[['Physician', 'Score', 'Evaluations', 'Status']],
+                            use_container_width=True,
+                            hide_index=True
+                        )
+                    else:
+                        st.info("ℹ️ No physicians above control limits")
+                
+                # Summary
+                st.markdown("---")
+                st.markdown("### 📊 Summary")
+                
+                total_physicians = len(dept_data_stats)
+                pct_outliers = (len(outliers) / total_physicians * 100) if total_physicians > 0 else 0
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total Physicians", total_physicians)
+                with col2:
+                    st.metric("Outliers Identified", len(outliers))
+                with col3:
+                    st.metric("% Outliers", f"{pct_outliers:.1f}%")
+                
+            else:
+                st.success("✅ All physicians performing within expected variation (no statistical outliers)")
+        
+        else:
+            st.info("ℹ️ No behavior score data available for outlier analysis")
+        
+        # Explanation
+        with st.expander("📖 How to Read Funnel Plots"):
+            st.markdown("""
+            **What are Funnel Plots?**
+            
+            Funnel plots help identify true outliers by accounting for sample size:
+            
+            - **Center Line (Blue)**: Average performance across all physicians
+            - **Inner Limits (Orange, dotted)**: 95% confidence interval
+            - **Outer Limits (Red, dashed)**: 99.8% confidence interval
+            - **Dots**: Individual physicians
+            
+            **Interpretation:**
+            
+            - **Inside the funnel**: Normal variation - performing as expected
+            - **Outside 95% limits**: Unusual - worth investigating
+            - **Outside 99.8% limits**: Very unusual - definitely investigate
+            
+            **Why the funnel shape?**
+            
+            - Physicians with **few evaluations** (left side): More variation is normal
+            - Physicians with **many evaluations** (right side): Less variation expected
+            
+            **Action Items:**
+            
+            - 🚨 **Below lower limit**: May need support, training, or investigation
+            - 🌟 **Above upper limit**: Exceptional performance - learn from them!
+            - ✅ **Inside limits**: Performing normally - no action needed
+            
+            **Note:** Being an outlier doesn't automatically mean good or bad - it means statistically different 
+            and worth investigating to understand why.
+            """)
+    
+    # TAB 5: Insights
+    with tab5:
         st.subheader("🎯 Key Insights")
         
         # Best and worst
