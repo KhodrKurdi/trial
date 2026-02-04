@@ -634,7 +634,20 @@ elif mode == "👤 Individual Physician":
     with tab1:
         st.subheader("📈 Behavior Score Trend Over Time")
         
-        if phys_behavior_all is not None and len(phys_behavior_all) > 1 and has_multi_year:
+        # Diagnostic info - show what data exists
+        if phys_behavior_all is not None and len(phys_behavior_all) > 0:
+            years_for_physician = sorted(phys_behavior_all['Year'].unique())
+            with st.expander("🔍 Data Availability for This Physician"):
+                st.write(f"**Years with data:** {', '.join(map(str, [int(y) for y in years_for_physician]))}")
+                st.write(f"**Total records:** {len(phys_behavior_all)}")
+                st.dataframe(phys_behavior_all[['Year', 'Avg_Score']].sort_values('Year'), hide_index=True)
+        
+        # Check if THIS physician has multiple years (not just if system has multi-year data)
+        physician_has_multi_year = (phys_behavior_all is not None and 
+                                    len(phys_behavior_all) > 1 and 
+                                    phys_behavior_all['Year'].nunique() > 1)
+        
+        if physician_has_multi_year:
             phys_behavior_sorted = phys_behavior_all.sort_values('Year')
             
             fig = go.Figure()
@@ -684,7 +697,23 @@ elif mode == "👤 Individual Physician":
                 
                 st.dataframe(pd.DataFrame(yoy_data), use_container_width=True, hide_index=True)
         else:
-            st.info("ℹ️ Only one year of data available. Upload multi-year data files (All_Departments_YYYY.csv) to see trends.")
+            # Debug info
+            debug_info = []
+            if phys_behavior_all is None:
+                debug_info.append("No behavior data found for this physician")
+            elif len(phys_behavior_all) == 0:
+                debug_info.append("Physician has no evaluation data")
+            elif len(phys_behavior_all) == 1:
+                year = int(phys_behavior_all.iloc[0]['Year'])
+                debug_info.append(f"Physician only has data for {year}")
+            elif phys_behavior_all['Year'].nunique() == 1:
+                year = int(phys_behavior_all['Year'].iloc[0])
+                debug_info.append(f"All {len(phys_behavior_all)} records are from {year}")
+            
+            if has_multi_year and len(debug_info) > 0:
+                st.info(f"ℹ️ {debug_info[0]}. System has multi-year data, but this physician needs evaluations in multiple years to show trends.")
+            else:
+                st.info("ℹ️ Only one year of data available. Upload multi-year data files (All_Departments_YYYY.csv) to see trends.")
             
             # Enhanced single-year display
             if phys_stats is not None:
