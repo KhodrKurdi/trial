@@ -183,6 +183,21 @@ mode = st.sidebar.radio(
 
 st.sidebar.markdown("---")
 
+# Data status
+st.sidebar.markdown("### 📁 Data Status")
+if has_multi_year:
+    st.sidebar.success(f"✅ Multi-year data loaded")
+else:
+    st.sidebar.warning("⚠️ Single year only")
+    st.sidebar.info("💡 To enable trends, add files:\n- All_Departments_2023.csv\n- All_Departments_2024.csv\n- All_Departments_2025.csv")
+
+if doctor_stats is not None:
+    st.sidebar.metric("Physicians", len(doctor_stats))
+
+if behavior_by_year is not None:
+    years_available = sorted(behavior_by_year['Year'].unique())
+    st.sidebar.write(f"📅 Years: {', '.join(map(str, [int(y) for y in years_available]))}")
+
 # ===========================================================================
 # OVERVIEW MODE
 # ===========================================================================
@@ -283,17 +298,24 @@ if mode == "🏠 Overview":
         with col1:
             # Calculate overall statistics
             overall_mean = doctor_stats['Avg_Score'].mean()
-            overall_std = doctor_stats['Avg_Score'].std()
+            
+            # Use proper variance for funnel plots
+            between_physician_var = doctor_stats['Avg_Score'].var()
+            p = overall_mean / 5.0  # Convert to proportion
+            
+            # Overdispersion
+            tau_squared = max(0, between_physician_var - (p * (1-p) / doctor_stats['Num_Evaluations'].mean()))
             
             # Create sample size range
             min_evals = doctor_stats['Num_Evaluations'].min()
             max_evals = doctor_stats['Num_Evaluations'].max()
             sample_sizes = np.linspace(max(min_evals, 10), max_evals, 100)
             
-            # Calculate control limits
-            se = overall_std / np.sqrt(sample_sizes)
-            upper_95 = overall_mean + 1.96 * se
-            lower_95 = overall_mean - 1.96 * se
+            # Calculate control limits with proper variance
+            variance = (p * (1-p) / sample_sizes + tau_squared) * 25
+            se = np.sqrt(variance)
+            upper_95 = np.minimum(overall_mean + 1.96 * se, 5.0)
+            lower_95 = np.maximum(overall_mean - 1.96 * se, 0.0)
             
             # Create plot
             fig = go.Figure()
@@ -344,14 +366,15 @@ if mode == "🏠 Overview":
             Many evaluations → Less variation expected
             """)
             
-            # Count outliers
+            # Count outliers using proper variance
             outlier_count = 0
             for idx, row in doctor_stats.iterrows():
                 n = row['Num_Evaluations']
                 if n >= 10:
-                    se_p = overall_std / np.sqrt(n)
-                    upper = overall_mean + 1.96 * se_p
-                    lower = overall_mean - 1.96 * se_p
+                    variance_p = (p * (1-p) / n + tau_squared) * 25
+                    se_p = np.sqrt(variance_p)
+                    upper = min(overall_mean + 1.96 * se_p, 5.0)
+                    lower = max(overall_mean - 1.96 * se_p, 0.0)
                     if row['Avg_Score'] > upper or row['Avg_Score'] < lower:
                         outlier_count += 1
             
@@ -527,16 +550,19 @@ elif mode == "👤 Individual Physician":
     with tab1:
         st.subheader("📈 Behavior Score Trend Over Time")
         
-        if phys_behavior_all is not None and len(phys_behavior_all) > 1:
+        if phys_behavior_all is not None and len(phys_behavior_all) > 1 and has_multi_year:
+            # Sort by year
+            phys_behavior_sorted = phys_behavior_all.sort_values('Year')
+            
             fig = go.Figure()
             
             fig.add_trace(go.Scatter(
-                x=phys_behavior_all['Year'],
-                y=phys_behavior_all['Avg_Score'],
+                x=phys_behavior_sorted['Year'],
+                y=phys_behavior_sorted['Avg_Score'],
                 mode='lines+markers',
                 line=dict(color='#667eea', width=3),
                 marker=dict(size=12),
-                text=[f"{score:.2f}" for score in phys_behavior_all['Avg_Score']],
+                text=[f"{score:.2f}" for score in phys_behavior_sorted['Avg_Score']],
                 textposition='top center'
             ))
             
@@ -547,12 +573,47 @@ elif mode == "👤 Individual Physician":
                 xaxis_title="Year",
                 yaxis_title="Average Score",
                 yaxis_range=[0, 5.5],
-                height=400
+                height=400,
+                xaxis=dict(dtick=1)  # Show every year
             )
             
             st.plotly_chart(fig, use_container_width=True)
+            
+            # Show year-over-year changes
+            if len(phys_behavior_sorted) > 1:
+                st.markdown("### 📊 Year-over-Year Changes")
+                
+                yoy_data = []
+                for i in range(1, len(phys_behavior_sorted)):
+                    prev_row = phys_behavior_sorted.iloc[i-1]
+                    curr_row = phys_behavior_sorted.iloc[i]
+                    
+                    change = curr_row['Avg_Score'] - prev_row['Avg_Score']
+                    pct_change = (change / prev_row['Avg_Score']) * 100
+                    
+                    yoy_data.append({
+                        'Period': f"{int(prev_row['Year'])} → {int(curr_row['Year'])}",
+                        'Previous': f"{prev_row['Avg_Score']:.2f}",
+                        'Current': f"{curr_row['Avg_Score']:.2f}",
+                        'Change': f"{change:+.2f}",
+                        'Change %': f"{pct_change:+.1f}%"
+                    })
+                
+                st.dataframe(pd.DataFrame(yoy_data), use_container_width=True, hide_index=True)
         else:
-            st.info("ℹ️ Only one year of data available")
+            st.info("ℹ️ Only one year of data available. Upload multi-year data files (All_Departments_YYYY.csv) to see trends.")
+            
+            # Show single year data
+            if phys_stats is not None:
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Current Score", f"{phys_stats['Avg_Score']:.2f}")
+                with col2:
+                    st.metric("Evaluations", f"{phys_stats.get('Num_Evaluations', 0):,.0f}")
+                with col3:
+                    if doctor_stats is not None:
+                        percentile = (doctor_stats['Avg_Score'] < phys_stats['Avg_Score']).sum() / len(doctor_stats) * 100
+                        st.metric("Percentile", f"{percentile:.0f}th")
     
     # TAB 2: Performance Metrics
     with tab2:
@@ -953,19 +1014,39 @@ elif mode == "🏥 Departmental Analysis":
         if dept_data_stats is not None:
             # Calculate overall statistics
             overall_mean = dept_data_stats['Avg_Score'].mean()
-            overall_std = dept_data_stats['Avg_Score'].std()
+            
+            # For funnel plots with rates/averages, use variance between physicians
+            # NOT the within-physician variance
+            between_physician_var = dept_data_stats['Avg_Score'].var()
+            
+            # Check if there's overdispersion (variance > expected)
+            # Expected variance for a proportion/rate
+            p = overall_mean / 5.0  # Convert to proportion (0-1 scale)
+            
+            # Overdispersion factor - accounts for extra variability
+            tau_squared = max(0, between_physician_var - (p * (1-p) / dept_data_stats['Num_Evaluations'].mean()))
             
             # Create sample size range for control limits
             min_evals = dept_data_stats['Num_Evaluations'].min()
             max_evals = dept_data_stats['Num_Evaluations'].max()
             sample_sizes = np.linspace(max(min_evals, 10), max_evals, 100)
             
-            # Calculate control limits (95% and 99.8% confidence intervals)
-            se = overall_std / np.sqrt(sample_sizes)
+            # Calculate control limits using proper variance formula
+            # Variance = p(1-p)/n + tau_squared (overdispersion)
+            # But we're working with 0-5 scale, so scale back up
+            variance = (p * (1-p) / sample_sizes + tau_squared) * 25  # Scale to 0-5 range
+            se = np.sqrt(variance)
+            
             upper_95 = overall_mean + 1.96 * se
             lower_95 = overall_mean - 1.96 * se
             upper_99 = overall_mean + 3.09 * se
             lower_99 = overall_mean - 3.09 * se
+            
+            # Clip to valid range (0-5)
+            upper_95 = np.minimum(upper_95, 5.0)
+            lower_95 = np.maximum(lower_95, 0.0)
+            upper_99 = np.minimum(upper_99, 5.0)
+            lower_99 = np.maximum(lower_99, 0.0)
             
             # Create funnel plot
             fig = go.Figure()
@@ -1042,16 +1123,27 @@ elif mode == "🏥 Departmental Analysis":
             
             # Calculate which physicians are outliers
             outliers = []
+            
+            # Calculate proper variance for each physician
             for idx, row in dept_data_stats.iterrows():
                 n_evals = row['Num_Evaluations']
                 score = row['Avg_Score']
                 
                 if n_evals >= 10:  # Only check if sufficient sample size
-                    se_physician = overall_std / np.sqrt(n_evals)
+                    # Use the same variance formula as the funnel plot
+                    variance_physician = (p * (1-p) / n_evals + tau_squared) * 25
+                    se_physician = np.sqrt(variance_physician)
+                    
                     upper_95_physician = overall_mean + 1.96 * se_physician
                     lower_95_physician = overall_mean - 1.96 * se_physician
                     upper_99_physician = overall_mean + 3.09 * se_physician
                     lower_99_physician = overall_mean - 3.09 * se_physician
+                    
+                    # Clip to valid range
+                    upper_95_physician = min(upper_95_physician, 5.0)
+                    lower_95_physician = max(lower_95_physician, 0.0)
+                    upper_99_physician = min(upper_99_physician, 5.0)
+                    lower_99_physician = max(lower_99_physician, 0.0)
                     
                     if score > upper_99_physician:
                         outliers.append({
