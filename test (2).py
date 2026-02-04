@@ -227,13 +227,6 @@ if has_multi_year:
     st.sidebar.write(f"📅 **Years:** {', '.join(map(str, [int(y) for y in years_available]))}")
 else:
     st.sidebar.warning("⚠️ Single year only")
-    with st.sidebar.expander("💡 Enable Trends"):
-        st.write("**To enable trends, add these files:**")
-        st.code("""All_Departments_2023.csv
-All_Departments_2024.csv
-All_Departments_2025.csv""")
-        st.write("**How to create them:**")
-        st.code("python split_by_year.py")
 
 # Data sources status
 st.sidebar.markdown("---")
