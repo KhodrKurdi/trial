@@ -15,7 +15,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS - Enhanced
+# Custom CSS
 st.markdown("""
 <style>
     .main-header {
@@ -25,9 +25,6 @@ st.markdown("""
         text-align: center;
         padding: 1rem;
         margin-bottom: 2rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
     }
     .metric-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -36,11 +33,6 @@ st.markdown("""
         color: white;
         text-align: center;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        transition: transform 0.2s;
-    }
-    .metric-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     }
     .metric-value {
         font-size: 2.5rem;
@@ -82,52 +74,32 @@ st.markdown("""
         border-left: 4px solid #28a745;
         margin: 1rem 0;
     }
-    .stButton>button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 5px;
-        padding: 0.5rem 2rem;
-    }
-    .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
 </style>
 """, unsafe_allow_html=True)
 
-# Load data function - Enhanced with better error handling
-@st.cache_data(ttl=3600)  # Cache for 1 hour
+# Load data function
+@st.cache_data
 def load_data():
-    """Load all datasets with enhanced error handling."""
-    
-    errors = []
+    """Load all datasets."""
     
     # Load physician indicators
-    indicators = None
     try:
         indicators = pd.read_csv('Physicians_Indicators_Anonymized.csv')
         indicators['Year'] = indicators['FiscalCycle'].str.extract(r'(\d{4})-\d{4}').astype(float)
         indicators['ContractEffectiveDate'] = pd.to_datetime(indicators['ContractEffectiveDate'], errors='coerce')
         indicators['Years_of_Service'] = (datetime.now() - indicators['ContractEffectiveDate']).dt.days / 365.25
     except FileNotFoundError:
-        errors.append("Physicians_Indicators_Anonymized.csv not found")
-    except Exception as e:
-        errors.append(f"Error loading indicators: {str(e)}")
+        indicators = None
     
     # Load behavior survey statistics
-    doctor_stats = None
     try:
         doctor_stats = pd.read_csv('Doctor_Statistics_2025 (1).csv')
     except FileNotFoundError:
-        errors.append("Doctor_Statistics_2025 (1).csv not found")
-    except Exception as e:
-        errors.append(f"Error loading stats: {str(e)}")
+        doctor_stats = None
     
-    # Try to load multi-year behavior data
+    # Try to load multi-year behavior data - SPLIT YEARLY FILES
     behavior_by_year = None
     has_multi_year = False
-    yearly_files_found = []
     
     # Try to load split yearly files
     yearly_files = []
@@ -135,7 +107,6 @@ def load_data():
         filename = f'All_Departments_{year}.csv'
         if os.path.exists(filename):
             yearly_files.append(filename)
-            yearly_files_found.append(year)
     
     if len(yearly_files) > 0:
         try:
@@ -160,7 +131,7 @@ def load_data():
             has_multi_year = len(yearly_files) > 1
             
         except Exception as e:
-            errors.append(f"Error loading yearly files: {str(e)}")
+            st.warning(f"Error loading yearly files: {e}")
             behavior_by_year = None
     
     # Fallback to single file
@@ -180,7 +151,7 @@ def load_data():
                 behavior_by_year.columns = ['Subject ID', 'Year', 'Avg_Score']
                 has_multi_year = True
             except Exception as e:
-                errors.append(f"Error loading CSV: {str(e)}")
+                st.warning(f"Error loading CSV: {e}")
                 behavior_by_year = None
     
     # Final fallback
@@ -189,17 +160,11 @@ def load_data():
         behavior_by_year['Year'] = 2025
         has_multi_year = False
     
-    return indicators, doctor_stats, behavior_by_year, has_multi_year, errors, yearly_files_found
+    return indicators, doctor_stats, behavior_by_year, has_multi_year
 
 # Load data
-with st.spinner('🔄 Loading data...'):
-    indicators, doctor_stats, behavior_by_year, has_multi_year, errors, yearly_files_found = load_data()
-
-# Show any loading errors in sidebar
-if errors:
-    with st.sidebar.expander("⚠️ Loading Warnings", expanded=False):
-        for error in errors:
-            st.warning(error)
+with st.spinner('Loading data...'):
+    indicators, doctor_stats, behavior_by_year, has_multi_year = load_data()
 
 if doctor_stats is None and behavior_by_year is None:
     st.error("❌ No behavior survey data found. Please run your analysis notebook first.")
@@ -217,67 +182,6 @@ mode = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-
-# Enhanced Data Status Section
-st.sidebar.markdown("### 📁 Data Status")
-
-if has_multi_year:
-    st.sidebar.success("✅ Multi-year trends enabled")
-    years_available = sorted(behavior_by_year['Year'].unique())
-    st.sidebar.write(f"📅 **Years:** {', '.join(map(str, [int(y) for y in years_available]))}")
-else:
-    st.sidebar.warning("⚠️ Single year only")
-
-# Data sources status
-st.sidebar.markdown("---")
-st.sidebar.markdown("**📊 Data Sources:**")
-
-if doctor_stats is not None:
-    st.sidebar.success(f"✅ Behavior Stats ({len(doctor_stats)} physicians)")
-else:
-    st.sidebar.error("❌ Behavior Stats missing")
-
-if indicators is not None:
-    st.sidebar.success(f"✅ Clinical Metrics")
-else:
-    st.sidebar.warning("⚠️ Clinical Metrics missing")
-
-if behavior_by_year is not None:
-    st.sidebar.success(f"✅ Trend Data")
-else:
-    st.sidebar.warning("⚠️ Trend Data missing")
-
-# Quick stats
-if doctor_stats is not None:
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("**📈 Quick Stats:**")
-    st.sidebar.metric("Physicians", len(doctor_stats))
-    st.sidebar.metric("Avg Score", f"{doctor_stats['Avg_Score'].mean():.2f}")
-    st.sidebar.metric("Total Evaluations", f"{doctor_stats['Num_Evaluations'].sum():,}")
-
-# Help section
-st.sidebar.markdown("---")
-with st.sidebar.expander("❓ Need Help?"):
-    st.markdown("""
-    **Common Issues:**
-    
-    1️⃣ **No trends showing?**
-    - Run `split_by_year.py`
-    - Restart dashboard
-    
-    2️⃣ **Missing data?**
-    - Check file names match exactly
-    - Verify columns exist
-    
-    3️⃣ **Slow performance?**
-    - Use yearly split files
-    - Reduce data size
-    
-    4️⃣ **Export data?**
-    - Use download buttons in tables
-    
-    📖 **Full Guide:** README_DASHBOARD.md
-    """)
 
 # ===========================================================================
 # OVERVIEW MODE
@@ -346,8 +250,7 @@ if mode == "🏠 Overview":
                 title="Distribution of Physician Behavior Scores",
                 color_discrete_sequence=['#667eea']
             )
-            fig.add_vline(x=avg_score, line_dash="dash", line_color="red", 
-                         annotation_text=f"Avg: {avg_score:.2f}")
+            fig.add_vline(x=avg_score, line_dash="dash", line_color="red")
             st.plotly_chart(fig, use_container_width=True)
         
         with col2:
@@ -366,35 +269,38 @@ if mode == "🏠 Overview":
                     values='Count', 
                     names='Sentiment',
                     color='Sentiment',
-                    color_discrete_map={'Positive': '#28a745', 'Neutral': '#ffc107', 'Negative': '#dc3545'},
-                    hole=0.4
+                    color_discrete_map={'Positive': '#28a745', 'Neutral': '#ffc107', 'Negative': '#dc3545'}
                 )
                 st.plotly_chart(fig, use_container_width=True)
         
-        # Funnel Plot
+
+        # Add Funnel Plot in Overview
         st.markdown("---")
         st.subheader("🎯 Outlier Detection - Funnel Plot")
         
         col1, col2 = st.columns([2, 1])
         
         with col1:
+            # Calculate overall statistics
             overall_mean = doctor_stats['Avg_Score'].mean()
             overall_std = doctor_stats['Avg_Score'].std()
             
+            # Create sample size range
             min_evals = doctor_stats['Num_Evaluations'].min()
             max_evals = doctor_stats['Num_Evaluations'].max()
             sample_sizes = np.linspace(max(min_evals, 10), max_evals, 100)
             
+            # Calculate control limits
             se = overall_std / np.sqrt(sample_sizes)
             upper_95 = overall_mean + 1.96 * se
             lower_95 = overall_mean - 1.96 * se
             
+            # Create plot
             fig = go.Figure()
             
             fig.add_trace(go.Scatter(
                 x=sample_sizes, y=upper_95,
-                name='95% Upper', line=dict(color='orange', dash='dot', width=2),
-                fill=None
+                name='95% Upper', line=dict(color='orange', dash='dot', width=2)
             ))
             fig.add_trace(go.Scatter(
                 x=sample_sizes, y=[overall_mean]*len(sample_sizes),
@@ -402,15 +308,13 @@ if mode == "🏠 Overview":
             ))
             fig.add_trace(go.Scatter(
                 x=sample_sizes, y=lower_95,
-                name='95% Lower', line=dict(color='orange', dash='dot', width=2),
-                fill='tonexty', fillcolor='rgba(255, 165, 0, 0.1)'
+                name='95% Lower', line=dict(color='orange', dash='dot', width=2)
             ))
             fig.add_trace(go.Scatter(
                 x=doctor_stats['Num_Evaluations'], y=doctor_stats['Avg_Score'],
                 mode='markers', name='Physicians',
                 marker=dict(size=8, color=doctor_stats['Avg_Score'], 
-                           colorscale='RdYlGn', showscale=True,
-                           colorbar=dict(title="Score")),
+                           colorscale='RdYlGn', showscale=True),
                 text=doctor_stats['Subject ID'],
                 hovertemplate='<b>%{text}</b><br>Score: %{y:.2f}<br>Evals: %{x}<extra></extra>'
             ))
@@ -419,8 +323,7 @@ if mode == "🏠 Overview":
                 title="Physician Performance vs Sample Size",
                 xaxis_title="Number of Evaluations",
                 yaxis_title="Average Score",
-                height=450,
-                hovermode='closest'
+                height=450
             )
             st.plotly_chart(fig, use_container_width=True)
         
@@ -428,17 +331,17 @@ if mode == "🏠 Overview":
             st.markdown("### 📊 Interpretation")
             st.markdown("""
             **Funnel Plot shows:**
-            - 🔵 Blue line = Average
-            - 🟠 Orange lines = 95% limits
-            - 🔴 Dots = Physicians
+            - Blue line = Average
+            - Orange lines = 95% limits
+            - Dots = Physicians
             
             **Outside orange lines:**
             - Above = Exceptional ⭐
             - Below = Needs attention ⚠️
             
             **Why funnel shape?**
-            - Few evaluations → More variation OK
-            - Many evaluations → Less variation expected
+            Few evaluations → More variation OK
+            Many evaluations → Less variation expected
             """)
             
             # Count outliers
@@ -454,7 +357,7 @@ if mode == "🏠 Overview":
             
             st.metric("Statistical Outliers", outlier_count)
             st.metric("% Outliers", f"{(outlier_count/len(doctor_stats)*100):.1f}%")
-        
+
         # Top and bottom performers
         st.markdown("---")
         col1, col2 = st.columns(2)
@@ -493,11 +396,8 @@ elif mode == "👤 Individual Physician":
     # Get data for selected physician
     if behavior_by_year is not None:
         phys_behavior_all = behavior_by_year[behavior_by_year['Subject ID'] == selected_physician]
-        if len(phys_behavior_all) > 0:
-            latest_year = phys_behavior_all['Year'].max()
-            phys_behavior_latest = phys_behavior_all[phys_behavior_all['Year'] == latest_year].iloc[0]
-        else:
-            phys_behavior_latest = None
+        latest_year = phys_behavior_all['Year'].max()
+        phys_behavior_latest = phys_behavior_all[phys_behavior_all['Year'] == latest_year].iloc[0]
     else:
         phys_behavior_all = None
         phys_behavior_latest = None
@@ -623,35 +523,20 @@ elif mode == "👤 Individual Physician":
         "🎯 Summary"
     ])
     
-    # TAB 1: Score Trends - ENHANCED
+    # TAB 1: Score Trends
     with tab1:
         st.subheader("📈 Behavior Score Trend Over Time")
         
-        # Diagnostic info - show what data exists
-        if phys_behavior_all is not None and len(phys_behavior_all) > 0:
-            years_for_physician = sorted(phys_behavior_all['Year'].unique())
-            with st.expander("🔍 Data Availability for This Physician"):
-                st.write(f"**Years with data:** {', '.join(map(str, [int(y) for y in years_for_physician]))}")
-                st.write(f"**Total records:** {len(phys_behavior_all)}")
-                st.dataframe(phys_behavior_all[['Year', 'Avg_Score']].sort_values('Year'), hide_index=True)
-        
-        # Check if THIS physician has multiple years (not just if system has multi-year data)
-        physician_has_multi_year = (phys_behavior_all is not None and 
-                                    len(phys_behavior_all) > 1 and 
-                                    phys_behavior_all['Year'].nunique() > 1)
-        
-        if physician_has_multi_year:
-            phys_behavior_sorted = phys_behavior_all.sort_values('Year')
-            
+        if phys_behavior_all is not None and len(phys_behavior_all) > 1:
             fig = go.Figure()
             
             fig.add_trace(go.Scatter(
-                x=phys_behavior_sorted['Year'],
-                y=phys_behavior_sorted['Avg_Score'],
+                x=phys_behavior_all['Year'],
+                y=phys_behavior_all['Avg_Score'],
                 mode='lines+markers',
                 line=dict(color='#667eea', width=3),
                 marker=dict(size=12),
-                text=[f"{score:.2f}" for score in phys_behavior_sorted['Avg_Score']],
+                text=[f"{score:.2f}" for score in phys_behavior_all['Avg_Score']],
                 textposition='top center'
             ))
             
@@ -662,101 +547,12 @@ elif mode == "👤 Individual Physician":
                 xaxis_title="Year",
                 yaxis_title="Average Score",
                 yaxis_range=[0, 5.5],
-                height=400,
-                xaxis=dict(dtick=1)
+                height=400
             )
             
             st.plotly_chart(fig, use_container_width=True)
-            
-            # YoY changes table
-            if len(phys_behavior_sorted) > 1:
-                st.markdown("### 📊 Year-over-Year Changes")
-                
-                yoy_data = []
-                for i in range(1, len(phys_behavior_sorted)):
-                    prev_row = phys_behavior_sorted.iloc[i-1]
-                    curr_row = phys_behavior_sorted.iloc[i]
-                    
-                    change = curr_row['Avg_Score'] - prev_row['Avg_Score']
-                    pct_change = (change / prev_row['Avg_Score']) * 100
-                    
-                    yoy_data.append({
-                        'Period': f"{int(prev_row['Year'])} → {int(curr_row['Year'])}",
-                        'Previous': f"{prev_row['Avg_Score']:.2f}",
-                        'Current': f"{curr_row['Avg_Score']:.2f}",
-                        'Change': f"{change:+.2f}",
-                        'Change %': f"{pct_change:+.1f}%"
-                    })
-                
-                st.dataframe(pd.DataFrame(yoy_data), use_container_width=True, hide_index=True)
         else:
-            # Debug info
-            debug_info = []
-            if phys_behavior_all is None:
-                debug_info.append("No behavior data found for this physician")
-            elif len(phys_behavior_all) == 0:
-                debug_info.append("Physician has no evaluation data")
-            elif len(phys_behavior_all) == 1:
-                year = int(phys_behavior_all.iloc[0]['Year'])
-                debug_info.append(f"Physician only has data for {year}")
-            elif phys_behavior_all['Year'].nunique() == 1:
-                year = int(phys_behavior_all['Year'].iloc[0])
-                debug_info.append(f"All {len(phys_behavior_all)} records are from {year}")
-            
-            if has_multi_year and len(debug_info) > 0:
-                st.info(f"ℹ️ {debug_info[0]}. System has multi-year data, but this physician needs evaluations in multiple years to show trends.")
-            else:
-                st.info("ℹ️ Only one year of data available. Upload multi-year data files (All_Departments_YYYY.csv) to see trends.")
-            
-            # Enhanced single-year display
-            if phys_stats is not None:
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    score = phys_stats['Avg_Score']
-                    color = "#28a745" if score >= 4.5 else "#ffc107" if score >= 4.0 else "#dc3545"
-                    st.markdown(f"""
-                    <div style="background: {color}; padding: 2rem; border-radius: 10px; text-align: center; color: white;">
-                        <div style="font-size: 1rem; opacity: 0.9;">Current Score</div>
-                        <div style="font-size: 3rem; font-weight: bold; margin: 1rem 0;">{score:.2f}</div>
-                        <div style="font-size: 0.9rem; opacity: 0.8;">out of 5.0</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col2:
-                    evals = phys_stats.get('Num_Evaluations', 0)
-                    st.markdown(f"""
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 10px; text-align: center; color: white;">
-                        <div style="font-size: 1rem; opacity: 0.9;">Evaluations</div>
-                        <div style="font-size: 3rem; font-weight: bold; margin: 1rem 0;">{evals:,}</div>
-                        <div style="font-size: 0.9rem; opacity: 0.8;">total responses</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col3:
-                    if doctor_stats is not None:
-                        percentile = (doctor_stats['Avg_Score'] < phys_stats['Avg_Score']).sum() / len(doctor_stats) * 100
-                        percentile_color = "#28a745" if percentile >= 75 else "#ffc107" if percentile >= 50 else "#dc3545"
-                        st.markdown(f"""
-                        <div style="background: {percentile_color}; padding: 2rem; border-radius: 10px; text-align: center; color: white;">
-                            <div style="font-size: 1rem; opacity: 0.9;">Percentile</div>
-                            <div style="font-size: 3rem; font-weight: bold; margin: 1rem 0;">{percentile:.0f}th</div>
-                            <div style="font-size: 0.9rem; opacity: 0.8;">vs all physicians</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                
-                # Comparison
-                st.markdown("---")
-                if doctor_stats is not None:
-                    overall_avg = doctor_stats['Avg_Score'].mean()
-                    diff = phys_stats['Avg_Score'] - overall_avg
-                    
-                    if abs(diff) < 0.05:
-                        st.info(f"📊 Score is **at average** (hospital average: {overall_avg:.2f})")
-                    elif diff > 0:
-                        st.success(f"✅ Score is **{diff:.2f} points above average** (hospital average: {overall_avg:.2f})")
-                    else:
-                        st.warning(f"⚠️ Score is **{abs(diff):.2f} points below average** (hospital average: {overall_avg:.2f})")
+            st.info("ℹ️ Only one year of data available")
     
     # TAB 2: Performance Metrics
     with tab2:
@@ -842,7 +638,7 @@ elif mode == "👤 Individual Physician":
                 </div>
                 """, unsafe_allow_html=True)
             
-            # Donut chart
+            # Pie chart
             total = pos_count + neu_count + neg_count
             if total > 0:
                 sentiment_data = pd.DataFrame({
@@ -854,8 +650,7 @@ elif mode == "👤 Individual Physician":
                     values='Count',
                     names='Sentiment',
                     color='Sentiment',
-                    color_discrete_map={'Positive': '#28a745', 'Neutral': '#ffc107', 'Negative': '#dc3545'},
-                    hole=0.4
+                    color_discrete_map={'Positive': '#28a745', 'Neutral': '#ffc107', 'Negative': '#dc3545'}
                 )
                 st.plotly_chart(fig, use_container_width=True)
         else:
@@ -942,7 +737,7 @@ elif mode == "👤 Individual Physician":
             st.dataframe(pd.DataFrame(summary_data), use_container_width=True, hide_index=True)
 
 # ===========================================================================
-# DEPARTMENTAL ANALYSIS MODE - Same as before but with enhanced styling
+# DEPARTMENTAL ANALYSIS MODE
 # ===========================================================================
 elif mode == "🏥 Departmental Analysis":
     st.header("🏥 Departmental Performance Analysis")
@@ -965,7 +760,7 @@ elif mode == "🏥 Departmental Analysis":
     selected_departments = st.sidebar.multiselect(
         "Select Department(s)",
         departments,
-        default=departments[:5] if len(departments) > 5 else departments  # Default to first 5
+        default=departments
     )
     
     if len(selected_departments) == 0:
@@ -1019,6 +814,7 @@ elif mode == "🏥 Departmental Analysis":
     # TAB 1: Clinic Metrics
     with tab1:
         if dept_data_indicators is not None:
+            # Aggregate
             dept_summary = dept_data_indicators.groupby(dept_col).agg({
                 'ClinicVisits': ['mean', 'sum'],
                 'ClinicWaitingTime': 'mean',
@@ -1082,6 +878,7 @@ elif mode == "🏥 Departmental Analysis":
     # TAB 2: Behavior Scores
     with tab2:
         if dept_data_stats is not None:
+            # Aggregate
             behavior_summary = dept_data_stats.groupby(dept_col).agg({
                 'Avg_Score': ['mean', 'std', 'count']
             }).round(3)
@@ -1104,7 +901,8 @@ elif mode == "🏥 Departmental Analysis":
                 text='Avg_Score'
             )
             fig.update_traces(texttemplate='%{text:.2f}', textposition='outside')
-            fig.update_layout(xaxis_tickangle=45, yaxis_range=[0, 5.5])
+            fig.update_layout(xaxis_tickangle=45)
+            fig.update_layout(yaxis_range=[0, 5.5])
             st.plotly_chart(fig, use_container_width=True)
             
             # Box plot
@@ -1143,127 +941,243 @@ elif mode == "🏥 Departmental Analysis":
                 bottom['Rank'] = range(1, len(bottom) + 1)
                 st.dataframe(bottom[['Rank', dept_col, 'Avg_Score']], hide_index=True)
     
-    # TAB 4 & 5: Same as enhanced version
-    # [Continue with rest of departmental tabs - same as dashboard_clean.py]
-    
+    # TAB 4: Outlier Analysis (Funnel Plots)
     with tab4:
         st.subheader("🎯 Outlier Analysis - Funnel Plots")
-        st.markdown("Funnel plots help identify providers performing **significantly different** from average.")
+        
+        st.markdown("""
+        Funnel plots help identify providers performing **significantly different** from the average, 
+        accounting for sample size. Points outside the control limits are statistical outliers.
+        """)
         
         if dept_data_stats is not None:
+            # Calculate overall statistics
             overall_mean = dept_data_stats['Avg_Score'].mean()
             overall_std = dept_data_stats['Avg_Score'].std()
             
+            # Create sample size range for control limits
             min_evals = dept_data_stats['Num_Evaluations'].min()
             max_evals = dept_data_stats['Num_Evaluations'].max()
             sample_sizes = np.linspace(max(min_evals, 10), max_evals, 100)
             
+            # Calculate control limits (95% and 99.8% confidence intervals)
             se = overall_std / np.sqrt(sample_sizes)
             upper_95 = overall_mean + 1.96 * se
             lower_95 = overall_mean - 1.96 * se
             upper_99 = overall_mean + 3.09 * se
             lower_99 = overall_mean - 3.09 * se
             
+            # Create funnel plot
             fig = go.Figure()
             
-            fig.add_trace(go.Scatter(x=sample_sizes, y=upper_99, name='99.8% Upper', 
-                                    line=dict(color='red', dash='dash', width=2)))
-            fig.add_trace(go.Scatter(x=sample_sizes, y=upper_95, name='95% Upper', 
-                                    line=dict(color='orange', dash='dot', width=2)))
-            fig.add_trace(go.Scatter(x=sample_sizes, y=[overall_mean]*len(sample_sizes), 
-                                    name=f'Average ({overall_mean:.2f})', line=dict(color='blue', width=3)))
-            fig.add_trace(go.Scatter(x=sample_sizes, y=lower_95, name='95% Lower', 
-                                    line=dict(color='orange', dash='dot', width=2)))
-            fig.add_trace(go.Scatter(x=sample_sizes, y=lower_99, name='99.8% Lower', 
-                                    line=dict(color='red', dash='dash', width=2)))
+            # Add control limit lines
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=upper_99,
+                name='99.8% Upper Limit',
+                line=dict(color='red', dash='dash', width=2),
+                showlegend=True
+            ))
             
             fig.add_trace(go.Scatter(
-                x=dept_data_stats['Num_Evaluations'], y=dept_data_stats['Avg_Score'],
-                mode='markers', name='Physicians',
-                marker=dict(size=10, color=dept_data_stats['Avg_Score'], colorscale='RdYlGn',
-                           showscale=True, colorbar=dict(title="Score")),
+                x=sample_sizes, y=upper_95,
+                name='95% Upper Limit',
+                line=dict(color='orange', dash='dot', width=2),
+                showlegend=True
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=[overall_mean]*len(sample_sizes),
+                name=f'Average ({overall_mean:.2f})',
+                line=dict(color='blue', width=3),
+                showlegend=True
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=lower_95,
+                name='95% Lower Limit',
+                line=dict(color='orange', dash='dot', width=2),
+                showlegend=True
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=sample_sizes, y=lower_99,
+                name='99.8% Lower Limit',
+                line=dict(color='red', dash='dash', width=2),
+                showlegend=True
+            ))
+            
+            # Add actual physician data points
+            fig.add_trace(go.Scatter(
+                x=dept_data_stats['Num_Evaluations'],
+                y=dept_data_stats['Avg_Score'],
+                mode='markers',
+                name='Physicians',
+                marker=dict(
+                    size=10,
+                    color=dept_data_stats['Avg_Score'],
+                    colorscale='RdYlGn',
+                    showscale=True,
+                    colorbar=dict(title="Score"),
+                    line=dict(color='white', width=1)
+                ),
                 text=dept_data_stats['Subject ID'],
-                hovertemplate='<b>%{text}</b><br>Score: %{y:.2f}<br>Evals: %{x}<extra></extra>'
+                hovertemplate='<b>%{text}</b><br>Score: %{y:.2f}<br>Evaluations: %{x}<extra></extra>',
+                showlegend=True
             ))
             
             fig.update_layout(
                 title="Funnel Plot: Physician Behavior Scores",
                 xaxis_title="Number of Evaluations",
                 yaxis_title="Average Behavior Score",
-                height=600, hovermode='closest'
+                yaxis_range=[max(0, overall_mean - 4*overall_std), min(5, overall_mean + 4*overall_std)],
+                height=600,
+                hovermode='closest'
             )
             
             st.plotly_chart(fig, use_container_width=True)
             
-            # Outlier identification
+            # Identify outliers
             st.markdown("---")
             st.markdown("### 🚨 Identified Outliers")
             
+            # Calculate which physicians are outliers
             outliers = []
             for idx, row in dept_data_stats.iterrows():
                 n_evals = row['Num_Evaluations']
                 score = row['Avg_Score']
                 
-                if n_evals >= 10:
-                    se_p = overall_std / np.sqrt(n_evals)
-                    upper_95_p = overall_mean + 1.96 * se_p
-                    lower_95_p = overall_mean - 1.96 * se_p
-                    upper_99_p = overall_mean + 3.09 * se_p
-                    lower_99_p = overall_mean - 3.09 * se_p
+                if n_evals >= 10:  # Only check if sufficient sample size
+                    se_physician = overall_std / np.sqrt(n_evals)
+                    upper_95_physician = overall_mean + 1.96 * se_physician
+                    lower_95_physician = overall_mean - 1.96 * se_physician
+                    upper_99_physician = overall_mean + 3.09 * se_physician
+                    lower_99_physician = overall_mean - 3.09 * se_physician
                     
-                    if score > upper_99_p:
-                        outliers.append({'Physician': row['Subject ID'], 'Score': score, 
-                                       'Evaluations': n_evals, 'Status': '🌟 Exceptional (>99.8%)', 'Type': 'High'})
-                    elif score > upper_95_p:
-                        outliers.append({'Physician': row['Subject ID'], 'Score': score, 
-                                       'Evaluations': n_evals, 'Status': '✅ Above Average (>95%)', 'Type': 'High'})
-                    elif score < lower_99_p:
-                        outliers.append({'Physician': row['Subject ID'], 'Score': score, 
-                                       'Evaluations': n_evals, 'Status': '🚨 Critical (<99.8%)', 'Type': 'Low'})
-                    elif score < lower_95_p:
-                        outliers.append({'Physician': row['Subject ID'], 'Score': score, 
-                                       'Evaluations': n_evals, 'Status': '⚠️ Below Average (<95%)', 'Type': 'Low'})
+                    if score > upper_99_physician:
+                        outliers.append({
+                            'Physician': row['Subject ID'],
+                            'Score': score,
+                            'Evaluations': n_evals,
+                            'Status': '🌟 Exceptional (>99.8%)',
+                            'Type': 'High'
+                        })
+                    elif score > upper_95_physician:
+                        outliers.append({
+                            'Physician': row['Subject ID'],
+                            'Score': score,
+                            'Evaluations': n_evals,
+                            'Status': '✅ Above Average (>95%)',
+                            'Type': 'High'
+                        })
+                    elif score < lower_99_physician:
+                        outliers.append({
+                            'Physician': row['Subject ID'],
+                            'Score': score,
+                            'Evaluations': n_evals,
+                            'Status': '🚨 Critical (<99.8%)',
+                            'Type': 'Low'
+                        })
+                    elif score < lower_95_physician:
+                        outliers.append({
+                            'Physician': row['Subject ID'],
+                            'Score': score,
+                            'Evaluations': n_evals,
+                            'Status': '⚠️ Below Average (<95%)',
+                            'Type': 'Low'
+                        })
             
-            if outliers:
+            if len(outliers) > 0:
                 outliers_df = pd.DataFrame(outliers)
+                
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.markdown("#### 🚨 Need Attention")
-                    low = outliers_df[outliers_df['Type'] == 'Low'].sort_values('Score')
-                    if len(low) > 0:
-                        st.dataframe(low[['Physician', 'Score', 'Evaluations', 'Status']], 
-                                   use_container_width=True, hide_index=True)
+                    st.markdown("#### 🚨 Need Attention (Below Limits)")
+                    low_outliers = outliers_df[outliers_df['Type'] == 'Low'].sort_values('Score')
+                    if len(low_outliers) > 0:
+                        st.dataframe(
+                            low_outliers[['Physician', 'Score', 'Evaluations', 'Status']],
+                            use_container_width=True,
+                            hide_index=True
+                        )
                     else:
-                        st.success("✅ No physicians below limits")
+                        st.success("✅ No physicians below control limits")
                 
                 with col2:
-                    st.markdown("#### 🌟 Exceptional")
-                    high = outliers_df[outliers_df['Type'] == 'High'].sort_values('Score', ascending=False)
-                    if len(high) > 0:
-                        st.dataframe(high[['Physician', 'Score', 'Evaluations', 'Status']], 
-                                   use_container_width=True, hide_index=True)
+                    st.markdown("#### 🌟 Exceptional Performance (Above Limits)")
+                    high_outliers = outliers_df[outliers_df['Type'] == 'High'].sort_values('Score', ascending=False)
+                    if len(high_outliers) > 0:
+                        st.dataframe(
+                            high_outliers[['Physician', 'Score', 'Evaluations', 'Status']],
+                            use_container_width=True,
+                            hide_index=True
+                        )
                     else:
-                        st.info("ℹ️ No physicians above limits")
+                        st.info("ℹ️ No physicians above control limits")
                 
+                # Summary
                 st.markdown("---")
+                st.markdown("### 📊 Summary")
+                
+                total_physicians = len(dept_data_stats)
+                pct_outliers = (len(outliers) / total_physicians * 100) if total_physicians > 0 else 0
+                
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    st.metric("Total Physicians", len(dept_data_stats))
+                    st.metric("Total Physicians", total_physicians)
                 with col2:
-                    st.metric("Outliers", len(outliers))
+                    st.metric("Outliers Identified", len(outliers))
                 with col3:
-                    st.metric("% Outliers", f"{(len(outliers)/len(dept_data_stats)*100):.1f}%")
+                    st.metric("% Outliers", f"{pct_outliers:.1f}%")
+                
             else:
-                st.success("✅ All physicians within expected variation")
+                st.success("✅ All physicians performing within expected variation (no statistical outliers)")
+        
         else:
-            st.info("ℹ️ No data available")
+            st.info("ℹ️ No behavior score data available for outlier analysis")
+        
+        # Explanation
+        with st.expander("📖 How to Read Funnel Plots"):
+            st.markdown("""
+            **What are Funnel Plots?**
+            
+            Funnel plots help identify true outliers by accounting for sample size:
+            
+            - **Center Line (Blue)**: Average performance across all physicians
+            - **Inner Limits (Orange, dotted)**: 95% confidence interval
+            - **Outer Limits (Red, dashed)**: 99.8% confidence interval
+            - **Dots**: Individual physicians
+            
+            **Interpretation:**
+            
+            - **Inside the funnel**: Normal variation - performing as expected
+            - **Outside 95% limits**: Unusual - worth investigating
+            - **Outside 99.8% limits**: Very unusual - definitely investigate
+            
+            **Why the funnel shape?**
+            
+            - Physicians with **few evaluations** (left side): More variation is normal
+            - Physicians with **many evaluations** (right side): Less variation expected
+            
+            **Action Items:**
+            
+            - 🚨 **Below lower limit**: May need support, training, or investigation
+            - 🌟 **Above upper limit**: Exceptional performance - learn from them!
+            - ✅ **Inside limits**: Performing normally - no action needed
+            
+            **Note:** Being an outlier doesn't automatically mean good or bad - it means statistically different 
+            and worth investigating to understand why.
+            """)
     
+    # TAB 5: Insights
     with tab5:
         st.subheader("🎯 Key Insights")
         
+        # Best and worst
         if dept_data_stats is not None:
-            behavior_summary = dept_data_stats.groupby(dept_col).agg({'Avg_Score': 'mean'}).round(3).reset_index()
+            behavior_summary = dept_data_stats.groupby(dept_col).agg({
+                'Avg_Score': 'mean'
+            }).round(3).reset_index()
             behavior_summary = behavior_summary.sort_values('Avg_Score', ascending=False)
             
             if len(behavior_summary) > 0:
@@ -1287,13 +1201,37 @@ elif mode == "🏥 Departmental Analysis":
                             <p><strong>Score:</strong> {worst['Avg_Score']:.3f}</p>
                         </div>
                         """, unsafe_allow_html=True)
+        
+        # Correlation
+        if dept_data_indicators is not None and len(dept_data_indicators) > 2:
+            st.markdown("### Correlation: Wait Time vs Complaints")
+            
+            dept_summary = dept_data_indicators.groupby(dept_col).agg({
+                'ClinicWaitingTime': 'mean',
+                'PatientComplaints': 'mean',
+                'Aubnetid': 'nunique'
+            }).reset_index()
+            
+            fig = px.scatter(
+                dept_summary,
+                x='ClinicWaitingTime', y='PatientComplaints',
+                size='Aubnetid',
+                color=dept_col,
+                hover_name=dept_col,
+                title="Waiting Time vs Complaints",
+                labels={
+                    'ClinicWaitingTime': 'Avg Wait Time (min)',
+                    'PatientComplaints': 'Avg Complaints',
+                    'Aubnetid': 'Physicians'
+                }
+            )
+            st.plotly_chart(fig, use_container_width=True)
 
 # Footer
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; color: gray; padding: 2rem;">
-    <p><strong>AUBMC Physician Performance Dashboard</strong> - Ultimate Edition</p>
+    <p>AUBMC Physician Performance Dashboard - Complete Version</p>
     <p><em>For internal use only</em></p>
-    <p style="font-size: 0.8rem; opacity: 0.7;">Version 3.0 | Enhanced with multi-year trends, statistical outlier detection, and advanced analytics</p>
 </div>
 """, unsafe_allow_html=True)
