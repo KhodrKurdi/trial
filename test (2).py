@@ -98,9 +98,9 @@ def add_funnel_low(df, score_col="avg_behavior_score", n_col="n_forms", group_co
 # =========================
 st.sidebar.header("Data Sources")
 
-behavior_aubmc_path = st.sidebar.text_input("AUBMC behavior CSV", "behavior_aubmc.csv")
-behavior_ed_path = st.sidebar.text_input("ED behavior CSV", "behavior_ed.csv")
-behavior_patho_path = st.sidebar.text_input("Pathology behavior CSV", "behavior_patho.csv")
+behavior_aubmc_path = st.sidebar.text_input("AUBMC behavior CSV", "AUBMC_Behavior_survey.csv")
+behavior_ed_path = st.sidebar.text_input("ED behavior CSV", "ED_Behavior_survey.csv")
+behavior_patho_path = st.sidebar.text_input("Pathology behavior CSV", "Patho_Behavior_survey.csv")
 indicators_path = st.sidebar.text_input("Indicators CSV", "indicators.csv")
 
 physmap_path = st.sidebar.text_input("Physician map CSV (recommended)", "physician_map.csv")
