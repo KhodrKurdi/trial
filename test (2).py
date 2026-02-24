@@ -10,9 +10,12 @@ st.set_page_config(page_title="AUBMC Behavior Dashboard", layout="wide")
 # Helpers
 # =========================
 @st.cache_data
-def load_csv(path: str) -> pd.DataFrame:
+def load_csv(path):
     df = pd.read_csv(path)
-    df.columns = df.columns.str.strip()
+
+    # ✅ force all column names to be strings first
+    df.columns = df.columns.map(str).str.strip()
+
     return df
 
 def get_question_cols(df: pd.DataFrame) -> list[str]:
