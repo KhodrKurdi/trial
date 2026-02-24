@@ -1132,3 +1132,150 @@ with tab5:
                         merged_summary = phys_trend.merge(pct_df[["Year","Percentile Rank","Dept Mean Score","Physicians in Dept"]],
                                                           on="Year", how="left")
                         st.dataframe(merged_summary, use_container_width=True, hide_index=True)
+
+                    # ── PEER COMPARISON ───────────────────────────────────────
+                    st.markdown("---")
+                    st.markdown('<div class="section-header">👥 Peer Comparison — All Physicians in Department</div>', unsafe_allow_html=True)
+
+                    # Build full cross-physician trend table using all available years
+                    peer_rows = []
+                    for pid in all_phys_ids:
+                        pid_data = raw_d[raw_d["physician_id"] == pid]
+                        if pid_data.empty:
+                            continue
+                        row = {"Physician ID": pid, "Years Active": 0}
+                        all_scores = []
+                        for yr in years_avail:
+                            yr_scores = pid_data[pid_data["year"] == yr]["overall_score"].dropna()
+                            avg = round(yr_scores.mean(), 3) if not yr_scores.empty else np.nan
+                            row[str(yr)] = avg
+                            if not np.isnan(avg):
+                                all_scores.append(avg)
+                                row["Years Active"] += 1
+                        row["Overall Avg"] = round(np.mean(all_scores), 3) if all_scores else np.nan
+                        # Trend direction: last year minus first year with data
+                        valid = [row[str(yr)] for yr in years_avail if not np.isnan(row.get(str(yr), np.nan))]
+                        row["Trend"] = round(valid[-1] - valid[0], 3) if len(valid) >= 2 else np.nan
+                        peer_rows.append(row)
+
+                    peer_df = pd.DataFrame(peer_rows).sort_values("Overall Avg", ascending=False).reset_index(drop=True)
+
+                    # Add rank and highlight selected physician
+                    peer_df.insert(0, "Rank", range(1, len(peer_df)+1))
+                    peer_df["Selected"] = peer_df["Physician ID"] == selected_phys
+
+                    # ── Heatmap-style multi-year comparison chart ─────────────
+                    st.markdown("**Score Heatmap — All Physicians Across Years**")
+                    year_cols = [str(yr) for yr in years_avail if str(yr) in peer_df.columns]
+                    heatmap_data = peer_df.set_index("Physician ID")[year_cols].astype(float)
+
+                    fig_h, ax_h = plt.subplots(figsize=(max(6, len(year_cols)*2), max(5, len(peer_df)*0.38)))
+                    im = ax_h.imshow(heatmap_data.values, cmap="RdYlGn", aspect="auto",
+                                     vmin=0, vmax=4)
+
+                    # Axis labels
+                    ax_h.set_xticks(range(len(year_cols)))
+                    ax_h.set_xticklabels(year_cols, fontsize=11, fontweight="600")
+                    ax_h.set_yticks(range(len(heatmap_data)))
+                    ax_h.set_yticklabels(heatmap_data.index.tolist(), fontsize=9)
+
+                    # Annotate each cell with score value
+                    for i in range(len(heatmap_data)):
+                        for j in range(len(year_cols)):
+                            val = heatmap_data.values[i, j]
+                            if not np.isnan(val):
+                                ax_h.text(j, i, f"{val:.2f}", ha="center", va="center",
+                                          fontsize=8, fontweight="600",
+                                          color="white" if val < 1.5 or val > 3.2 else "#1f2937")
+
+                    # Highlight selected physician row with a border
+                    if selected_phys in heatmap_data.index:
+                        sel_row = heatmap_data.index.tolist().index(selected_phys)
+                        for j in range(len(year_cols)):
+                            ax_h.add_patch(plt.Rectangle(
+                                (j - 0.5, sel_row - 0.5), 1, 1,
+                                fill=False, edgecolor="#2563eb", linewidth=3, zorder=10
+                            ))
+                        ax_h.set_yticklabels(
+                            ["▶ " + pid if pid == selected_phys else pid
+                             for pid in heatmap_data.index.tolist()],
+                            fontsize=9
+                        )
+
+                    plt.colorbar(im, ax=ax_h, label="Avg Behaviour Score (0–4)", shrink=0.6)
+                    ax_h.set_title(f"{trend_dept} — Physician Score Heatmap (Selected: {selected_phys})",
+                                   fontsize=12, fontweight="bold", pad=12)
+                    fig_h.patch.set_facecolor("white")
+                    plt.tight_layout()
+                    st.pyplot(fig_h, use_container_width=True)
+                    plt.close()
+
+                    # ── Multi-line trend chart — all peers ────────────────────
+                    st.markdown("**Score Trajectory — Selected Physician vs All Peers**")
+                    fig_l, ax_l = plt.subplots(figsize=(9, 5))
+
+                    for _, prow in peer_df.iterrows():
+                        pid = prow["Physician ID"]
+                        yr_scores = [prow.get(str(yr), np.nan) for yr in years_avail]
+                        valid_yrs  = [yr for yr, sc in zip(years_avail, yr_scores) if not (isinstance(sc, float) and np.isnan(sc))]
+                        valid_scs  = [sc for sc in yr_scores if not (isinstance(sc, float) and np.isnan(sc))]
+                        if not valid_yrs:
+                            continue
+                        if pid == selected_phys:
+                            # Selected physician — bold blue on top
+                            ax_l.plot(valid_yrs, valid_scs, "o-",
+                                      color="#2563eb", linewidth=3, markersize=9,
+                                      zorder=10, label=f"▶ {pid} (selected)")
+                            for vyr, vsc in zip(valid_yrs, valid_scs):
+                                ax_l.annotate(f"{vsc:.2f}", (vyr, vsc),
+                                              textcoords="offset points", xytext=(0, 10),
+                                              ha="center", fontsize=9, fontweight="700",
+                                              color="#2563eb")
+                        else:
+                            # All other physicians — thin grey
+                            ax_l.plot(valid_yrs, valid_scs, "o-",
+                                      color="#d1d5db", linewidth=1, markersize=4,
+                                      alpha=0.6, zorder=1)
+
+                    # Department mean line
+                    dept_mean_line = [raw_d[raw_d["year"]==yr]["overall_score"].mean() for yr in years_avail]
+                    ax_l.plot(years_avail, dept_mean_line, "s--",
+                              color="#6b7280", linewidth=2, markersize=6,
+                              label="Dept Mean", zorder=5)
+
+                    ax_l.set_xticks(years_avail)
+                    ax_l.set_xlabel("Year", fontsize=10)
+                    ax_l.set_ylabel("Avg Behaviour Score (0–4)", fontsize=10)
+                    ax_l.set_title(f"{trend_dept} — All Physician Trajectories (Selected highlighted)",
+                                   fontsize=11, fontweight="bold")
+                    ax_l.legend(fontsize=9, loc="lower right")
+                    ax_l.grid(alpha=0.25, linestyle="--")
+                    ax_l.set_facecolor("#fafafa")
+                    fig_l.patch.set_facecolor("white")
+                    plt.tight_layout()
+                    st.pyplot(fig_l, use_container_width=True)
+                    plt.close()
+
+                    # ── Full peer comparison table ─────────────────────────────
+                    st.markdown("**Full Peer Comparison Table**")
+                    st.caption("Sorted by Overall Avg ↓ · Selected physician highlighted · Trend = last year minus first year")
+
+                    # Style: highlight selected physician row
+                    display_peer = peer_df.drop(columns=["Selected"]).copy()
+                    if "Trend" in display_peer.columns:
+                        display_peer["Trend"] = display_peer["Trend"].apply(
+                            lambda x: f"▲ {x:+.3f}" if (not isinstance(x, float) or not np.isnan(x)) and x > 0
+                            else (f"▼ {x:+.3f}" if (not isinstance(x, float) or not np.isnan(x)) and x < 0
+                            else ("— 0.000" if x == 0 else "—"))
+                        )
+
+                    def highlight_selected(row):
+                        if row["Physician ID"] == selected_phys:
+                            return ["background-color: #dbeafe; font-weight: bold"] * len(row)
+                        return [""] * len(row)
+
+                    styled = display_peer.style.apply(highlight_selected, axis=1).format(
+                        {str(yr): lambda x: f"{x:.3f}" if pd.notna(x) else "—" for yr in years_avail}
+                    ).format({"Overall Avg": lambda x: f"{x:.3f}" if pd.notna(x) else "—"})
+
+                    st.dataframe(styled, use_container_width=True, hide_index=True)
