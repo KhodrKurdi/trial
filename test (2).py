@@ -101,7 +101,7 @@ st.sidebar.header("Data Sources")
 behavior_aubmc_path = st.sidebar.text_input("AUBMC behavior CSV", "AUBMC_Behavior_survey.csv")
 behavior_ed_path = st.sidebar.text_input("ED behavior CSV", "ED_Behavior_survey.csv")
 behavior_patho_path = st.sidebar.text_input("Pathology behavior CSV", "Patho_Behavior_survey.csv")
-indicators_path = st.sidebar.text_input("Indicators CSV", "indicators.csv")
+indicators_path = st.sidebar.text_input("Indicators CSV", "indicators_processed_2025.csv")
 
 physmap_path = st.sidebar.text_input("Physician map CSV (recommended)", "physician_map.csv")
 sent_path = st.sidebar.text_input("Sentiment by physician CSV (optional)", "sentiment_by_physician.csv")
