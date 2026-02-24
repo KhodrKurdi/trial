@@ -821,7 +821,10 @@ with tab4:
 with tab5:
     st.markdown('<div class="section-header">📈 Year-on-Year Trends (2023–2025)</div>', unsafe_allow_html=True)
 
-    trend_dept = st.selectbox("Department", available_depts, key="trend_dept")
+    # ── Filters row ───────────────────────────────────────────────────────────
+    tf1, tf2, tf3 = st.columns([1, 1.5, 1])
+    with tf1:
+        trend_dept = st.selectbox("Department", available_depts, key="trend_dept")
     raw_d, phys_d, _ = data[trend_dept]
 
     if raw_d is None or "year" not in raw_d.columns or raw_d["year"].isna().all():
@@ -829,110 +832,303 @@ with tab5:
     else:
         years_avail = sorted(raw_d["year"].dropna().unique().astype(int))
 
-        # Year-level physician stats
-        trend_rows = []
-        for yr in years_avail:
-            df_yr    = raw_d[raw_d["year"] == yr]
-            phys_yr  = aggregate_physician(df_yr)
-            phys_yr, _, _ = add_outlier_flags(phys_yr)
-            trend_rows.append({
-                "Year":                yr,
-                "Physicians":         len(phys_yr),
-                "Avg Score":          round(phys_yr["avg_behavior_score"].mean(), 3),
-                "Funnel Outliers":    int(phys_yr["low_funnel_outlier"].sum()),
-                "% Flagged":          round(phys_yr["low_funnel_outlier"].mean()*100, 1),
-                "Median Score":       round(phys_yr["avg_behavior_score"].median(), 3),
-                "Score Std":          round(phys_yr["avg_behavior_score"].std(), 3),
-            })
-        trend_df = pd.DataFrame(trend_rows)
+        # Physician selector — "All" shows department-level view
+        all_phys_ids = sorted(raw_d["physician_id"].dropna().unique().tolist())
+        with tf2:
+            view_mode = st.radio("View", ["Department Overall", "Individual Physician"],
+                                 horizontal=True, key="trend_mode")
+        with tf3:
+            if view_mode == "Individual Physician":
+                selected_phys = st.selectbox("Physician ID", all_phys_ids, key="trend_phys")
+            else:
+                selected_phys = None
 
-        # Trend metrics
-        if len(trend_df) >= 2:
-            delta_score = trend_df["Avg Score"].iloc[-1] - trend_df["Avg Score"].iloc[0]
-            delta_flag  = trend_df["% Flagged"].iloc[-1] - trend_df["% Flagged"].iloc[0]
+        st.markdown("---")
+
+        # ── DEPARTMENT OVERALL VIEW ───────────────────────────────────────────
+        if view_mode == "Department Overall":
+
+            trend_rows = []
+            for yr in years_avail:
+                df_yr   = raw_d[raw_d["year"] == yr]
+                phys_yr = aggregate_physician(df_yr)
+                phys_yr, _, _ = add_outlier_flags(phys_yr)
+                trend_rows.append({
+                    "Year":             yr,
+                    "Physicians":       len(phys_yr),
+                    "Avg Score":        round(phys_yr["avg_behavior_score"].mean(), 3),
+                    "Funnel Outliers":  int(phys_yr["low_funnel_outlier"].sum()),
+                    "% Flagged":        round(phys_yr["low_funnel_outlier"].mean()*100, 1),
+                    "Median Score":     round(phys_yr["avg_behavior_score"].median(), 3),
+                    "Score Std":        round(phys_yr["avg_behavior_score"].std(), 3),
+                })
+            trend_df = pd.DataFrame(trend_rows)
+
+            if len(trend_df) >= 2:
+                delta_score = trend_df["Avg Score"].iloc[-1] - trend_df["Avg Score"].iloc[0]
+                delta_flag  = trend_df["% Flagged"].iloc[-1] - trend_df["% Flagged"].iloc[0]
+            else:
+                delta_score = 0; delta_flag = 0
+
+            tc1, tc2, tc3 = st.columns(3)
+            with tc1: st.metric("Score Change (first→last year)", f"{delta_score:+.3f}",
+                                 delta=f"{delta_score:+.3f}", delta_color="normal")
+            with tc2: st.metric("% Flagged Change", f"{delta_flag:+.1f}%",
+                                 delta=f"{delta_flag:+.1f}%", delta_color="inverse")
+            with tc3: st.metric("Years Covered", len(years_avail))
+
+            col_t1, col_t2 = st.columns(2)
+
+            with col_t1:
+                st.markdown("**Average Score Trend**")
+                fig, ax = plt.subplots(figsize=(6, 4))
+                ax.plot(trend_df["Year"], trend_df["Avg Score"], "o-",
+                        color="#3b82f6", linewidth=2.5, markersize=8, label="Mean")
+                ax.fill_between(
+                    trend_df["Year"],
+                    trend_df["Avg Score"] - trend_df["Score Std"],
+                    trend_df["Avg Score"] + trend_df["Score Std"],
+                    alpha=0.15, color="#3b82f6", label="±1 SD"
+                )
+                ax.plot(trend_df["Year"], trend_df["Median Score"], "s--",
+                        color="#8b5cf6", linewidth=1.5, markersize=6, label="Median")
+                for _, row in trend_df.iterrows():
+                    ax.annotate(f"{row['Avg Score']:.2f}",
+                                 (row["Year"], row["Avg Score"]),
+                                 textcoords="offset points", xytext=(0,10),
+                                 ha="center", fontsize=9, fontweight="600")
+                ax.set_xticks(years_avail)
+                ax.set_xlabel("Year", fontsize=10)
+                ax.set_ylabel("Avg Behaviour Score (0–4)", fontsize=10)
+                ax.set_title(f"{trend_dept} Score Trend", fontsize=11, fontweight="bold")
+                ax.legend(fontsize=9)
+                ax.grid(alpha=0.3, linestyle="--")
+                ax.set_facecolor("#fafafa")
+                fig.patch.set_facecolor("white")
+                st.pyplot(fig, use_container_width=True)
+                plt.close()
+
+            with col_t2:
+                st.markdown("**% Physicians Flagged by Funnel Plot**")
+                fig2, ax2 = plt.subplots(figsize=(6, 4))
+                bar_cols = ["#10b981" if p < 10 else ("#f59e0b" if p < 20 else "#ef4444")
+                            for p in trend_df["% Flagged"]]
+                bars = ax2.bar(trend_df["Year"], trend_df["% Flagged"],
+                               color=bar_cols, edgecolor="white", linewidth=1.5, width=0.5)
+                for bar, val in zip(bars, trend_df["% Flagged"]):
+                    ax2.text(bar.get_x() + bar.get_width()/2,
+                             bar.get_height() + 0.3, f"{val}%",
+                             ha="center", va="bottom", fontsize=10, fontweight="700")
+                ax2.set_xticks(years_avail)
+                ax2.set_xlabel("Year", fontsize=10)
+                ax2.set_ylabel("% Physicians Below Funnel LCL", fontsize=10)
+                ax2.set_title(f"{trend_dept} — Flagged Rate Over Time", fontsize=11, fontweight="bold")
+                ax2.grid(axis="y", alpha=0.3, linestyle="--")
+                ax2.set_facecolor("#fafafa")
+                fig2.patch.set_facecolor("white")
+                ax2.spines["top"].set_visible(False)
+                ax2.spines["right"].set_visible(False)
+                st.pyplot(fig2, use_container_width=True)
+                plt.close()
+
+            st.markdown("**Score Distribution by Year (Colleague Comparison)**")
+            fig3, ax3 = plt.subplots(figsize=(10, 4.5))
+            year_scores = [raw_d[raw_d["year"]==yr]["overall_score"].dropna() for yr in years_avail]
+            positions   = list(range(1, len(years_avail)+1))
+            bp = ax3.boxplot(year_scores, positions=positions, patch_artist=True,
+                              medianprops=dict(color="white", linewidth=2.5))
+            yr_colours = ["#3b82f6","#f59e0b","#10b981","#8b5cf6"]
+            for patch, col in zip(bp["boxes"], yr_colours[:len(years_avail)]):
+                patch.set_facecolor(col); patch.set_alpha(0.75)
+            ax3.set_xticks(positions)
+            ax3.set_xticklabels([str(y) for y in years_avail], fontsize=11)
+            ax3.set_ylabel("Form-Level Score (0–4)", fontsize=10)
+            ax3.set_title(f"{trend_dept} — Score Distribution Per Year (All Forms)", fontsize=12, fontweight="bold")
+            ax3.grid(axis="y", alpha=0.3, linestyle="--")
+            ax3.set_facecolor("#fafafa")
+            fig3.patch.set_facecolor("white")
+            st.pyplot(fig3, use_container_width=True)
+            plt.close()
+
+            st.markdown("**Year-over-Year Summary Table**")
+            st.dataframe(trend_df, use_container_width=True, hide_index=True)
+
+        # ── INDIVIDUAL PHYSICIAN VIEW ─────────────────────────────────────────
         else:
-            delta_score = 0; delta_flag = 0
+            phys_raw = raw_d[raw_d["physician_id"] == selected_phys].copy()
 
-        tc1, tc2, tc3 = st.columns(3)
-        with tc1: st.metric("Score Change (first→last year)", f"{delta_score:+.3f}",
-                             delta=f"{delta_score:+.3f}", delta_color="normal")
-        with tc2: st.metric("% Flagged Change", f"{delta_flag:+.1f}%",
-                             delta=f"{delta_flag:+.1f}%", delta_color="inverse")
-        with tc3: st.metric("Years Covered", len(years_avail))
+            if phys_raw.empty:
+                st.warning(f"No data found for physician {selected_phys}.")
+            else:
+                # Build per-year stats for this physician
+                phys_year_rows = []
+                for yr in years_avail:
+                    yr_data = phys_raw[phys_raw["year"] == yr]
+                    if yr_data.empty:
+                        continue
+                    q_cols = [c for c in yr_data.columns if c.startswith("q_")]
+                    phys_year_rows.append({
+                        "Year":           yr,
+                        "Forms":          len(yr_data),
+                        "Avg Score":      round(yr_data["overall_score"].mean(), 3),
+                        "Median Score":   round(yr_data["overall_score"].median(), 3),
+                        "Min Score":      round(yr_data["overall_score"].min(), 3),
+                        "Max Score":      round(yr_data["overall_score"].max(), 3),
+                        "Score Std":      round(yr_data["overall_score"].std(), 3) if len(yr_data) > 1 else 0.0,
+                    })
+                phys_trend = pd.DataFrame(phys_year_rows)
 
-        col_t1, col_t2 = st.columns(2)
+                if phys_trend.empty:
+                    st.warning("No year-level data available for this physician.")
+                else:
+                    # Compute dept avg per year for benchmarking
+                    dept_avgs = {}
+                    for yr in years_avail:
+                        yr_all = raw_d[raw_d["year"] == yr]["overall_score"].dropna()
+                        dept_avgs[yr] = yr_all.mean() if not yr_all.empty else np.nan
 
-        with col_t1:
-            st.markdown("**Average Score Trend**")
-            fig, ax = plt.subplots(figsize=(6, 4))
-            ax.plot(trend_df["Year"], trend_df["Avg Score"], "o-",
-                    color="#3b82f6", linewidth=2.5, markersize=8, label="Mean")
-            ax.fill_between(
-                trend_df["Year"],
-                trend_df["Avg Score"] - trend_df["Score Std"],
-                trend_df["Avg Score"] + trend_df["Score Std"],
-                alpha=0.15, color="#3b82f6", label="±1 SD"
-            )
-            ax.plot(trend_df["Year"], trend_df["Median Score"], "s--",
-                    color="#8b5cf6", linewidth=1.5, markersize=6, label="Median")
-            for _, row in trend_df.iterrows():
-                ax.annotate(f"{row['Avg Score']:.2f}",
-                             (row["Year"], row["Avg Score"]),
-                             textcoords="offset points", xytext=(0,10),
-                             ha="center", fontsize=9, fontweight="600")
-            ax.set_xticks(years_avail)
-            ax.set_xlabel("Year", fontsize=10)
-            ax.set_ylabel("Avg Behaviour Score (0–4)", fontsize=10)
-            ax.set_title(f"{trend_dept} Score Trend", fontsize=11, fontweight="bold")
-            ax.legend(fontsize=9)
-            ax.grid(alpha=0.3, linestyle="--")
-            ax.set_facecolor("#fafafa")
-            fig.patch.set_facecolor("white")
-            st.pyplot(fig, use_container_width=True)
-            plt.close()
+                    # KPI summary cards
+                    years_seen = phys_trend["Year"].tolist()
+                    first_score = phys_trend["Avg Score"].iloc[0]
+                    last_score  = phys_trend["Avg Score"].iloc[-1]
+                    delta_phys  = last_score - first_score
+                    avg_forms   = phys_trend["Forms"].mean()
+                    overall_avg = phys_trend["Avg Score"].mean()
 
-        with col_t2:
-            st.markdown("**% Physicians Flagged by Funnel Plot**")
-            fig2, ax2 = plt.subplots(figsize=(6, 4))
-            bar_cols = ["#10b981" if p < 10 else ("#f59e0b" if p < 20 else "#ef4444")
-                        for p in trend_df["% Flagged"]]
-            bars = ax2.bar(trend_df["Year"], trend_df["% Flagged"],
-                           color=bar_cols, edgecolor="white", linewidth=1.5, width=0.5)
-            for bar, val in zip(bars, trend_df["% Flagged"]):
-                ax2.text(bar.get_x() + bar.get_width()/2,
-                         bar.get_height() + 0.3, f"{val}%",
-                         ha="center", va="bottom", fontsize=10, fontweight="700")
-            ax2.set_xticks(years_avail)
-            ax2.set_xlabel("Year", fontsize=10)
-            ax2.set_ylabel("% Physicians Below Funnel LCL", fontsize=10)
-            ax2.set_title(f"{trend_dept} — Flagged Rate Over Time", fontsize=11, fontweight="bold")
-            ax2.grid(axis="y", alpha=0.3, linestyle="--")
-            ax2.set_facecolor("#fafafa")
-            fig2.patch.set_facecolor("white")
-            ax2.spines["top"].set_visible(False)
-            ax2.spines["right"].set_visible(False)
-            st.pyplot(fig2, use_container_width=True)
-            plt.close()
+                    pk1, pk2, pk3, pk4 = st.columns(4)
+                    with pk1:
+                        st.metric("Years on Record", len(years_seen))
+                    with pk2:
+                        st.metric("Overall Avg Score", f"{overall_avg:.3f} / 4.0")
+                    with pk3:
+                        st.metric("Score Change", f"{delta_phys:+.3f}",
+                                  delta=f"{delta_phys:+.3f}", delta_color="normal")
+                    with pk4:
+                        st.metric("Avg Forms / Year", f"{avg_forms:.1f}")
 
-        # Year-over-year score distributions (violin / box per year)
-        st.markdown("**Score Distribution by Year (Colleague Comparison)**")
-        fig3, ax3 = plt.subplots(figsize=(10, 4.5))
-        year_scores = [raw_d[raw_d["year"]==yr]["overall_score"].dropna() for yr in years_avail]
-        positions   = list(range(1, len(years_avail)+1))
-        bp = ax3.boxplot(year_scores, positions=positions, patch_artist=True,
-                          medianprops=dict(color="white", linewidth=2.5))
-        yr_colours = ["#3b82f6","#f59e0b","#10b981","#8b5cf6"]
-        for patch, col in zip(bp["boxes"], yr_colours[:len(years_avail)]):
-            patch.set_facecolor(col); patch.set_alpha(0.75)
-        ax3.set_xticks(positions)
-        ax3.set_xticklabels([str(y) for y in years_avail], fontsize=11)
-        ax3.set_ylabel("Form-Level Score (0–4)", fontsize=10)
-        ax3.set_title(f"{trend_dept} — Score Distribution Per Year (All Forms)", fontsize=12, fontweight="bold")
-        ax3.grid(axis="y", alpha=0.3, linestyle="--")
-        ax3.set_facecolor("#fafafa")
-        fig3.patch.set_facecolor("white")
-        st.pyplot(fig3, use_container_width=True)
-        plt.close()
+                    st.markdown("---")
+                    col_p1, col_p2 = st.columns(2)
 
-        st.markdown("**Year-over-Year Summary Table**")
-        st.dataframe(trend_df, use_container_width=True, hide_index=True)
+                    # Physician score trend vs department average
+                    with col_p1:
+                        st.markdown(f"**Score Trend — Physician {selected_phys} vs Department Mean**")
+                        fig, ax = plt.subplots(figsize=(6, 4))
+
+                        # Department average line
+                        dept_yr_list   = [yr for yr in years_avail if yr in dept_avgs]
+                        dept_avg_list  = [dept_avgs[yr] for yr in dept_yr_list]
+                        ax.plot(dept_yr_list, dept_avg_list, "s--",
+                                color="#9ca3af", linewidth=1.5, markersize=5,
+                                label=f"{trend_dept} Mean", alpha=0.8)
+
+                        # Physician score line
+                        ax.plot(phys_trend["Year"], phys_trend["Avg Score"], "o-",
+                                color="#3b82f6", linewidth=2.5, markersize=9,
+                                label=f"Physician {selected_phys}", zorder=5)
+
+                        # Min-max shading for spread
+                        if "Min Score" in phys_trend.columns and "Max Score" in phys_trend.columns:
+                            ax.fill_between(phys_trend["Year"],
+                                            phys_trend["Min Score"], phys_trend["Max Score"],
+                                            alpha=0.1, color="#3b82f6", label="Score range")
+
+                        # Label each data point
+                        for _, row in phys_trend.iterrows():
+                            ax.annotate(f"{row['Avg Score']:.2f}",
+                                        (row["Year"], row["Avg Score"]),
+                                        textcoords="offset points", xytext=(0, 10),
+                                        ha="center", fontsize=9, fontweight="700",
+                                        color="#1d4ed8")
+
+                        ax.set_xticks(years_avail)
+                        ax.set_xlabel("Year", fontsize=10)
+                        ax.set_ylabel("Avg Behaviour Score (0–4)", fontsize=10)
+                        ax.set_title(f"Physician {selected_phys} — Score Over Time",
+                                     fontsize=11, fontweight="bold")
+                        ax.legend(fontsize=9)
+                        ax.grid(alpha=0.3, linestyle="--")
+                        ax.set_facecolor("#fafafa")
+                        fig.patch.set_facecolor("white")
+                        st.pyplot(fig, use_container_width=True)
+                        plt.close()
+
+                    # Number of forms received per year
+                    with col_p2:
+                        st.markdown("**Evaluations Received Per Year**")
+                        fig2, ax2 = plt.subplots(figsize=(6, 4))
+                        bar_colors = ["#3b82f6"] * len(phys_trend)
+                        bars = ax2.bar(phys_trend["Year"], phys_trend["Forms"],
+                                       color=bar_colors, edgecolor="white",
+                                       linewidth=1.5, width=0.5, alpha=0.85)
+                        for bar, val in zip(bars, phys_trend["Forms"]):
+                            ax2.text(bar.get_x() + bar.get_width()/2,
+                                     bar.get_height() + 0.1, str(int(val)),
+                                     ha="center", va="bottom",
+                                     fontsize=11, fontweight="700")
+                        ax2.set_xticks(phys_trend["Year"].tolist())
+                        ax2.set_xlabel("Year", fontsize=10)
+                        ax2.set_ylabel("Number of Evaluations", fontsize=10)
+                        ax2.set_title(f"Physician {selected_phys} — Evaluations Per Year",
+                                      fontsize=11, fontweight="bold")
+                        ax2.grid(axis="y", alpha=0.3, linestyle="--")
+                        ax2.set_facecolor("#fafafa")
+                        fig2.patch.set_facecolor("white")
+                        ax2.spines["top"].set_visible(False)
+                        ax2.spines["right"].set_visible(False)
+                        st.pyplot(fig2, use_container_width=True)
+                        plt.close()
+
+                    # Percentile rank vs department per year
+                    st.markdown("**Percentile Rank within Department — Year by Year**")
+                    pct_rows = []
+                    for yr in phys_trend["Year"].tolist():
+                        yr_all   = raw_d[raw_d["year"] == yr]
+                        phys_agg = aggregate_physician(yr_all)
+                        if selected_phys in phys_agg["physician_id"].values:
+                            phys_agg["pct"] = phys_agg["avg_behavior_score"].rank(pct=True) * 100
+                            pct_val = phys_agg.loc[
+                                phys_agg["physician_id"] == selected_phys, "pct"
+                            ].values[0]
+                            dept_avg_yr = phys_agg["avg_behavior_score"].mean()
+                            pct_rows.append({
+                                "Year": yr,
+                                "Percentile Rank": round(pct_val, 1),
+                                "Physician Score": round(phys_agg.loc[
+                                    phys_agg["physician_id"] == selected_phys,
+                                    "avg_behavior_score"].values[0], 3),
+                                "Dept Mean Score":  round(dept_avg_yr, 3),
+                                "Physicians in Dept": len(phys_agg),
+                            })
+                    pct_df = pd.DataFrame(pct_rows)
+
+                    if not pct_df.empty:
+                        fig3, ax3 = plt.subplots(figsize=(10, 3.5))
+                        colours_pct = ["#10b981" if p >= 50 else ("#f59e0b" if p >= 25 else "#ef4444")
+                                       for p in pct_df["Percentile Rank"]]
+                        bars3 = ax3.barh(pct_df["Year"].astype(str),
+                                         pct_df["Percentile Rank"],
+                                         color=colours_pct, edgecolor="white",
+                                         linewidth=1, height=0.45, alpha=0.85)
+                        ax3.axvline(50, color="#6b7280", linestyle="--",
+                                    linewidth=1.2, label="50th percentile")
+                        ax3.axvline(25, color="#ef4444", linestyle=":",
+                                    linewidth=1.2, label="25th percentile (concern)")
+                        for bar, val in zip(bars3, pct_df["Percentile Rank"]):
+                            ax3.text(val + 0.5, bar.get_y() + bar.get_height()/2,
+                                     f"{val:.0f}th",
+                                     va="center", fontsize=10, fontweight="700")
+                        ax3.set_xlabel("Percentile Rank within Department (100 = best)", fontsize=10)
+                        ax3.set_title(f"Physician {selected_phys} — Percentile Rank Over Time",
+                                      fontsize=11, fontweight="bold")
+                        ax3.set_xlim(0, 110)
+                        ax3.legend(fontsize=9)
+                        ax3.grid(axis="x", alpha=0.3, linestyle="--")
+                        ax3.set_facecolor("#fafafa")
+                        fig3.patch.set_facecolor("white")
+                        st.pyplot(fig3, use_container_width=True)
+                        plt.close()
+
+                        st.markdown("**Year-by-Year Summary for this Physician**")
+                        merged_summary = phys_trend.merge(pct_df[["Year","Percentile Rank","Dept Mean Score","Physicians in Dept"]],
+                                                          on="Year", how="left")
+                        st.dataframe(merged_summary, use_container_width=True, hide_index=True)
