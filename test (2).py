@@ -137,24 +137,24 @@ def add_outlier_flags(phys_df):
 
 vader = SentimentIntensityAnalyzer()
 
-def score_vader(text):
+def score_vader(text, threshold=-0.05):
     try:
         s = vader.polarity_scores(str(text))
         c = s["compound"]
-        label = "POSITIVE" if c >= 0.05 else ("NEGATIVE" if c <= -0.05 else "NEUTRAL")
+        label = "POSITIVE" if c >= abs(threshold) else ("NEGATIVE" if c <= threshold else "NEUTRAL")
         return {"compound": c, "sentiment": label,
                 "vader_pos": s["pos"], "vader_neg": s["neg"]}
     except:
         return {"compound": 0.0, "sentiment": "NEUTRAL", "vader_pos": 0.0, "vader_neg": 0.0}
 
-def run_sentiment(df):
+def run_sentiment(df, threshold=-0.05):
     df_s = df[
         (df.get("raters_group", pd.Series(dtype=str)) != "Faculty Self-Evaluation") &
         (df["comments"].notna()) &
         (df["comments"].astype(str).str.strip() != "")
     ].copy()
     df_s["comments"] = df_s["comments"].astype(str).str.strip()
-    results = df_s["comments"].apply(score_vader)
+    results = df_s["comments"].apply(lambda t: score_vader(t, threshold))
     df_s = pd.concat([df_s, pd.DataFrame(results.tolist(), index=df_s.index)], axis=1)
     return df_s
 
@@ -191,14 +191,14 @@ def risk_pill(score):
     if score == 1:   return '<span class="pill-yellow">👁 Monitor</span>'
     return '<span class="pill-green">✓ Clear</span>'
 
-def process_dept(df_raw, dept_name):
+def process_dept(df_raw, dept_name, threshold=-0.05):
     df = clean_headers(df_raw)
     df = map_ratings(df)
     df = compute_score(df)
     df = add_year(df)
     phys = aggregate_physician(df)
     phys, mean, std = add_outlier_flags(phys)
-    sent_raw = run_sentiment(df) if "comments" in df.columns else pd.DataFrame()
+    sent_raw = run_sentiment(df, threshold) if "comments" in df.columns else pd.DataFrame()
     if not sent_raw.empty:
         sent_s = sentiment_summary(sent_raw)
         phys   = merge_sentiment(phys, sent_s)
@@ -240,23 +240,22 @@ with st.sidebar:
     sent_thresh = st.slider("VADER negative threshold", -0.5, 0.0, -0.05, 0.01,
                             help="Compound score ≤ this value = NEGATIVE")
     st.markdown("---")
-    st.markdown("**v4.0 · VADER Sentiment**  
-*All IDs anonymised*", unsafe_allow_html=True)
+    st.markdown("**v4.0 · VADER Sentiment**  \n*All IDs anonymised*", unsafe_allow_html=True)
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data
-def load_and_process(files_aubmc, files_ed, files_patho, min_f):
+def load_and_process(files_aubmc, files_ed, files_patho, min_f, threshold):
     depts = {}
 
     def load_dept(file_list, name):
         frames = [pd.read_csv(f) for f in file_list if f is not None]
         if not frames: return None, None, None
         raw = pd.concat(frames, ignore_index=True)
-        return process_dept(raw, name)
+        return process_dept(raw, name, threshold)
 
-    aubmc_raw, aubmc_phys, aubmc_sent = load_dept(files_aubmc, "AUBMC_Behavior_survey.csv")
-    ed_raw,    ed_phys,    ed_sent    = load_dept(files_ed,    "ED_Behavior_survey.csv")
-    patho_raw, patho_phys, patho_sent = load_dept(files_patho, "Patho_Behavior_survey.csv")
+    aubmc_raw, aubmc_phys, aubmc_sent = load_dept(files_aubmc, "AUBMC")
+    ed_raw,    ed_phys,    ed_sent    = load_dept(files_ed,    "ED")
+    patho_raw, patho_phys, patho_sent = load_dept(files_patho, "Pathology")
 
     # apply min_forms filter
     for phys in [aubmc_phys, ed_phys, patho_phys]:
@@ -326,7 +325,8 @@ with st.spinner("Processing data and running VADER sentiment analysis..."):
         tuple(f for f in files_aubmc),
         tuple(f for f in files_ed),
         tuple(f for f in files_patho),
-        min_forms
+        min_forms,
+        sent_thresh
     )
 
 # Build combined physician table from available departments
