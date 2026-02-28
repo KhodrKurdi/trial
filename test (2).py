@@ -348,12 +348,13 @@ st.markdown(f"**Departments active:** {'  ·  '.join(available_depts)}  &nbsp;&n
 st.markdown("---")
 
 # ─── TABS ────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📋 Executive Summary",
     "🎯 Flagged Physicians",
     "📊 Department View",
     "💬 Sentiment Explorer",
-    "📈 Trends (2023–2025)"
+    "📈 Trends (2023–2025)",
+    "🤖 Q&A Assistant"
 ])
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1279,3 +1280,44 @@ with tab5:
                     ).format({"Overall Avg": lambda x: f"{x:.3f}" if pd.notna(x) else "—"})
 
                     st.dataframe(styled, use_container_width=True, hide_index=True)
+
+
+with tab6:
+    st.markdown('<div class="section-header">🤖 Q&A Assistant (Data-only)</div>', unsafe_allow_html=True)
+
+    st.write("Ask questions like: *How many Priority in ED?*  *Show bottom 10% in AUBMC*  *Top 5 lowest scores*")
+
+    question = st.text_input("Your question")
+
+    def answer_q(q, df):
+        q = q.lower().strip()
+
+        if "how many" in q and "priority" in q:
+            return f"Priority physicians: {(df['risk_score']==2).sum()}"
+
+        if "how many" in q and "monitor" in q:
+            return f"Monitor physicians: {(df['risk_score']==1).sum()}"
+
+        if "bottom 10" in q or "bottom10" in q:
+            tmp = df.sort_values("avg_behavior_score").head(max(1, int(len(df)*0.1)))
+            return tmp[["physician_id","department","avg_behavior_score","n_forms","risk_score"]]
+
+        if "top" in q and ("lowest" in q or "worst" in q):
+            n = 10
+            m = re.search(r"top\s+(\d+)", q)
+            if m: n = int(m.group(1))
+            tmp = df.sort_values("avg_behavior_score").head(n)
+            return tmp[["physician_id","department","avg_behavior_score","n_forms","risk_score"]]
+
+        if "funnel" in q and "outlier" in q:
+            tmp = df[df["low_funnel_outlier"]].sort_values("avg_behavior_score")
+            return tmp[["physician_id","department","avg_behavior_score","n_forms","risk_score"]]
+
+        return "I can answer: counts (priority/monitor/clear), bottom 10%, top N lowest, funnel outliers."
+
+    if question:
+        res = answer_q(question, all_phys)
+        if isinstance(res, pd.DataFrame):
+            st.dataframe(res, use_container_width=True)
+        else:
+            st.success(res)
