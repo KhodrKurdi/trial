@@ -1467,6 +1467,16 @@ with tab6:
 
         ind_df = load_indicators(ind_file)
 
+        # Show detected columns so user can verify mapping
+        with st.expander("🔍 Detected columns in your file", expanded=False):
+            st.write(list(ind_df.columns))
+            expected = ["Aubnetid","FiscalCycle","Division","ClinicVisits","ClinicWaitingTime","PatientComplaints"]
+            missing  = [c for c in expected if c not in ind_df.columns]
+            if missing:
+                st.warning(f"Missing expected columns: {missing} — some metrics will show 0")
+            else:
+                st.success("All expected columns found ✅")
+
         # ── Cycle filter ──────────────────────────────────────────────────────
         cycles = ["All"] + sorted(ind_df["FiscalCycle"].dropna().unique().tolist(), reverse=True) \
                  if "FiscalCycle" in ind_df.columns else ["All"]
@@ -1527,23 +1537,30 @@ with tab6:
         st.markdown('<div class="section-header">📊 Department Overview</div>', unsafe_allow_html=True)
 
         if "Department" in df_filt.columns:
+            # Build agg spec only from columns that actually exist in the file
+            agg_spec = {}
+            id_col = "Aubnetid" if "Aubnetid" in df_filt.columns else (df_filt.columns[0])
+            agg_spec["Physicians"] = (id_col, "nunique")
+            if "Division_norm"    in df_filt.columns: agg_spec["Divisions"]        = ("Division_norm",    "nunique")
+            if "ClinicVisits"     in df_filt.columns: agg_spec["Total_Visits"]     = ("ClinicVisits",     "sum")
+            if "ClinicWaitingTime"in df_filt.columns: agg_spec["Avg_Wait"]         = ("ClinicWaitingTime","mean")
+            if "PatientComplaints"in df_filt.columns: agg_spec["Total_Complaints"] = ("PatientComplaints","sum")
+            if "PatientComplaints"in df_filt.columns: agg_spec["Avg_Complaints"]   = ("PatientComplaints","mean")
+
             dept_summary = (
                 df_filt.groupby("Department", as_index=False)
-                .agg(
-                    Physicians       =("Aubnetid",         "nunique"),
-                    Divisions        =("Division_norm",    "nunique"),
-                    Total_Visits     =("ClinicVisits",     "sum"),
-                    Avg_Wait         =("ClinicWaitingTime","mean"),
-                    Total_Complaints =("PatientComplaints","sum"),
-                    Avg_Complaints   =("PatientComplaints","mean"),
-                )
-                .sort_values("Total_Visits", ascending=False)
+                .agg(**agg_spec)
                 .reset_index(drop=True)
             )
+            # Add missing columns as zeros so downstream code doesn't break
+            for c in ["Total_Visits", "Total_Complaints", "Divisions", "Avg_Wait", "Avg_Complaints"]:
+                if c not in dept_summary.columns:
+                    dept_summary[c] = 0
             for c in ["Total_Visits", "Total_Complaints"]:
                 dept_summary[c] = dept_summary[c].fillna(0).astype(int)
             dept_summary["Avg_Wait"]       = dept_summary["Avg_Wait"].round(1)
             dept_summary["Avg_Complaints"] = dept_summary["Avg_Complaints"].round(2)
+            dept_summary = dept_summary.sort_values("Total_Visits", ascending=False).reset_index(drop=True)
 
             dv1, dv2 = st.columns(2)
             with dv1:
@@ -1615,17 +1632,22 @@ with tab6:
         df_div = df_filt if sel_dept == "All Departments" else df_filt[df_filt["Department"] == sel_dept]
 
         if "Division_norm" in df_div.columns:
+            div_agg = {}
+            id_col2 = "Aubnetid" if "Aubnetid" in df_div.columns else df_div.columns[0]
+            div_agg["Physicians"] = (id_col2, "nunique")
+            if "ClinicVisits"     in df_div.columns: div_agg["Total_Visits"]     = ("ClinicVisits",     "sum")
+            if "ClinicWaitingTime"in df_div.columns: div_agg["Avg_Wait"]         = ("ClinicWaitingTime","mean")
+            if "PatientComplaints"in df_div.columns: div_agg["Total_Complaints"] = ("PatientComplaints","sum")
+
             div_summary = (
                 df_div.groupby("Division_norm", as_index=False)
-                .agg(
-                    Physicians       =("Aubnetid",         "nunique"),
-                    Total_Visits     =("ClinicVisits",     "sum"),
-                    Avg_Wait         =("ClinicWaitingTime","mean"),
-                    Total_Complaints =("PatientComplaints","sum"),
-                )
-                .sort_values("Total_Visits", ascending=False)
+                .agg(**div_agg)
+                .sort_values("Total_Visits" if "Total_Visits" in div_agg else "Physicians", ascending=False)
                 .reset_index(drop=True)
             )
+            for c in ["Total_Visits", "Total_Complaints", "Avg_Wait"]:
+                if c not in div_summary.columns:
+                    div_summary[c] = 0
             for c in ["Total_Visits", "Total_Complaints"]:
                 div_summary[c] = div_summary[c].fillna(0).astype(int)
             div_summary["Avg_Wait"] = div_summary["Avg_Wait"].round(1)
