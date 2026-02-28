@@ -1298,25 +1298,24 @@ with tab5:
 
 DEPT_DIVISION_MAP = {
     "Anesthesia and Pain Medicine": [],
-    "Dentofacial Medicine": [
-        "Orthodontics",
-    ],
-    "Dermatology": [],
-    "Diagnostic Radiology": [],
-    "Emergency Medicine": [],
-    "Family Medicine": [],
+    "Dentofacial Medicine":         ["Orthodontics"],
+    "Dermatology":                  [],
+    "Diagnostic Radiology":         [],
+    "Emergency Medicine":           [],
+    "Family Medicine":              [],
     "Internal Medicine": [
         "Cardiology",
-        "Endocrinology & Metabolism",
-        "Gastroenterology & Hepatology",
-        "General Internal Medicine & Geriatrics",
+        "Endocrinology and Metabolism",
+        "Gastroenterology",
+        "General Internal Medicine and Geriatrics",
+        "Geriatrics",
         "Hematology-Oncology",
         "Infectious Diseases",
-        "Nephrology & Hypertension",
-        "Pulmonary & Critical Care",
-        "Rheumatology/Allergology and Immunology",
+        "Nephrology and Hypertension",
+        "Pulmonary and Critical Care",
+        "Rheumatology",
     ],
-    "Neurology": [],
+    "Neurology":        [],
     "Ob/Gyn": [
         "Obstetrics and Gynecology",
         "Maternal-Fetal Medicine",
@@ -1324,13 +1323,14 @@ DEPT_DIVISION_MAP = {
         "Gynecologic Oncology",
     ],
     "Ophthalmology": [
-        "Vitreo-Retinal Surgery",
+        "Ophthalmology",
+        "Vitreo-Retinal surgery",
         "Corneal/Refractive Surgery",
-        "Oculoplastics/Orbital/Lacrimal Surgery",
+        "Oculoplastics/Orbital/Lacrimal surgery",
         "Pediatric Ophthalmology & Motility",
     ],
     "Otolaryngology, Head & Neck Surgery": [],
-    "Pathology and Lab": [],
+    "Pathology and Lab":  [],
     "Pediatrics": [
         "Pediatrics and Adolescent Medicine",
         "Neonatology",
@@ -1344,8 +1344,8 @@ DEPT_DIVISION_MAP = {
         "Pediatric Neurology",
         "Pediatric Pulmonology",
     ],
-    "Psychiatry": [],
-    "Radiation Oncology": [],
+    "Psychiatry":        [],
+    "Radiation Oncology":[],
     "Surgery": [
         "General Surgery",
         "Pediatric Surgery Service",
@@ -1358,77 +1358,67 @@ DEPT_DIVISION_MAP = {
     ],
 }
 
-# Flat lookup: division or dept name -> parent department
-DIV_TO_DEPT = {}
-for _dept, _divs in DEPT_DIVISION_MAP.items():
-    DIV_TO_DEPT[_dept] = _dept
-    for _d in _divs:
-        DIV_TO_DEPT[_d] = _dept
-
-# Maps every spelling variant from the Excel Division column -> canonical division name
-DIVISION_NORMALISE = {
-    # ── Internal Medicine divisions ───────────────────────────────────────────
-    "Cardiology":                                      "Cardiology",
-    "Endocrinology":                                   "Endocrinology & Metabolism",
-    "Endocrinology and Metabolism":                    "Endocrinology & Metabolism",
-    "Gastroenterology":                                "Gastroenterology & Hepatology",
-    "Geriatrics":                                      "General Internal Medicine & Geriatrics",
-    "General Internal Medicine and Geriatrics":        "General Internal Medicine & Geriatrics",
-    "Hematology-Oncology":                             "Hematology-Oncology",
-    "Infectious Diseases":                             "Infectious Diseases",
-    "Nephrology":                                      "Nephrology & Hypertension",
-    "Nephrology and Hypertension":                     "Nephrology & Hypertension",
-    "Pulmonary and Critical Care":                     "Pulmonary & Critical Care",
-    "Rheumatology":                                    "Rheumatology/Allergology and Immunology",
-    "Internal Medicine":                               "General Internal Medicine & Geriatrics",
-    # ── Surgery divisions ─────────────────────────────────────────────────────
-    "General Surgery":                                 "General Surgery",
-    "Pediatric Surgery Service":                       "Pediatric Surgery Service",
-    "Cardiothoracic Surgery":                          "Cardiothoracic Surgery",
-    "Neurosurgery":                                    "Neurosurgery",
-    "Orthopaedic Surgery":                             "Orthopaedic Surgery",
-    "Orthopedic Surgery":                              "Orthopaedic Surgery",
-    "Plastic Surgery":                                 "Plastic Surgery",
-    "Urology":                                         "Urology",
-    "Vascular Surgery":                                "Vascular Surgery",
-    # ── Ob/Gyn divisions ──────────────────────────────────────────────────────
-    "Obstetrics and Gynecology":                       "Obstetrics and Gynecology",
-    "Maternal-Fetal Medicine":                         "Maternal-Fetal Medicine",
-    "Reproductive Endocrinology and Infertility":      "Reproductive Endocrinology and Infertility",
-    "Gynecologic Oncology":                            "Gynecologic Oncology",
-    # ── Ophthalmology divisions ───────────────────────────────────────────────
-    "Vitreo-Retinal surgery":                          "Vitreo-Retinal Surgery",
-    "Vitreo-Retinal Surgery":                          "Vitreo-Retinal Surgery",
-    "Corneal/Refractive Surgery":                      "Corneal/Refractive Surgery",
-    "Oculoplastics/Orbital/Lacrimal surgery":          "Oculoplastics/Orbital/Lacrimal Surgery",
-    "Oculoplastics/Orbital/Lacrimal Surgery":          "Oculoplastics/Orbital/Lacrimal Surgery",
-    "Pediatric Ophthalmology & Motility":              "Pediatric Ophthalmology & Motility",
-    # ── Pediatrics divisions ──────────────────────────────────────────────────
-    "Pediatrics and Adolescent Medicine":              "Pediatrics and Adolescent Medicine",
-    "Neonatology":                                     "Neonatology",
-    "Pediatric Cardiology":                            "Pediatric Cardiology",
-    "Pediatric Critical Care":                         "Pediatric Critical Care",
-    "Pediatric Endocrinology":                         "Pediatric Endocrinology",
-    "Pediatric Gastroenterology":                      "Pediatric Gastroenterology",
-    "Pediatric Hematology-Oncology":                   "Pediatric Hematology-Oncology",
-    "Pediatric Infectious Diseases":                   "Pediatric Infectious Diseases",
-    "Pediatric Nephrology":                            "Pediatric Nephrology",
-    "Pediatric Neurology":                             "Pediatric Neurology",
-    "Pediatric Pulmonology":                           "Pediatric Pulmonology",
-    # ── Standalone departments ────────────────────────────────────────────────
-    "Anesthesia and Pain Medicine":                    "Anesthesia and Pain Medicine",
-    "Dentofacial Medicine":                            "Dentofacial Medicine",
-    "Orthodontics":                                    "Orthodontics",
-    "Dermatology":                                     "Dermatology",
-    "Diagnostic Radiology":                            "Diagnostic Radiology",
-    "Emergency Medicine":                              "Emergency Medicine",
-    "Family Medicine":                                 "Family Medicine",
-    "Neurology":                                       "Neurology",
-    "Otolaryngology, Head & Neck Surgery":             "Otolaryngology, Head & Neck Surgery",
-    "Otorhinolaryngology - Head and Neck Surgery":     "Otolaryngology, Head & Neck Surgery",
-    "Pathology and Lab":                               "Pathology and Lab",
-    "Psychiatry":                                      "Psychiatry",
-    "Radiation Oncology":                              "Radiation Oncology",
+# Exact mapping: every Division value in the CSV -> parent Department label
+DIV_TO_DEPT = {
+    # Internal Medicine (13 rows in CSV)
+    "Cardiology":                               "Internal Medicine",
+    "Endocrinology":                            "Internal Medicine",
+    "Endocrinology and Metabolism":             "Internal Medicine",
+    "Gastroenterology":                         "Internal Medicine",
+    "General Internal Medicine and Geriatrics": "Internal Medicine",
+    "Geriatrics":                               "Internal Medicine",
+    "Hematology-Oncology":                      "Internal Medicine",
+    "Infectious Diseases":                      "Internal Medicine",
+    "Internal Medicine":                        "Internal Medicine",
+    "Nephrology":                               "Internal Medicine",
+    "Nephrology and Hypertension":              "Internal Medicine",
+    "Pulmonary and Critical Care":              "Internal Medicine",
+    "Rheumatology":                             "Internal Medicine",
+    # Surgery (8)
+    "General Surgery":                          "Surgery",
+    "Pediatric Surgery Service":                "Surgery",
+    "Cardiothoracic Surgery":                   "Surgery",
+    "Neurosurgery":                             "Surgery",
+    "Orthopaedic Surgery":                      "Surgery",
+    "Plastic Surgery":                          "Surgery",
+    "Urology":                                  "Surgery",
+    "Vascular Surgery":                         "Surgery",
+    # Ob/Gyn (4)
+    "Obstetrics and Gynecology":                "Ob/Gyn",
+    "Maternal-Fetal Medicine":                  "Ob/Gyn",
+    "Reproductive Endocrinology and Infertility": "Ob/Gyn",
+    "Gynecologic Oncology":                     "Ob/Gyn",
+    # Ophthalmology (5)
+    "Ophthalmology":                            "Ophthalmology",
+    "Vitreo-Retinal surgery":                   "Ophthalmology",
+    "Corneal/Refractive Surgery":               "Ophthalmology",
+    "Oculoplastics/Orbital/Lacrimal surgery":   "Ophthalmology",
+    "Pediatric Ophthalmology & Motility":       "Ophthalmology",
+    # Pediatrics (11)
+    "Pediatrics and Adolescent Medicine":       "Pediatrics",
+    "Neonatology":                              "Pediatrics",
+    "Pediatric Cardiology":                     "Pediatrics",
+    "Pediatric Critical Care":                  "Pediatrics",
+    "Pediatric Endocrinology":                  "Pediatrics",
+    "Pediatric Gastroenterology":               "Pediatrics",
+    "Pediatric Hematology-Oncology":            "Pediatrics",
+    "Pediatric Infectious Diseases":            "Pediatrics",
+    "Pediatric Nephrology":                     "Pediatrics",
+    "Pediatric Neurology":                      "Pediatrics",
+    "Pediatric Pulmonology":                    "Pediatrics",
+    # Standalone departments (each maps to itself)
+    "Anesthesia and Pain Medicine":             "Anesthesia and Pain Medicine",
+    "Dentofacial Medicine":                     "Dentofacial Medicine",
+    "Orthodontics":                             "Dentofacial Medicine",
+    "Dermatology":                              "Dermatology",
+    "Diagnostic Radiology":                     "Diagnostic Radiology",
+    "Emergency Medicine":                       "Emergency Medicine",
+    "Family Medicine":                          "Family Medicine",
+    "Neurology":                                "Neurology",
+    "Otorhinolaryngology - Head and Neck Surgery": "Otolaryngology, Head & Neck Surgery",
+    "Pathology and Lab":                        "Pathology and Lab",
+    "Psychiatry":                               "Psychiatry",
+    "Radiation Oncology":                       "Radiation Oncology",
 }
 
 
@@ -1459,17 +1449,21 @@ with tab6:
                     else:
                         st.markdown(f"**{dept}**")
     else:
+
         @st.cache_data
         def load_indicators(file):
             df = pd.read_csv(file)
             df.columns = df.columns.str.strip()
             if "Division" in df.columns:
-                df["Division_norm"] = df["Division"].map(DIVISION_NORMALISE).fillna(df["Division"])
-                df["Department"]    = df["Division_norm"].map(lambda d: DIV_TO_DEPT.get(d, "Other"))
+                # Map exact CSV Division value -> parent Department
+                df["Department"] = df["Division"].map(DIV_TO_DEPT).fillna("Other")
+                # Division column stays as-is (already clean from the file)
+                df["Division_norm"] = df["Division"]
             for col in ["ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]:
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors="coerce")
             return df
+
 
         ind_df = load_indicators(ind_file)
 
