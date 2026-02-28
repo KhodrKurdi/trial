@@ -1454,11 +1454,11 @@ with tab6:
         def load_indicators(file):
             df = pd.read_csv(file)
             df.columns = df.columns.str.strip()
+            # Department and Division columns come directly from the file
             if "Division" in df.columns:
-                # Map exact CSV Division value -> parent Department
-                df["Department"] = df["Division"].map(DIV_TO_DEPT).fillna("Other")
-                # Division column stays as-is (already clean from the file)
-                df["Division_norm"] = df["Division"]
+                df["Division_norm"] = df["Division"].str.strip()
+            if "Department" in df.columns:
+                df["Department"] = df["Department"].str.strip()
             for col in ["ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]:
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors="coerce")
