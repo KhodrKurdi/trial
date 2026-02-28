@@ -7,7 +7,14 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import re
 import io
 import warnings
+import json
 warnings.filterwarnings("ignore")
+
+try:
+    import anthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
 
 # ─── PAGE CONFIG ─────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -354,7 +361,7 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Department View",
     "💬 Sentiment Explorer",
     "📈 Trends (2023–2025)",
-    "🤖 Q&A Assistant"
+    "🏢 Departments & Divisions"
 ])
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1282,42 +1289,437 @@ with tab5:
                     st.dataframe(styled, use_container_width=True, hide_index=True)
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TAB 6 — DEPARTMENTS & DIVISIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+DEPT_DIVISION_MAP = {
+    "Anesthesia and Pain Medicine": [],
+    "Dentofacial Medicine": [],
+    "Dermatology": [],
+    "Diagnostic Radiology": [],
+    "Emergency Medicine": [],
+    "Family Medicine": [],
+    "Internal Medicine": [
+        "Cardiology",
+        "Endocrinology & Metabolism",
+        "Gastroenterology & Hepatology",
+        "General Internal Medicine & Geriatrics",
+        "Hematology-Oncology",
+        "Infectious Diseases",
+        "Nephrology & Hypertension",
+        "Pulmonary & Critical Care",
+        "Rheumatology/Allergology and Immunology",
+    ],
+    "Neurology": [],
+    "Ob/Gyn": [],
+    "Ophthalmology": [],
+    "Otolaryngology, Head & Neck surgery": [],
+    "Pathology and Lab": [],
+    "Pediatrics": [],
+    "Psychiatry": [],
+    "Radiation Oncology": [],
+    "Surgery": [
+        "General Surgery & Pediatric Surgery",
+        "Cardiothoracic Surgery",
+        "Neurosurgery",
+        "Orthopedic surgery",
+        "Plastic Surgery",
+        "Urology",
+        "Vascular Surgery",
+    ],
+}
+
+DIV_TO_DEPT = {
+    "Anesthesia and Pain Medicine":           "Anesthesia and Pain Medicine",
+    "Dentofacial Medicine":                   "Dentofacial Medicine",
+    "Orthodontics":                           "Dentofacial Medicine",
+    "Dermatology":                            "Dermatology",
+    "Diagnostic Radiology":                   "Diagnostic Radiology",
+    "Emergency Medicine":                     "Emergency Medicine",
+    "Family Medicine":                        "Family Medicine",
+    "Internal Medicine":                      "Internal Medicine",
+    "Cardiology":                             "Internal Medicine",
+    "Endocrinology & Metabolism":             "Internal Medicine",
+    "Gastroenterology & Hepatology":          "Internal Medicine",
+    "General Internal Medicine & Geriatrics": "Internal Medicine",
+    "Hematology-Oncology":                    "Internal Medicine",
+    "Infectious Diseases":                    "Internal Medicine",
+    "Nephrology & Hypertension":              "Internal Medicine",
+    "Pulmonary & Critical Care":              "Internal Medicine",
+    "Rheumatology/Allergology and Immunology":"Internal Medicine",
+    "Neurology":                              "Neurology",
+    "Ob/Gyn":                                 "Ob/Gyn",
+    "Ophthalmology":                          "Ophthalmology",
+    "Otolaryngology, Head & Neck surgery":    "Otolaryngology, Head & Neck surgery",
+    "Pathology and Lab":                      "Pathology and Lab",
+    "Pediatrics":                             "Pediatrics",
+    "Psychiatry":                             "Psychiatry",
+    "Radiation Oncology":                     "Radiation Oncology",
+    "Surgery":                                "Surgery",
+    "General Surgery & Pediatric Surgery":    "Surgery",
+    "Cardiothoracic Surgery":                 "Surgery",
+    "Neurosurgery":                           "Surgery",
+    "Orthopedic surgery":                     "Surgery",
+    "Plastic Surgery":                        "Surgery",
+    "Urology":                                "Surgery",
+    "Vascular Surgery":                       "Surgery",
+}
+
+DIVISION_NORMALISE = {
+    "Cardiology":                                    "Cardiology",
+    "Endocrinology":                                 "Endocrinology & Metabolism",
+    "Endocrinology and Metabolism":                  "Endocrinology & Metabolism",
+    "Gastroenterology":                              "Gastroenterology & Hepatology",
+    "General Internal Medicine and Geriatrics":      "General Internal Medicine & Geriatrics",
+    "Geriatrics":                                    "General Internal Medicine & Geriatrics",
+    "Hematology-Oncology":                           "Hematology-Oncology",
+    "Infectious Diseases":                           "Infectious Diseases",
+    "Nephrology":                                    "Nephrology & Hypertension",
+    "Nephrology and Hypertension":                   "Nephrology & Hypertension",
+    "Pulmonary and Critical Care":                   "Pulmonary & Critical Care",
+    "Rheumatology":                                  "Rheumatology/Allergology and Immunology",
+    "General Surgery":                               "General Surgery & Pediatric Surgery",
+    "Pediatric Surgery Service":                     "General Surgery & Pediatric Surgery",
+    "Cardiothoracic Surgery":                        "Cardiothoracic Surgery",
+    "Neurosurgery":                                  "Neurosurgery",
+    "Orthopaedic Surgery":                           "Orthopedic surgery",
+    "Orthopedic Surgery":                            "Orthopedic surgery",
+    "Plastic Surgery":                               "Plastic Surgery",
+    "Urology":                                       "Urology",
+    "Vascular Surgery":                              "Vascular Surgery",
+    "Emergency Medicine":                            "Emergency Medicine",
+    "Family Medicine":                               "Family Medicine",
+    "Neurology":                                     "Neurology",
+    "Dermatology":                                   "Dermatology",
+    "Diagnostic Radiology":                          "Diagnostic Radiology",
+    "Psychiatry":                                    "Psychiatry",
+    "Radiation Oncology":                            "Radiation Oncology",
+    "Ophthalmology":                                 "Ophthalmology",
+    "Vitreo-Retinal surgery":                        "Ophthalmology",
+    "Corneal/Refractive Surgery":                    "Ophthalmology",
+    "Oculoplastics/Orbital/Lacrimal surgery":        "Ophthalmology",
+    "Pediatric Ophthalmology & Motility":            "Ophthalmology",
+    "Obstetrics and Gynecology":                     "Ob/Gyn",
+    "Maternal-Fetal Medicine":                       "Ob/Gyn",
+    "Reproductive Endocrinology and Infertility":    "Ob/Gyn",
+    "Gynecologic Oncology":                          "Ob/Gyn",
+    "Otorhinolaryngology - Head and Neck Surgery":   "Otolaryngology, Head & Neck surgery",
+    "Pediatrics and Adolescent Medicine":            "Pediatrics",
+    "Pediatric Cardiology":                          "Pediatrics",
+    "Pediatric Critical Care":                       "Pediatrics",
+    "Pediatric Endocrinology":                       "Pediatrics",
+    "Pediatric Gastroenterology":                    "Pediatrics",
+    "Pediatric Hematology-Oncology":                 "Pediatrics",
+    "Pediatric Infectious Diseases":                 "Pediatrics",
+    "Pediatric Nephrology":                          "Pediatrics",
+    "Pediatric Neurology":                           "Pediatrics",
+    "Pediatric Pulmonology":                         "Pediatrics",
+    "Neonatology":                                   "Pediatrics",
+    "Dentofacial Medicine":                          "Dentofacial Medicine",
+    "Orthodontics":                                  "Dentofacial Medicine",
+    "Anesthesia and Pain Medicine":                  "Anesthesia and Pain Medicine",
+    "Pathology and Lab":                             "Pathology and Lab",
+    "Internal Medicine":                             "Internal Medicine",
+}
+
 with tab6:
-    st.markdown('<div class="section-header">🤖 Q&A Assistant (Data-only)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">🏢 Departments & Divisions — Indicators Analysis</div>', unsafe_allow_html=True)
+    st.markdown("Upload the **Physicians Indicators CSV** to explore performance by department and division.")
 
-    st.write("Ask questions like: *How many Priority in ED?*  *Show bottom 10% in AUBMC*  *Top 5 lowest scores*")
+    ind_file = st.file_uploader(
+        "📂 Upload Physicians_Indicators CSV", type="csv", key="ind_upload",
+        help="Expected columns: Aubnetid, FiscalCycle, Division, ClinicVisits, ClinicWaitingTime, PatientComplaints"
+    )
 
-    question = st.text_input("Your question")
+    if ind_file is None:
+        st.info("👆 Upload your indicators file to begin.")
+        st.markdown("---")
+        st.markdown('<div class="section-header">📋 AUBMC Organisational Structure</div>', unsafe_allow_html=True)
+        org_cols = st.columns(2)
+        dept_list = list(DEPT_DIVISION_MAP.keys())
+        half = len(dept_list) // 2
+        for col, depts in zip(org_cols, [dept_list[:half], dept_list[half:]]):
+            with col:
+                for dept in depts:
+                    divs = DEPT_DIVISION_MAP[dept]
+                    if divs:
+                        with st.expander(f"**{dept}** — {len(divs)} divisions"):
+                            for d in divs:
+                                st.markdown(f"&nbsp;&nbsp;&nbsp;• {d}")
+                    else:
+                        st.markdown(f"**{dept}**")
+    else:
+        @st.cache_data
+        def load_indicators(file):
+            df = pd.read_csv(file)
+            df.columns = df.columns.str.strip()
+            if "Division" in df.columns:
+                df["Division_norm"] = df["Division"].map(DIVISION_NORMALISE).fillna(df["Division"])
+                df["Department"]    = df["Division_norm"].map(lambda d: DIV_TO_DEPT.get(d, "Other"))
+            for col in ["ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
+            return df
 
-    def answer_q(q, df):
-        q = q.lower().strip()
+        ind_df = load_indicators(ind_file)
 
-        if "how many" in q and "priority" in q:
-            return f"Priority physicians: {(df['risk_score']==2).sum()}"
+        # ── Cycle filter ──────────────────────────────────────────────────────
+        cycles = ["All"] + sorted(ind_df["FiscalCycle"].dropna().unique().tolist(), reverse=True) \
+                 if "FiscalCycle" in ind_df.columns else ["All"]
+        fc1, fc2 = st.columns([1, 3])
+        with fc1:
+            sel_cycle = st.selectbox("Fiscal Cycle", cycles, key="ind_cycle")
+        df_filt = ind_df if sel_cycle == "All" else ind_df[ind_df["FiscalCycle"] == sel_cycle]
+        n_dept = df_filt["Department"].nunique() if "Department" in df_filt.columns else "—"
+        n_div  = df_filt["Division_norm"].nunique() if "Division_norm" in df_filt.columns else "—"
+        with fc2:
+            st.markdown(
+                f"<div style='padding-top:28px; color:#6b7280; font-size:13px'>"
+                f"{len(df_filt):,} physicians &nbsp;·&nbsp; {n_dept} departments &nbsp;·&nbsp; {n_div} divisions"
+                f"</div>",
+                unsafe_allow_html=True
+            )
 
-        if "how many" in q and "monitor" in q:
-            return f"Monitor physicians: {(df['risk_score']==1).sum()}"
+        st.markdown("---")
 
-        if "bottom 10" in q or "bottom10" in q:
-            tmp = df.sort_values("avg_behavior_score").head(max(1, int(len(df)*0.1)))
-            return tmp[["physician_id","department","avg_behavior_score","n_forms","risk_score"]]
+        # ── KPI cards ─────────────────────────────────────────────────────────
+        k1, k2, k3, k4 = st.columns(4)
+        total_physicians = len(df_filt)
+        total_visits     = int(df_filt["ClinicVisits"].sum())       if "ClinicVisits"      in df_filt.columns else 0
+        total_complaints = int(df_filt["PatientComplaints"].sum())  if "PatientComplaints" in df_filt.columns else 0
+        avg_wait         = df_filt["ClinicWaitingTime"].mean()      if "ClinicWaitingTime" in df_filt.columns else np.nan
 
-        if "top" in q and ("lowest" in q or "worst" in q):
-            n = 10
-            m = re.search(r"top\s+(\d+)", q)
-            if m: n = int(m.group(1))
-            tmp = df.sort_values("avg_behavior_score").head(n)
-            return tmp[["physician_id","department","avg_behavior_score","n_forms","risk_score"]]
+        with k1:
+            st.markdown(f'''<div class="metric-card neutral">
+                <div class="metric-label">Physicians</div>
+                <div class="metric-value">{total_physicians}</div>
+                <div class="metric-sub">{sel_cycle}</div>
+            </div>''', unsafe_allow_html=True)
+        with k2:
+            st.markdown(f'''<div class="metric-card success">
+                <div class="metric-label">Total Clinic Visits</div>
+                <div class="metric-value">{total_visits:,}</div>
+                <div class="metric-sub">all departments</div>
+            </div>''', unsafe_allow_html=True)
+        with k3:
+            wt_class = "success" if pd.isna(avg_wait) or avg_wait < 20 else ("warning" if avg_wait < 40 else "danger")
+            wt_val   = f"{avg_wait:.1f} min" if pd.notna(avg_wait) else "—"
+            st.markdown(f'''<div class="metric-card {wt_class}">
+                <div class="metric-label">Avg Waiting Time</div>
+                <div class="metric-value">{wt_val}</div>
+                <div class="metric-sub">clinic waiting time</div>
+            </div>''', unsafe_allow_html=True)
+        with k4:
+            cmp_class = "success" if total_complaints == 0 else ("warning" if total_complaints < 20 else "danger")
+            st.markdown(f'''<div class="metric-card {cmp_class}">
+                <div class="metric-label">Patient Complaints</div>
+                <div class="metric-value">{total_complaints:,}</div>
+                <div class="metric-sub">total reported</div>
+            </div>''', unsafe_allow_html=True)
 
-        if "funnel" in q and "outlier" in q:
-            tmp = df[df["low_funnel_outlier"]].sort_values("avg_behavior_score")
-            return tmp[["physician_id","department","avg_behavior_score","n_forms","risk_score"]]
+        st.markdown("<br>", unsafe_allow_html=True)
 
-        return "I can answer: counts (priority/monitor/clear), bottom 10%, top N lowest, funnel outliers."
+        # ── Department overview ───────────────────────────────────────────────
+        st.markdown('<div class="section-header">📊 Department Overview</div>', unsafe_allow_html=True)
 
-    if question:
-        res = answer_q(question, all_phys)
-        if isinstance(res, pd.DataFrame):
-            st.dataframe(res, use_container_width=True)
-        else:
-            st.success(res)
+        if "Department" in df_filt.columns:
+            dept_summary = (
+                df_filt.groupby("Department", as_index=False)
+                .agg(
+                    Physicians       =("Aubnetid",         "nunique"),
+                    Divisions        =("Division_norm",    "nunique"),
+                    Total_Visits     =("ClinicVisits",     "sum"),
+                    Avg_Wait         =("ClinicWaitingTime","mean"),
+                    Total_Complaints =("PatientComplaints","sum"),
+                    Avg_Complaints   =("PatientComplaints","mean"),
+                )
+                .sort_values("Total_Visits", ascending=False)
+                .reset_index(drop=True)
+            )
+            for c in ["Total_Visits", "Total_Complaints"]:
+                dept_summary[c] = dept_summary[c].fillna(0).astype(int)
+            dept_summary["Avg_Wait"]       = dept_summary["Avg_Wait"].round(1)
+            dept_summary["Avg_Complaints"] = dept_summary["Avg_Complaints"].round(2)
+
+            dv1, dv2 = st.columns(2)
+            with dv1:
+                st.markdown("**Clinic Visits by Department**")
+                fig, ax = plt.subplots(figsize=(7, max(4, len(dept_summary) * 0.42)))
+                colours = ["#ef4444" if v == dept_summary["Total_Visits"].max()
+                           else "#3b82f6" for v in dept_summary["Total_Visits"]]
+                bars = ax.barh(dept_summary["Department"], dept_summary["Total_Visits"],
+                               color=colours, edgecolor="white", linewidth=0.8, alpha=0.85)
+                mx = dept_summary["Total_Visits"].max()
+                for bar, val in zip(bars, dept_summary["Total_Visits"]):
+                    ax.text(val + mx * 0.01, bar.get_y() + bar.get_height() / 2,
+                            f"{val:,}", va="center", fontsize=8, fontweight="600")
+                ax.set_xlabel("Total Clinic Visits", fontsize=10)
+                ax.set_title("Clinic Visits by Department", fontsize=11, fontweight="bold")
+                ax.grid(axis="x", alpha=0.3, linestyle="--")
+                ax.set_facecolor("#fafafa")
+                fig.patch.set_facecolor("white")
+                plt.tight_layout()
+                st.pyplot(fig, use_container_width=True)
+                plt.close()
+
+            with dv2:
+                st.markdown("**Patient Complaints by Department**")
+                dept_cmp = dept_summary[dept_summary["Total_Complaints"] > 0].sort_values("Total_Complaints", ascending=False)
+                if dept_cmp.empty:
+                    st.success("No complaints recorded for this cycle.")
+                else:
+                    fig2, ax2 = plt.subplots(figsize=(7, max(4, len(dept_cmp) * 0.42)))
+                    c2 = ["#ef4444" if v == dept_cmp["Total_Complaints"].max()
+                          else "#f59e0b" for v in dept_cmp["Total_Complaints"]]
+                    bars2 = ax2.barh(dept_cmp["Department"], dept_cmp["Total_Complaints"],
+                                     color=c2, edgecolor="white", linewidth=0.8, alpha=0.85)
+                    for bar, val in zip(bars2, dept_cmp["Total_Complaints"]):
+                        ax2.text(val + 0.1, bar.get_y() + bar.get_height() / 2,
+                                 str(int(val)), va="center", fontsize=8, fontweight="600")
+                    ax2.set_xlabel("Total Patient Complaints", fontsize=10)
+                    ax2.set_title("Patient Complaints by Department", fontsize=11, fontweight="bold")
+                    ax2.grid(axis="x", alpha=0.3, linestyle="--")
+                    ax2.set_facecolor("#fafafa")
+                    fig2.patch.set_facecolor("white")
+                    plt.tight_layout()
+                    st.pyplot(fig2, use_container_width=True)
+                    plt.close()
+
+            st.markdown("**Department Summary Table**")
+            dept_display = dept_summary.copy()
+            dept_display.columns = ["Department", "Physicians", "Divisions", "Total Visits",
+                                     "Avg Wait (min)", "Total Complaints", "Avg Complaints/Physician"]
+            st.dataframe(dept_display, use_container_width=True, hide_index=True,
+                         column_config={
+                             "Total Visits": st.column_config.ProgressColumn(
+                                 min_value=0, max_value=int(dept_display["Total Visits"].max()), format="%d"),
+                             "Total Complaints": st.column_config.ProgressColumn(
+                                 min_value=0, max_value=max(1, int(dept_display["Total Complaints"].max())), format="%d"),
+                         })
+
+        st.markdown("---")
+
+        # ── Division drill-down ───────────────────────────────────────────────
+        st.markdown('<div class="section-header">🔬 Division Drill-Down</div>', unsafe_allow_html=True)
+
+        dd1, dd2 = st.columns([1, 2])
+        with dd1:
+            dept_opts = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist()) \
+                        if "Department" in df_filt.columns else ["All Departments"]
+            sel_dept = st.selectbox("Filter by Department", dept_opts, key="div_dept")
+
+        df_div = df_filt if sel_dept == "All Departments" else df_filt[df_filt["Department"] == sel_dept]
+
+        if "Division_norm" in df_div.columns:
+            div_summary = (
+                df_div.groupby("Division_norm", as_index=False)
+                .agg(
+                    Physicians       =("Aubnetid",         "nunique"),
+                    Total_Visits     =("ClinicVisits",     "sum"),
+                    Avg_Wait         =("ClinicWaitingTime","mean"),
+                    Total_Complaints =("PatientComplaints","sum"),
+                )
+                .sort_values("Total_Visits", ascending=False)
+                .reset_index(drop=True)
+            )
+            for c in ["Total_Visits", "Total_Complaints"]:
+                div_summary[c] = div_summary[c].fillna(0).astype(int)
+            div_summary["Avg_Wait"] = div_summary["Avg_Wait"].round(1)
+
+            with dd2:
+                st.markdown(f"**{len(div_summary)} divisions** shown")
+
+            fig3, ax3 = plt.subplots(figsize=(9, max(5, len(div_summary) * 0.38)))
+            div_colours = ["#3b82f6" if c == 0 else "#f59e0b" if c < 3 else "#ef4444"
+                           for c in div_summary["Total_Complaints"]]
+            bars3 = ax3.barh(div_summary["Division_norm"], div_summary["Total_Visits"],
+                             color=div_colours, edgecolor="white", linewidth=0.8, alpha=0.85)
+            mx3 = div_summary["Total_Visits"].max()
+            for bar, val, cmp in zip(bars3, div_summary["Total_Visits"], div_summary["Total_Complaints"]):
+                label = f"{val:,}" + (f"  ⚠ {int(cmp)}" if cmp > 0 else "")
+                col_txt = "#ef4444" if cmp > 0 else "#374151"
+                ax3.text(val + mx3 * 0.005, bar.get_y() + bar.get_height() / 2,
+                         label, va="center", fontsize=8, color=col_txt, fontweight="600")
+            ax3.set_xlabel("Clinic Visits (⚠ = has complaints)", fontsize=10)
+            ax3.set_title(f"Division Performance — {sel_dept}", fontsize=11, fontweight="bold")
+            ax3.grid(axis="x", alpha=0.3, linestyle="--")
+            ax3.set_facecolor("#fafafa")
+            fig3.patch.set_facecolor("white")
+            ax3.legend(handles=[
+                mpatches.Patch(color="#3b82f6", alpha=0.85, label="No complaints"),
+                mpatches.Patch(color="#f59e0b", alpha=0.85, label="1–2 complaints"),
+                mpatches.Patch(color="#ef4444", alpha=0.85, label="3+ complaints"),
+            ], fontsize=8, loc="lower right")
+            plt.tight_layout()
+            st.pyplot(fig3, use_container_width=True)
+            plt.close()
+
+            st.markdown("**Division Detail Table**")
+            div_display = div_summary.copy()
+            div_display.columns = ["Division", "Physicians", "Total Visits", "Avg Wait (min)", "Total Complaints"]
+            st.dataframe(div_display, use_container_width=True, hide_index=True,
+                         column_config={
+                             "Total Visits": st.column_config.ProgressColumn(
+                                 min_value=0, max_value=int(div_display["Total Visits"].max()), format="%d"),
+                             "Total Complaints": st.column_config.ProgressColumn(
+                                 min_value=0, max_value=max(1, int(div_display["Total Complaints"].max())), format="%d"),
+                         })
+
+        st.markdown("---")
+
+        # ── Physician-level explorer ──────────────────────────────────────────
+        st.markdown('<div class="section-header">👤 Physician-Level Explorer</div>', unsafe_allow_html=True)
+
+        pe1, pe2, pe3 = st.columns(3)
+        with pe1:
+            dept_opts2 = ["All"] + sorted(df_filt["Department"].dropna().unique().tolist()) \
+                         if "Department" in df_filt.columns else ["All"]
+            sel_dept2 = st.selectbox("Department", dept_opts2, key="pe_dept")
+        df_pe = df_filt if sel_dept2 == "All" else df_filt[df_filt["Department"] == sel_dept2]
+        with pe2:
+            div_opts = ["All"] + sorted(df_pe["Division_norm"].dropna().unique().tolist()) \
+                       if "Division_norm" in df_pe.columns else ["All"]
+            sel_div = st.selectbox("Division", div_opts, key="pe_div")
+        df_pe = df_pe if sel_div == "All" else df_pe[df_pe["Division_norm"] == sel_div]
+        with pe3:
+            sort_opts = ["Clinic Visits ↓", "Patient Complaints ↓", "Waiting Time ↓"]
+            sel_sort  = st.selectbox("Sort by", sort_opts, key="pe_sort")
+
+        sort_col_map = {
+            "Clinic Visits ↓":      "ClinicVisits",
+            "Patient Complaints ↓": "PatientComplaints",
+            "Waiting Time ↓":       "ClinicWaitingTime",
+        }
+        sort_col = sort_col_map[sel_sort]
+        if sort_col in df_pe.columns:
+            df_pe = df_pe.sort_values(sort_col, ascending=False)
+
+        show_cols  = ["Aubnetid", "Division_norm", "Department", "FiscalCycle",
+                      "ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]
+        avail_show = [c for c in show_cols if c in df_pe.columns]
+        show_renamed = df_pe[avail_show].rename(columns={
+            "Aubnetid":          "Physician ID",
+            "Division_norm":     "Division",
+            "FiscalCycle":       "Cycle",
+            "ClinicVisits":      "Clinic Visits",
+            "ClinicWaitingTime": "Wait Time (min)",
+            "PatientComplaints": "Complaints",
+        }).reset_index(drop=True)
+
+        max_visits = int(df_filt["ClinicVisits"].max())     if "ClinicVisits"      in df_filt.columns else 100
+        max_cmp    = int(df_filt["PatientComplaints"].max())if "PatientComplaints" in df_filt.columns else 10
+        st.dataframe(show_renamed, use_container_width=True, hide_index=True,
+                     column_config={
+                         "Clinic Visits": st.column_config.ProgressColumn(
+                             min_value=0, max_value=max_visits, format="%d"),
+                         "Complaints":    st.column_config.ProgressColumn(
+                             min_value=0, max_value=max(1, max_cmp), format="%d"),
+                     })
+
+        csv_ind = show_renamed.to_csv(index=False).encode("utf-8")
+        st.download_button("⬇️ Export filtered table as CSV", csv_ind,
+                           "division_physicians.csv", "text/csv")
