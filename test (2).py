@@ -139,14 +139,6 @@ def add_outlier_flags(phys_df):
     IQR                   = Q3 - Q1
     df["low_iqr_outlier"] = scores < (Q1 - 1.5 * IQR) if IQR > 0 else False
     df["low_bottom10"]    = scores <= scores.quantile(0.10)
-
-    # Dimension 1 — Behaviour flag: any 2 of 3 methods agree
-    score_signals = (
-        df["low_iqr_outlier"].astype(int) +
-        df["low_z_outlier"].astype(int) +
-        df["low_bottom10"].astype(int)
-    )
-    df["behaviour_flag"] = score_signals >= 2
     return df, pop_mean, pop_std
 
 vader = SentimentIntensityAnalyzer()
@@ -196,17 +188,23 @@ def merge_sentiment(phys_df, sent_s):
 
 def add_risk(phys_df):
     df = phys_df.copy()
-    # Dimension 1 — behaviour_flag already computed in add_outlier_flags
-    # Dimension 2 — Patient Experience: negative sentiment outlier
-    df["experience_flag"] = df["negative_outlier"].fillna(False) if "negative_outlier" in df.columns else False
-    # Risk score = sum of 2 dimensions
-    df["risk_score"] = df["behaviour_flag"].astype(int) + df["experience_flag"].astype(int)
-    df["final_flag"] = df["risk_score"] == 2
+    # 4 independent flags — each worth 1 point
+    # Flag 1: IQR lower fence
+    f1 = df["low_iqr_outlier"].astype(int)  if "low_iqr_outlier"  in df.columns else 0
+    # Flag 2: Z-Score <= -2
+    f2 = df["low_z_outlier"].astype(int)    if "low_z_outlier"    in df.columns else 0
+    # Flag 3: Bottom 10%
+    f3 = df["low_bottom10"].astype(int)     if "low_bottom10"     in df.columns else 0
+    # Flag 4: Negative sentiment outlier (from 2025 survey comments)
+    f4 = df["negative_outlier"].fillna(False).astype(int) if "negative_outlier" in df.columns else 0
+    df["risk_score"] = f1 + f2 + f3 + f4
+    # Thresholds: 3-4 = Priority, 1-2 = Monitor, 0 = Clear
+    df["final_flag"] = df["risk_score"] >= 3
     return df
 
 def risk_pill(score):
-    if score == 2:   return '<span class="pill-red">⚠ Priority</span>'
-    if score == 1:   return '<span class="pill-yellow">👁 Monitor</span>'
+    if score >= 3:   return '<span class="pill-red">⚠ Priority</span>'
+    if score >= 1:   return '<span class="pill-yellow">👁 Monitor</span>'
     return '<span class="pill-green">✓ Clear</span>'
 
 def process_dept(df_raw, dept_name, threshold=-0.05):
@@ -382,8 +380,8 @@ with tab1:
     st.markdown('<div class="section-header">🔑 Key Performance Indicators</div>', unsafe_allow_html=True)
 
     total      = len(all_phys)
-    priority   = (all_phys["risk_score"] == 2).sum()
-    monitor    = (all_phys["risk_score"] == 1).sum()
+    priority   = (all_phys["risk_score"] >= 3).sum()
+    monitor    = (all_phys["risk_score"].between(1, 2)).sum()
     clear      = (all_phys["risk_score"] == 0).sum()
     avg_score  = all_phys["avg_behavior_score"].mean()
     pct_neg    = (all_phys["negative_outlier"] == True).sum()
@@ -448,8 +446,8 @@ with tab1:
         st.markdown('<div class="section-header">Risk Score Breakdown</div>', unsafe_allow_html=True)
         fig2, ax2 = plt.subplots(figsize=(5, 4.5))
         risk_counts = all_phys["risk_score"].value_counts().sort_index()
-        bar_labels  = {0:"Clear (0)", 1:"Monitor (1)", 2:"Priority (2)"}
-        bar_colors  = {0:"#10b981", 1:"#f59e0b", 2:"#ef4444"}
+        bar_labels  = {0:"Clear (0)", 1:"Monitor (1)", 2:"Monitor (2)", 3:"Priority (3)", 4:"Priority (4)"}
+        bar_colors  = {0:"#10b981", 1:"#f59e0b", 2:"#f59e0b", 3:"#ef4444", 4:"#b91c1c"}
         bars = ax2.bar(
             [bar_labels.get(i, str(i)) for i in risk_counts.index],
             risk_counts.values,
@@ -478,11 +476,10 @@ with tab1:
             "Department":      dept,
             "Physicians":      len(phys),
             "Avg Score":       f"{phys['avg_behavior_score'].mean():.2f}",
-            "Priority (2)":    int((phys['risk_score']==2).sum()),
-            "Monitor (1)":     int((phys['risk_score']==1).sum()),
+            "Priority (3-4)":  int((phys['risk_score']>=3).sum()),
+            "Monitor (1-2)":   int((phys['risk_score'].between(1,2)).sum()),
             "Clear (0)":       int((phys['risk_score']==0).sum()),
-            "Behaviour Flags": int(phys['behaviour_flag'].sum()) if 'behaviour_flag' in phys.columns else 0,
-            "Experience Flags":int(phys['experience_flag'].sum()) if 'experience_flag' in phys.columns else 0,
+            "Sentiment Flags": int(phys['negative_outlier'].sum()) if 'negative_outlier' in phys.columns else 0,
         }
         summary_rows.append(row)
     st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
@@ -498,17 +495,17 @@ with tab2:
     with col_f1:
         dept_filter = st.selectbox("Department", ["All"] + available_depts, key="flag_dept")
     with col_f2:
-        risk_filter = st.selectbox("Risk Level", ["All","Priority (2)","Monitor (1)","Clear (0)"], key="flag_risk")
+        risk_filter = st.selectbox("Risk Level", ["All","Priority (3-4)","Monitor (1-2)","Clear (0)"], key="flag_risk")
     with col_f3:
         sort_by = st.selectbox("Sort by", ["Risk Score ↓", "Avg Score ↑", "Neg. Ratio ↓"], key="flag_sort")
 
     df_view = all_phys.copy()
     if dept_filter != "All":
         df_view = df_view[df_view["department"] == dept_filter]
-    if risk_filter == "Priority (2)":
-        df_view = df_view[df_view["risk_score"] == 2]
-    elif risk_filter == "Monitor (1)":
-        df_view = df_view[df_view["risk_score"] == 1]
+    if risk_filter == "Priority (3-4)":
+        df_view = df_view[df_view["risk_score"] >= 3]
+    elif risk_filter == "Monitor (1-2)":
+        df_view = df_view[df_view["risk_score"].between(1, 2)]
     elif risk_filter == "Clear (0)":
         df_view = df_view[df_view["risk_score"] == 0]
 
@@ -526,13 +523,9 @@ with tab2:
         "avg_behavior_score": "Avg Score",
         "n_forms":            "Evaluations",
         "z_score":            "Z-Score",
-        "behaviour_flag":     "Behaviour Flag",
         "low_iqr_outlier":    "IQR Flag",
         "low_z_outlier":      "Z-Flag",
         "low_bottom10":       "Bottom 10%",
-        "negative_ratio":     "Neg. Ratio",
-        "avg_compound":       "VADER Score",
-        "experience_flag":    "Experience Flag",
         "negative_outlier":   "Neg. Sentiment",
         "risk_score":         "Risk Score",
     }
@@ -553,7 +546,7 @@ with tab2:
         hide_index=True,
         column_config={
             "Risk Score": st.column_config.ProgressColumn(
-                "Risk Score", min_value=0, max_value=2, format="%d"
+                "Risk Score", min_value=0, max_value=4, format="%d"
             ),
             "Avg Score": st.column_config.ProgressColumn(
                 "Avg Score", min_value=0, max_value=4, format="%.3f"
@@ -584,21 +577,20 @@ with tab2:
         with dc3:
             st.metric("Evaluations Received", int(row["n_forms"]))
         with dc4:
-            st.metric("Composite Risk Score", f"{int(row['risk_score'])} / 2")
+            st.metric("Risk Score (0–4)", f"{int(row['risk_score'])} / 4")
 
         dc5, dc6, dc7, dc8 = st.columns(4)
         with dc5:
             st.metric("Z-Score", f"{row.get('z_score', 0):.2f}")
         with dc6:
-            beh_f = "🔴 FLAGGED" if row.get("behaviour_flag", False) else "🟢 Clear"
-            st.metric("Behaviour Flag (2/3)", beh_f)
-            exp_f = "🔴 FLAGGED" if row.get("experience_flag", False) else "🟢 Clear"
+            iqr_dd = "🔴 YES" if row.get("low_iqr_outlier", False) else "🟢 No"
+            st.metric("IQR Outlier", iqr_dd)
         with dc7:
             neg_r = row.get("negative_ratio", np.nan)
             st.metric("Neg. Comment Ratio", f"{neg_r:.1%}" if pd.notna(neg_r) else "—")
         with dc8:
-            exp_label = "🔴 FLAGGED" if row.get("experience_flag", False) else "🟢 Clear"
-            st.metric("Experience Flag", exp_label)
+            neg_s = "🔴 YES" if row.get("negative_outlier", False) else "🟢 No"
+            st.metric("Neg. Sentiment", neg_s)
 
         # Show this physician's comments
         dept_name = row.get("department","AUBMC")
@@ -643,8 +635,8 @@ with tab3:
         d1, d2, d3, d4 = st.columns(4)
         with d1: st.metric("Physicians", len(phys_d))
         with d2: st.metric("Dept. Mean Score", f"{phys_d['avg_behavior_score'].mean():.3f}")
-        with d3: st.metric("Behaviour Flags", int(phys_d["behaviour_flag"].sum()) if "behaviour_flag" in phys_d.columns else 0)
-        with d4: st.metric("Priority Flags", int((phys_d["risk_score"]==2).sum()))
+        with d3: st.metric("IQR Outliers", int(phys_d["low_iqr_outlier"].sum()) if "low_iqr_outlier" in phys_d.columns else 0)
+        with d4: st.metric("Priority Flags", int((phys_d["risk_score"]>=3).sum()))
 
         col_l, col_r = st.columns(2)
 
@@ -655,19 +647,19 @@ with tab3:
             scores_d  = phys_d["avg_behavior_score"]
             Q1d, Q3d  = scores_d.quantile(0.25), scores_d.quantile(0.75)
             iqr_fence = Q1d - 1.5 * (Q3d - Q1d)
-            normal    = phys_d[~phys_d["behaviour_flag"]] if "behaviour_flag" in phys_d.columns else phys_d
-            outliers  = phys_d[phys_d["behaviour_flag"]]  if "behaviour_flag" in phys_d.columns else phys_d.iloc[0:0]
+            normal    = phys_d[~phys_d["low_iqr_outlier"]] if "low_iqr_outlier" in phys_d.columns else phys_d
+            outliers  = phys_d[phys_d["low_iqr_outlier"]]  if "low_iqr_outlier" in phys_d.columns else phys_d.iloc[0:0]
             ax.scatter(normal.index,  normal["avg_behavior_score"],
                        alpha=0.6, color="#3b82f6", s=55, label="Within range", zorder=3)
             ax.scatter(outliers.index, outliers["avg_behavior_score"],
-                       color="#ef4444", s=100, zorder=5, label=f"Behaviour Flagged (n={len(outliers)})")
+                       color="#ef4444", s=100, zorder=5, label=f"IQR Outliers (n={len(outliers)})")
             ax.axhline(iqr_fence, color="#ef4444", linewidth=2, linestyle="--",
                        label=f"IQR Lower Fence ({iqr_fence:.2f})")
             ax.axhline(scores_d.mean(), color="#1d4ed8", linewidth=1.5, linestyle=":",
                        label=f"Mean ({scores_d.mean():.2f})")
             ax.set_xlabel("Physician Index", fontsize=10)
             ax.set_ylabel("Avg Behaviour Score", fontsize=10)
-            ax.set_title(f"{dept_sel} — Behaviour Score Outliers (2-of-3 methods)", fontsize=11, fontweight="bold")
+            ax.set_title(f"{dept_sel} — IQR Score Outliers", fontsize=11, fontweight="bold")
             ax.legend(fontsize=9)
             ax.grid(alpha=0.3, linestyle="--")
             ax.set_facecolor("#fafafa")
@@ -731,7 +723,7 @@ with tab3:
         st.markdown("**Physician Ranking within Department**")
         rank_cols = ["physician_id","avg_behavior_score","n_forms","z_score",
                      "low_iqr_outlier","low_z_outlier","low_bottom10",
-                     "behaviour_flag","experience_flag","risk_score"]
+                     "negative_outlier","risk_score"]
         rank_cols = [c for c in rank_cols if c in phys_d.columns]
         rank_df = phys_d[rank_cols].copy()
         rank_df = rank_df.sort_values("avg_behavior_score")
@@ -744,16 +736,15 @@ with tab3:
             "avg_behavior_score": "Avg Score",
             "n_forms":            "Evaluations",
             "z_score":            "Z-Score",
-            "low_iqr_outlier":    "IQR",
-            "low_z_outlier":      "Z-Score Flag",
+            "low_iqr_outlier":    "IQR Flag",
+            "low_z_outlier":      "Z-Flag",
             "low_bottom10":       "Bottom 10%",
-            "behaviour_flag":     "Behaviour Flag",
-            "experience_flag":    "Experience Flag",
+            "negative_outlier":   "Neg. Sentiment",
             "risk_score":         "Risk Score",
         }
         rank_df = rank_df.rename(columns={k:v for k,v in col_rename.items() if k in rank_df.columns})
         st.dataframe(rank_df.reset_index(drop=True), use_container_width=True, hide_index=True,
-                     column_config={"Risk Score": st.column_config.ProgressColumn(min_value=0, max_value=2, format="%d"),
+                     column_config={"Risk Score": st.column_config.ProgressColumn(min_value=0, max_value=4, format="%d"),
                                     "Avg Score":  st.column_config.ProgressColumn(min_value=0, max_value=4, format="%.3f")})
 
 
@@ -898,8 +889,8 @@ with tab5:
                     "Year":             yr,
                     "Physicians":       len(phys_yr),
                     "Avg Score":        round(phys_yr["avg_behavior_score"].mean(), 3),
-                    "Behaviour Flags":  int(phys_yr["behaviour_flag"].sum()) if "behaviour_flag" in phys_yr.columns else 0,
-                    "% Flagged":        round(phys_yr["behaviour_flag"].mean()*100, 1) if "behaviour_flag" in phys_yr.columns else 0,
+                    "IQR Outliers":     int(phys_yr["low_iqr_outlier"].sum()) if "low_iqr_outlier" in phys_yr.columns else 0,
+                    "% Flagged":        round(phys_yr["low_iqr_outlier"].mean()*100, 1) if "low_iqr_outlier" in phys_yr.columns else 0,
                     "Median Score":     round(phys_yr["avg_behavior_score"].median(), 3),
                     "Score Std":        round(phys_yr["avg_behavior_score"].std(), 3),
                 })
@@ -950,7 +941,7 @@ with tab5:
                 plt.close()
 
             with col_t2:
-                st.markdown("**% Physicians Flagged (Behaviour Dimension)**")
+                st.markdown("**% Physicians Flagged by IQR**")
                 fig2, ax2 = plt.subplots(figsize=(6, 4))
                 bar_cols = ["#10b981" if p < 10 else ("#f59e0b" if p < 20 else "#ef4444")
                             for p in trend_df["% Flagged"]]
@@ -962,8 +953,8 @@ with tab5:
                              ha="center", va="bottom", fontsize=10, fontweight="700")
                 ax2.set_xticks(years_avail)
                 ax2.set_xlabel("Year", fontsize=10)
-                ax2.set_ylabel("% Physicians with Behaviour Flag", fontsize=10)
-                ax2.set_title(f"{trend_dept} — Behaviour Flag Rate Over Time", fontsize=11, fontweight="bold")
+                ax2.set_ylabel("% Physicians Below IQR Fence", fontsize=10)
+                ax2.set_title(f"{trend_dept} — IQR Flagged Rate Over Time", fontsize=11, fontweight="bold")
                 ax2.grid(axis="y", alpha=0.3, linestyle="--")
                 ax2.set_facecolor("#fafafa")
                 fig2.patch.set_facecolor("white")
