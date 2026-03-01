@@ -3,7 +3,12 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from transformers import pipeline as hf_pipeline
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as _VaderAnalyzer
+try:
+    from transformers import pipeline as hf_pipeline
+    ROBERTA_AVAILABLE = True
+except ImportError:
+    ROBERTA_AVAILABLE = False
 import re
 import io
 import warnings
@@ -138,6 +143,8 @@ def add_outlier_flags(phys_df):
 
 @st.cache_resource(show_spinner="Loading RoBERTa sentiment model...")
 def load_roberta():
+    if not ROBERTA_AVAILABLE:
+        return None
     return hf_pipeline(
         "sentiment-analysis",
         model="cardiffnlp/twitter-roberta-base-sentiment-latest",
@@ -147,20 +154,23 @@ def load_roberta():
         device=-1,  # CPU
     )
 
+_vader_fallback = _VaderAnalyzer()
+
 def score_roberta(text, roberta):
-    """Score a single comment with RoBERTa. Returns compound-equivalent score + label."""
+    """Score a single comment. Uses RoBERTa if available, falls back to VADER."""
     try:
-        result = roberta(str(text)[:512])[0]
-        label  = result["label"].upper()   # POSITIVE / NEGATIVE / NEUTRAL
-        score  = result["score"]           # confidence 0-1
-        # Map to compound-equivalent: negative = -score, positive = +score, neutral = 0
-        if label == "POSITIVE":
-            compound = score
-        elif label == "NEGATIVE":
-            compound = -score
+        if roberta is not None:
+            result = roberta(str(text)[:512])[0]
+            label  = result["label"].upper()
+            score  = result["score"]
+            compound = score if label == "POSITIVE" else (-score if label == "NEGATIVE" else 0.0)
+            return {"compound": compound, "sentiment": label}
         else:
-            compound = 0.0
-        return {"compound": compound, "sentiment": label}
+            # VADER fallback
+            s = _vader_fallback.polarity_scores(str(text))
+            c = s["compound"]
+            label = "POSITIVE" if c >= 0.05 else ("NEGATIVE" if c <= -0.05 else "NEUTRAL")
+            return {"compound": c, "sentiment": label}
     except:
         return {"compound": 0.0, "sentiment": "NEUTRAL"}
 
