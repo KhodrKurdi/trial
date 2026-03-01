@@ -164,7 +164,7 @@ def run_sentiment(df, threshold=-0.05):
     df_s = pd.concat([df_s, pd.DataFrame(results.tolist(), index=df_s.index)], axis=1)
     return df_s
 
-def sentiment_summary(df_sent, min_comments=5):
+def sentiment_summary(df_sent, min_comments=3, threshold=-0.05):
     s = (
         df_sent.assign(is_neg=(df_sent["sentiment"]=="NEGATIVE"))
         .groupby("physician_id", as_index=False)
@@ -189,16 +189,12 @@ def merge_sentiment(phys_df, sent_s):
 def add_risk(phys_df):
     df = phys_df.copy()
     # 4 independent flags — each worth 1 point
-    # Flag 1: IQR lower fence
-    f1 = df["low_iqr_outlier"].astype(int)  if "low_iqr_outlier"  in df.columns else 0
-    # Flag 2: Z-Score <= -2
-    f2 = df["low_z_outlier"].astype(int)    if "low_z_outlier"    in df.columns else 0
-    # Flag 3: Bottom 10%
-    f3 = df["low_bottom10"].astype(int)     if "low_bottom10"     in df.columns else 0
-    # Flag 4: Negative sentiment outlier (from 2025 survey comments)
-    f4 = df["negative_outlier"].fillna(False).astype(int) if "negative_outlier" in df.columns else 0
+    f1 = df["low_iqr_outlier"].fillna(False).astype(bool).astype(int)  if "low_iqr_outlier"  in df.columns else pd.Series(0, index=df.index)
+    f2 = df["low_z_outlier"].fillna(False).astype(bool).astype(int)    if "low_z_outlier"    in df.columns else pd.Series(0, index=df.index)
+    f3 = df["low_bottom10"].fillna(False).astype(bool).astype(int)     if "low_bottom10"     in df.columns else pd.Series(0, index=df.index)
+    f4 = df["negative_outlier"].fillna(False).astype(bool).astype(int) if "negative_outlier" in df.columns else pd.Series(0, index=df.index)
     df["risk_score"] = f1 + f2 + f3 + f4
-    # Thresholds: 3-4 = Priority, 1-2 = Monitor, 0 = Clear
+    # 3-4 = Priority, 1-2 = Monitor, 0 = Clear
     df["final_flag"] = df["risk_score"] >= 3
     return df
 
@@ -216,7 +212,9 @@ def process_dept(df_raw, dept_name, threshold=-0.05):
     phys, mean, std = add_outlier_flags(phys)
     sent_raw = run_sentiment(df, threshold) if "comments" in df.columns else pd.DataFrame()
     if not sent_raw.empty:
-        sent_s = sentiment_summary(sent_raw)
+        # Use 2025 only for negative_outlier flag (consistent with complaints logic)
+        sent_2025 = sent_raw[sent_raw["year"] == 2025] if "year" in sent_raw.columns and not sent_raw[sent_raw["year"] == 2025].empty else sent_raw
+        sent_s = sentiment_summary(sent_2025)
         phys   = merge_sentiment(phys, sent_s)
     else:
         phys["total_comments"]   = 0
