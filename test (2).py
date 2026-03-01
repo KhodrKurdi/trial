@@ -728,18 +728,29 @@ with tab3:
 
         # Within-dept ranking table
         st.markdown("**Physician Ranking within Department**")
-        rank_df = phys_d[[
-            "physician_id","avg_behavior_score","n_forms","z_score",
-            "low_iqr_outlier","low_z_outlier","low_bottom10",
-            "behaviour_flag","experience_flag","risk_score"
-        ]].copy()
+        rank_cols = ["physician_id","avg_behavior_score","n_forms","z_score",
+                     "low_iqr_outlier","low_z_outlier","low_bottom10",
+                     "behaviour_flag","experience_flag","risk_score"]
+        rank_cols = [c for c in rank_cols if c in phys_d.columns]
+        rank_df = phys_d[rank_cols].copy()
         rank_df = rank_df.sort_values("avg_behavior_score")
         rank_df["Percentile"] = (rank_df["avg_behavior_score"].rank(pct=True)*100).round(1).astype(str) + "%"
         rank_df["avg_behavior_score"] = rank_df["avg_behavior_score"].round(3)
-        rank_df["z_score"] = rank_df["z_score"].round(2)
-        rank_df.columns = ["Physician ID","Avg Score","Evaluations","Z-Score",
-                           "IQR","Z-Score Flag","Bottom 10%",
-                           "Behaviour Flag","Experience Flag","Risk Score","Percentile"]
+        if "z_score" in rank_df.columns:
+            rank_df["z_score"] = rank_df["z_score"].round(2)
+        col_rename = {
+            "physician_id":       "Physician ID",
+            "avg_behavior_score": "Avg Score",
+            "n_forms":            "Evaluations",
+            "z_score":            "Z-Score",
+            "low_iqr_outlier":    "IQR",
+            "low_z_outlier":      "Z-Score Flag",
+            "low_bottom10":       "Bottom 10%",
+            "behaviour_flag":     "Behaviour Flag",
+            "experience_flag":    "Experience Flag",
+            "risk_score":         "Risk Score",
+        }
+        rank_df = rank_df.rename(columns={k:v for k,v in col_rename.items() if k in rank_df.columns})
         st.dataframe(rank_df.reset_index(drop=True), use_container_width=True, hide_index=True,
                      column_config={"Risk Score": st.column_config.ProgressColumn(min_value=0, max_value=2, format="%d"),
                                     "Avg Score":  st.column_config.ProgressColumn(min_value=0, max_value=4, format="%.3f")})
