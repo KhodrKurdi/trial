@@ -3,18 +3,13 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from transformers import pipeline as hf_pipeline
 import re
 import io
 import warnings
 import json
 warnings.filterwarnings("ignore")
 
-try:
-    import anthropic
-    ANTHROPIC_AVAILABLE = True
-except ImportError:
-    ANTHROPIC_AVAILABLE = False
 
 # ─── PAGE CONFIG ─────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -141,17 +136,33 @@ def add_outlier_flags(phys_df):
     df["low_bottom10"]    = scores <= scores.quantile(0.10)
     return df, pop_mean, pop_std
 
-vader = SentimentIntensityAnalyzer()
+@st.cache_resource(show_spinner="Loading RoBERTa sentiment model...")
+def load_roberta():
+    return hf_pipeline(
+        "sentiment-analysis",
+        model="cardiffnlp/twitter-roberta-base-sentiment-latest",
+        tokenizer="cardiffnlp/twitter-roberta-base-sentiment-latest",
+        max_length=512,
+        truncation=True,
+        device=-1,  # CPU
+    )
 
-def score_vader(text, threshold=-0.05):
+def score_roberta(text, roberta):
+    """Score a single comment with RoBERTa. Returns compound-equivalent score + label."""
     try:
-        s = vader.polarity_scores(str(text))
-        c = s["compound"]
-        label = "POSITIVE" if c >= abs(threshold) else ("NEGATIVE" if c <= threshold else "NEUTRAL")
-        return {"compound": c, "sentiment": label,
-                "vader_pos": s["pos"], "vader_neg": s["neg"]}
+        result = roberta(str(text)[:512])[0]
+        label  = result["label"].upper()   # POSITIVE / NEGATIVE / NEUTRAL
+        score  = result["score"]           # confidence 0-1
+        # Map to compound-equivalent: negative = -score, positive = +score, neutral = 0
+        if label == "POSITIVE":
+            compound = score
+        elif label == "NEGATIVE":
+            compound = -score
+        else:
+            compound = 0.0
+        return {"compound": compound, "sentiment": label}
     except:
-        return {"compound": 0.0, "sentiment": "NEUTRAL", "vader_pos": 0.0, "vader_neg": 0.0}
+        return {"compound": 0.0, "sentiment": "NEUTRAL"}
 
 def run_sentiment(df, threshold=-0.05):
     df_s = df[
@@ -160,7 +171,8 @@ def run_sentiment(df, threshold=-0.05):
         (df["comments"].astype(str).str.strip() != "")
     ].copy()
     df_s["comments"] = df_s["comments"].astype(str).str.strip()
-    results = df_s["comments"].apply(lambda t: score_vader(t, threshold))
+    roberta = load_roberta()
+    results = df_s["comments"].apply(lambda t: score_roberta(t, roberta))
     df_s = pd.concat([df_s, pd.DataFrame(results.tolist(), index=df_s.index)], axis=1)
     return df_s
 
@@ -251,10 +263,10 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 🔧 Settings")
     min_forms   = st.slider("Min. evaluations to include", 1, 20, 3)
-    sent_thresh = st.slider("VADER negative threshold", -0.5, 0.0, -0.05, 0.01,
+    sent_thresh = st.slider("RoBERTa negative threshold", -0.5, 0.0, -0.05, 0.01,
                             help="Compound score ≤ this value = NEGATIVE")
     st.markdown("---")
-    st.markdown("**v4.0 · VADER Sentiment**  \n*All IDs anonymised*", unsafe_allow_html=True)
+    st.markdown("**v5.0 · RoBERTa Sentiment**  \n*All IDs anonymised*", unsafe_allow_html=True)
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(hash_funcs={}, show_spinner=False)
@@ -291,7 +303,7 @@ any_uploaded = any(f is not None for f in files_aubmc + files_ed + files_patho)
 if not any_uploaded:
     # ── LANDING PAGE ─────────────────────────────────────────────────────────
     st.markdown("# 🏥 AUBMC Physician Performance Dashboard")
-    st.markdown("### Multi-method outlier detection · VADER sentiment · 2023–2025")
+    st.markdown("### Multi-method outlier detection · RoBERTa sentiment · 2023–2025")
     st.markdown("---")
 
     c1, c2, c3 = st.columns(3)
@@ -311,9 +323,9 @@ if not any_uploaded:
         <div class="metric-card warning">
             <div class="metric-label">Sentiment Engine</div>
             <div style="margin-top:8px; font-size:14px; color:#374151; line-height:1.6">
-                💬 VADER NLP (rule-based)<br>
+                💬 RoBERTa NLP (transformer-based)<br>
                 📝 Free-text comment scoring<br>
-                🔄 −1.0 to +1.0 compound scale<br>
+                🔄 Confidence-weighted compound score<br>
                 🚫 Self-evaluations excluded
             </div>
         </div>""", unsafe_allow_html=True)
@@ -334,7 +346,7 @@ if not any_uploaded:
     st.stop()
 
 # ── PROCESS DATA ─────────────────────────────────────────────────────────────
-with st.spinner("Processing data and running VADER sentiment analysis..."):
+with st.spinner("Processing data and running RoBERTa sentiment analysis (first load may take ~30s)..."):
     data = load_and_process(
         tuple(f for f in files_aubmc),
         tuple(f for f in files_ed),
@@ -539,8 +551,8 @@ with tab2:
         show_df["Z-Score"] = show_df["Z-Score"].round(2)
     if "Neg. Ratio" in show_df.columns:
         show_df["Neg. Ratio"] = show_df["Neg. Ratio"].apply(lambda x: f"{x:.1%}" if pd.notna(x) else "—")
-    if "VADER Score" in show_df.columns:
-        show_df["VADER Score"] = show_df["VADER Score"].apply(lambda x: f"{x:.3f}" if pd.notna(x) else "—")
+    if "Avg Compound" in show_df.columns:
+        show_df["Avg Compound"] = show_df["Avg Compound"].apply(lambda x: f"{x:.3f}" if pd.notna(x) else "—")
 
     st.dataframe(
         show_df.reset_index(drop=True),
@@ -626,9 +638,9 @@ with tab2:
 # TAB 3 — DEPARTMENT VIEW
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab3:
-    st.markdown('<div class="section-header">📊 Project-Level Analysis</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">📊 Department-Level Analysis</div>', unsafe_allow_html=True)
 
-    dept_sel = st.selectbox("Select Project", available_depts, key="dept_view")
+    dept_sel = st.selectbox("Select Department", available_depts, key="dept_view")
     _, phys_d, _ = data[dept_sel]
 
     if phys_d is None or phys_d.empty:
@@ -1992,7 +2004,7 @@ with tab6:
                           bbox=dict(boxstyle="round,pad=0.3", facecolor="#fef2f2", alpha=0.8))
 
                 ax_s.set_xlabel("Total Patient Complaints", fontsize=11)
-                ax_s.set_ylabel("Avg VADER Compound Score (−1=negative, +1=positive)", fontsize=11)
+                ax_s.set_ylabel("Avg Sentiment Score (−1=negative, +1=positive)", fontsize=11)
                 ax_s.set_title("Patient Complaints vs Peer Sentiment — Combined Outlier View",
                                fontsize=12, fontweight="bold")
                 ax_s.legend(fontsize=9, loc="upper right")
@@ -2059,14 +2071,14 @@ with tab6:
                         "complaints_flag":   "Complaint Flag",
                         "total_comments":    "Comments Scored",
                         "negative_ratio":    "Neg. Ratio",
-                        "avg_compound":      "VADER Score",
+                        "avg_compound":      "Sentiment Score",
                         "sentiment_flag":    "Sentiment Flag",
                         "combined_status":   "Status",
                     })
                     .reset_index(drop=True)
                 )
                 table_out["Neg. Ratio"] = table_out["Neg. Ratio"].apply(lambda x: f"{x:.1%}")
-                table_out["VADER Score"] = table_out["VADER Score"].apply(lambda x: f"{x:.3f}")
+                table_out["Sentiment Score"] = table_out["Sentiment Score"].apply(lambda x: f"{x:.3f}")
 
                 max_cmp2 = int(table_out["Complaints"].max()) if len(table_out) > 0 else 10
                 st.dataframe(
