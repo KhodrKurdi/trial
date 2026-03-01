@@ -366,7 +366,7 @@ st.markdown("---")
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📋 Executive Summary",
     "🎯 Flagged Physicians",
-    "📊 Department View",
+    "📊 Project View",
     "💬 Sentiment Explorer",
     "📈 Trends (2023–2025)",
     "🏢 Departments & Divisions"
