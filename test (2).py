@@ -130,13 +130,23 @@ def add_outlier_flags(phys_df):
     df = phys_df.copy()
     scores   = df["avg_behavior_score"]
     pop_mean = scores.mean()
-    pop_std  = scores.std(ddof=0)
-    df["z_score"]         = (scores - pop_mean) / pop_std
+    pop_std  = scores.std(ddof=0) if len(scores) > 1 else 0
+
+    df["z_score"]         = (scores - pop_mean) / pop_std if pop_std > 0 else 0.0
     df["low_z_outlier"]   = df["z_score"] <= -2
+
     Q1, Q3                = scores.quantile(0.25), scores.quantile(0.75)
     IQR                   = Q3 - Q1
-    df["low_iqr_outlier"] = scores < (Q1 - 1.5 * IQR)
+    df["low_iqr_outlier"] = scores < (Q1 - 1.5 * IQR) if IQR > 0 else False
     df["low_bottom10"]    = scores <= scores.quantile(0.10)
+
+    # Dimension 1 — Behaviour flag: any 2 of 3 methods agree
+    score_signals = (
+        df["low_iqr_outlier"].astype(int) +
+        df["low_z_outlier"].astype(int) +
+        df["low_bottom10"].astype(int)
+    )
+    df["behaviour_flag"] = score_signals >= 2
     return df, pop_mean, pop_std
 
 vader = SentimentIntensityAnalyzer()
@@ -186,17 +196,10 @@ def merge_sentiment(phys_df, sent_s):
 
 def add_risk(phys_df):
     df = phys_df.copy()
-    # Dimension 1 — Behaviour Score: flagged if ANY 2 of 3 methods agree
-    score_signals = (
-        df["low_iqr_outlier"].astype(int) +
-        df["low_z_outlier"].astype(int) +
-        df["low_bottom10"].astype(int)
-    )
-    df["behaviour_flag"] = score_signals >= 2
-    # Dimension 2 — Patient Experience: sentiment flag (complaints x sentiment handled in Tab 6)
-    # Here we use negative_outlier from survey comments as the patient experience signal
-    df["experience_flag"] = df["negative_outlier"].fillna(False)
-    # Risk score = sum of 2 dimensions (0, 1, or 2)
+    # Dimension 1 — behaviour_flag already computed in add_outlier_flags
+    # Dimension 2 — Patient Experience: negative sentiment outlier
+    df["experience_flag"] = df["negative_outlier"].fillna(False) if "negative_outlier" in df.columns else False
+    # Risk score = sum of 2 dimensions
     df["risk_score"] = df["behaviour_flag"].astype(int) + df["experience_flag"].astype(int)
     df["final_flag"] = df["risk_score"] == 2
     return df
@@ -478,8 +481,8 @@ with tab1:
             "Priority (2)":    int((phys['risk_score']==2).sum()),
             "Monitor (1)":     int((phys['risk_score']==1).sum()),
             "Clear (0)":       int((phys['risk_score']==0).sum()),
-            "Behaviour Flags": int(phys['behaviour_flag'].sum()),
-            "Experience Flags":int(phys['experience_flag'].sum()),
+            "Behaviour Flags": int(phys['behaviour_flag'].sum()) if 'behaviour_flag' in phys.columns else 0,
+            "Experience Flags":int(phys['experience_flag'].sum()) if 'experience_flag' in phys.columns else 0,
         }
         summary_rows.append(row)
     st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
@@ -639,7 +642,7 @@ with tab3:
         d1, d2, d3, d4 = st.columns(4)
         with d1: st.metric("Physicians", len(phys_d))
         with d2: st.metric("Dept. Mean Score", f"{phys_d['avg_behavior_score'].mean():.3f}")
-        with d3: st.metric("Behaviour Flags", int(phys_d["behaviour_flag"].sum()))
+        with d3: st.metric("Behaviour Flags", int(phys_d["behaviour_flag"].sum()) if "behaviour_flag" in phys_d.columns else 0)
         with d4: st.metric("Priority Flags", int((phys_d["risk_score"]==2).sum()))
 
         col_l, col_r = st.columns(2)
@@ -651,8 +654,8 @@ with tab3:
             scores_d  = phys_d["avg_behavior_score"]
             Q1d, Q3d  = scores_d.quantile(0.25), scores_d.quantile(0.75)
             iqr_fence = Q1d - 1.5 * (Q3d - Q1d)
-            normal    = phys_d[~phys_d["behaviour_flag"]]
-            outliers  = phys_d[phys_d["behaviour_flag"]]
+            normal    = phys_d[~phys_d["behaviour_flag"]] if "behaviour_flag" in phys_d.columns else phys_d
+            outliers  = phys_d[phys_d["behaviour_flag"]]  if "behaviour_flag" in phys_d.columns else phys_d.iloc[0:0]
             ax.scatter(normal.index,  normal["avg_behavior_score"],
                        alpha=0.6, color="#3b82f6", s=55, label="Within range", zorder=3)
             ax.scatter(outliers.index, outliers["avg_behavior_score"],
@@ -883,8 +886,8 @@ with tab5:
                     "Year":             yr,
                     "Physicians":       len(phys_yr),
                     "Avg Score":        round(phys_yr["avg_behavior_score"].mean(), 3),
-                    "Behaviour Flags":  int(phys_yr["behaviour_flag"].sum()),
-                    "% Flagged":        round(phys_yr["behaviour_flag"].mean()*100, 1),
+                    "Behaviour Flags":  int(phys_yr["behaviour_flag"].sum()) if "behaviour_flag" in phys_yr.columns else 0,
+                    "% Flagged":        round(phys_yr["behaviour_flag"].mean()*100, 1) if "behaviour_flag" in phys_yr.columns else 0,
                     "Median Score":     round(phys_yr["avg_behavior_score"].median(), 3),
                     "Score Std":        round(phys_yr["avg_behavior_score"].std(), 3),
                 })
