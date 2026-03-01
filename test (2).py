@@ -186,7 +186,18 @@ def merge_sentiment(phys_df, sent_s):
 
 def add_risk(phys_df):
     df = phys_df.copy()
-    df["risk_score"] = df["low_iqr_outlier"].astype(int) + df["negative_outlier"].astype(int)
+    # Dimension 1 — Behaviour Score: flagged if ANY 2 of 3 methods agree
+    score_signals = (
+        df["low_iqr_outlier"].astype(int) +
+        df["low_z_outlier"].astype(int) +
+        df["low_bottom10"].astype(int)
+    )
+    df["behaviour_flag"] = score_signals >= 2
+    # Dimension 2 — Patient Experience: sentiment flag (complaints x sentiment handled in Tab 6)
+    # Here we use negative_outlier from survey comments as the patient experience signal
+    df["experience_flag"] = df["negative_outlier"].fillna(False)
+    # Risk score = sum of 2 dimensions (0, 1, or 2)
+    df["risk_score"] = df["behaviour_flag"].astype(int) + df["experience_flag"].astype(int)
     df["final_flag"] = df["risk_score"] == 2
     return df
 
@@ -467,8 +478,8 @@ with tab1:
             "Priority (2)":    int((phys['risk_score']==2).sum()),
             "Monitor (1)":     int((phys['risk_score']==1).sum()),
             "Clear (0)":       int((phys['risk_score']==0).sum()),
-            "IQR Outliers":    int(phys['low_iqr_outlier'].sum()),
-            "Sentiment Flags": int(phys['negative_outlier'].sum()),
+            "Behaviour Flags": int(phys['behaviour_flag'].sum()),
+            "Experience Flags":int(phys['experience_flag'].sum()),
         }
         summary_rows.append(row)
     st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
@@ -512,11 +523,13 @@ with tab2:
         "avg_behavior_score": "Avg Score",
         "n_forms":            "Evaluations",
         "z_score":            "Z-Score",
+        "behaviour_flag":     "Behaviour Flag",
         "low_iqr_outlier":    "IQR Flag",
         "low_z_outlier":      "Z-Flag",
         "negative_ratio":     "Neg. Ratio",
         "avg_compound":       "VADER Score",
-        "negative_outlier":   "Sentiment Flag",
+        "experience_flag":    "Experience Flag",
+        "negative_outlier":   "Neg. Sentiment",
         "risk_score":         "Risk Score",
     }
     show_df = df_view[[c for c in display_cols if c in df_view.columns]].copy()
@@ -573,14 +586,15 @@ with tab2:
         with dc5:
             st.metric("Z-Score", f"{row.get('z_score', 0):.2f}")
         with dc6:
-            iqr_f = "🔴 FLAGGED" if row.get("low_iqr_outlier", False) else "🟢 Clear"
-            st.metric("IQR Outlier", iqr_f)
+            beh_f = "🔴 FLAGGED" if row.get("behaviour_flag", False) else "🟢 Clear"
+            st.metric("Behaviour Flag (2/3)", beh_f)
+            exp_f = "🔴 FLAGGED" if row.get("experience_flag", False) else "🟢 Clear"
         with dc7:
             neg_r = row.get("negative_ratio", np.nan)
             st.metric("Neg. Comment Ratio", f"{neg_r:.1%}" if pd.notna(neg_r) else "—")
         with dc8:
-            vader_s = row.get("avg_compound", np.nan)
-            st.metric("VADER Compound", f"{vader_s:.3f}" if pd.notna(vader_s) else "—")
+            exp_label = "🔴 FLAGGED" if row.get("experience_flag", False) else "🟢 Clear"
+            st.metric("Experience Flag", exp_label)
 
         # Show this physician's comments
         dept_name = row.get("department","AUBMC")
@@ -625,7 +639,7 @@ with tab3:
         d1, d2, d3, d4 = st.columns(4)
         with d1: st.metric("Physicians", len(phys_d))
         with d2: st.metric("Dept. Mean Score", f"{phys_d['avg_behavior_score'].mean():.3f}")
-        with d3: st.metric("IQR Outliers", int(phys_d["low_iqr_outlier"].sum()))
+        with d3: st.metric("Behaviour Flags", int(phys_d["behaviour_flag"].sum()))
         with d4: st.metric("Priority Flags", int((phys_d["risk_score"]==2).sum()))
 
         col_l, col_r = st.columns(2)
@@ -637,19 +651,19 @@ with tab3:
             scores_d  = phys_d["avg_behavior_score"]
             Q1d, Q3d  = scores_d.quantile(0.25), scores_d.quantile(0.75)
             iqr_fence = Q1d - 1.5 * (Q3d - Q1d)
-            normal    = phys_d[~phys_d["low_iqr_outlier"]]
-            outliers  = phys_d[phys_d["low_iqr_outlier"]]
+            normal    = phys_d[~phys_d["behaviour_flag"]]
+            outliers  = phys_d[phys_d["behaviour_flag"]]
             ax.scatter(normal.index,  normal["avg_behavior_score"],
                        alpha=0.6, color="#3b82f6", s=55, label="Within range", zorder=3)
             ax.scatter(outliers.index, outliers["avg_behavior_score"],
-                       color="#ef4444", s=100, zorder=5, label=f"IQR Outliers (n={len(outliers)})")
+                       color="#ef4444", s=100, zorder=5, label=f"Behaviour Flagged (n={len(outliers)})")
             ax.axhline(iqr_fence, color="#ef4444", linewidth=2, linestyle="--",
                        label=f"IQR Lower Fence ({iqr_fence:.2f})")
             ax.axhline(scores_d.mean(), color="#1d4ed8", linewidth=1.5, linestyle=":",
                        label=f"Mean ({scores_d.mean():.2f})")
             ax.set_xlabel("Physician Index", fontsize=10)
             ax.set_ylabel("Avg Behaviour Score", fontsize=10)
-            ax.set_title(f"{dept_sel} — IQR Outlier View", fontsize=11, fontweight="bold")
+            ax.set_title(f"{dept_sel} — Behaviour Score Outliers (2-of-3 methods)", fontsize=11, fontweight="bold")
             ax.legend(fontsize=9)
             ax.grid(alpha=0.3, linestyle="--")
             ax.set_facecolor("#fafafa")
@@ -713,14 +727,16 @@ with tab3:
         st.markdown("**Physician Ranking within Department**")
         rank_df = phys_d[[
             "physician_id","avg_behavior_score","n_forms","z_score",
-            "low_iqr_outlier","low_z_outlier","low_bottom10","negative_outlier","risk_score"
+            "low_iqr_outlier","low_z_outlier","low_bottom10",
+            "behaviour_flag","experience_flag","risk_score"
         ]].copy()
         rank_df = rank_df.sort_values("avg_behavior_score")
         rank_df["Percentile"] = (rank_df["avg_behavior_score"].rank(pct=True)*100).round(1).astype(str) + "%"
         rank_df["avg_behavior_score"] = rank_df["avg_behavior_score"].round(3)
         rank_df["z_score"] = rank_df["z_score"].round(2)
         rank_df.columns = ["Physician ID","Avg Score","Evaluations","Z-Score",
-                           "IQR Flag","Z-Flag","Bottom 10%","Sentiment Flag","Risk Score","Percentile"]
+                           "IQR","Z-Score Flag","Bottom 10%",
+                           "Behaviour Flag","Experience Flag","Risk Score","Percentile"]
         st.dataframe(rank_df.reset_index(drop=True), use_container_width=True, hide_index=True,
                      column_config={"Risk Score": st.column_config.ProgressColumn(min_value=0, max_value=2, format="%d"),
                                     "Avg Score":  st.column_config.ProgressColumn(min_value=0, max_value=4, format="%.3f")})
@@ -867,8 +883,8 @@ with tab5:
                     "Year":             yr,
                     "Physicians":       len(phys_yr),
                     "Avg Score":        round(phys_yr["avg_behavior_score"].mean(), 3),
-                    "IQR Outliers":     int(phys_yr["low_iqr_outlier"].sum()),
-                    "% Flagged":        round(phys_yr["low_iqr_outlier"].mean()*100, 1),
+                    "Behaviour Flags":  int(phys_yr["behaviour_flag"].sum()),
+                    "% Flagged":        round(phys_yr["behaviour_flag"].mean()*100, 1),
                     "Median Score":     round(phys_yr["avg_behavior_score"].median(), 3),
                     "Score Std":        round(phys_yr["avg_behavior_score"].std(), 3),
                 })
@@ -919,7 +935,7 @@ with tab5:
                 plt.close()
 
             with col_t2:
-                st.markdown("**% Physicians Flagged by IQR**")
+                st.markdown("**% Physicians Flagged (Behaviour Dimension)**")
                 fig2, ax2 = plt.subplots(figsize=(6, 4))
                 bar_cols = ["#10b981" if p < 10 else ("#f59e0b" if p < 20 else "#ef4444")
                             for p in trend_df["% Flagged"]]
@@ -931,8 +947,8 @@ with tab5:
                              ha="center", va="bottom", fontsize=10, fontweight="700")
                 ax2.set_xticks(years_avail)
                 ax2.set_xlabel("Year", fontsize=10)
-                ax2.set_ylabel("% Physicians Below IQR Fence", fontsize=10)
-                ax2.set_title(f"{trend_dept} — IQR Flagged Rate Over Time", fontsize=11, fontweight="bold")
+                ax2.set_ylabel("% Physicians with Behaviour Flag", fontsize=10)
+                ax2.set_title(f"{trend_dept} — Behaviour Flag Rate Over Time", fontsize=11, fontweight="bold")
                 ax2.grid(axis="y", alpha=0.3, linestyle="--")
                 ax2.set_facecolor("#fafafa")
                 fig2.patch.set_facecolor("white")
