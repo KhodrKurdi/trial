@@ -1828,8 +1828,19 @@ with tab6:
             if "PatientComplaints" not in df_filt.columns or "Aubnetid" not in df_filt.columns:
                 st.warning("PatientComplaints or Aubnetid column not found in indicators file.")
             else:
+                # Use 2025 data only for complaints × sentiment analysis
+                if "FiscalCycle" in df_filt.columns:
+                    cycles_avail = df_filt["FiscalCycle"].dropna().unique().tolist()
+                    cycle_2025   = [c for c in cycles_avail if "2025" in str(c)]
+                    df_complaints_src = df_filt[df_filt["FiscalCycle"].isin(cycle_2025)] if cycle_2025 else df_filt
+                    cycle_label = "2025" if cycle_2025 else "all cycles (2025 not found)"
+                else:
+                    df_complaints_src = df_filt
+                    cycle_label = "all cycles"
+                st.caption(f"📅 Complaints data: **{cycle_label}** · {len(df_complaints_src):,} records")
+
                 complaints = (
-                    df_filt.groupby("Aubnetid", as_index=False)
+                    df_complaints_src.groupby("Aubnetid", as_index=False)
                     .agg(
                         total_complaints =("PatientComplaints", "sum"),
                         department       =("Department",        lambda x: x.mode()[0] if not x.empty else "—"),
