@@ -754,99 +754,157 @@ with tab3:
 # TAB 4 — SENTIMENT EXPLORER
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab4:
-    st.markdown('<div class="section-header">💬 VADER Sentiment Explorer</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">💬 Sentiment Analysis</div>', unsafe_allow_html=True)
 
-    sent_dept = st.selectbox("Department", available_depts, key="sent_dept")
-    _, _, sent_raw = data[sent_dept]
+    # Gather sentiment data across all departments
+    sent_frames = []
+    for dn in available_depts:
+        _, _, sr = data[dn]
+        if sr is not None and not sr.empty:
+            sr2 = sr.copy()
+            sr2["dept"] = dn
+            sent_frames.append(sr2)
 
-    if sent_raw is None or sent_raw.empty:
-        st.info("No comment data available for this department.")
+    if not sent_frames:
+        st.info("No comment data available. Upload behaviour survey CSVs to enable sentiment analysis.")
     else:
+        all_sent = pd.concat(sent_frames, ignore_index=True)
+
+        # ── KPI row ───────────────────────────────────────────────────────────
         sc1, sc2, sc3, sc4 = st.columns(4)
-        total_comments  = len(sent_raw)
-        neg_count       = (sent_raw["sentiment"] == "NEGATIVE").sum()
-        pos_count       = (sent_raw["sentiment"] == "POSITIVE").sum()
-        neu_count       = (sent_raw["sentiment"] == "NEUTRAL").sum()
-        with sc1: st.metric("Total Comments", total_comments)
-        with sc2: st.metric("🔴 Negative", f"{neg_count} ({neg_count/total_comments*100:.1f}%)")
-        with sc3: st.metric("🟢 Positive", f"{pos_count} ({pos_count/total_comments*100:.1f}%)")
-        with sc4: st.metric("⚪ Neutral", f"{neu_count} ({neu_count/total_comments*100:.1f}%)")
+        total_c = len(all_sent)
+        neg_c   = (all_sent["sentiment"] == "NEGATIVE").sum()
+        pos_c   = (all_sent["sentiment"] == "POSITIVE").sum()
+        neu_c   = (all_sent["sentiment"] == "NEUTRAL").sum()
+        with sc1: st.metric("Total Comments", f"{total_c:,}")
+        with sc2: st.metric("🔴 Negative", f"{neg_c:,} ({neg_c/total_c*100:.1f}%)")
+        with sc3: st.metric("🟢 Positive", f"{pos_c:,} ({pos_c/total_c*100:.1f}%)")
+        with sc4: st.metric("⚪ Neutral",  f"{neu_c:,} ({neu_c/total_c*100:.1f}%)")
 
-        col_sl, col_sr = st.columns(2)
-
-        # Compound score histogram
-        with col_sl:
-            st.markdown("**VADER Compound Score Distribution**")
-            fig, ax = plt.subplots(figsize=(6, 4))
-            compounds = sent_raw["compound"].dropna()
-            n, bins, patches = ax.hist(compounds, bins=30, edgecolor="white", linewidth=0.5)
-            for patch, left in zip(patches, bins[:-1]):
-                if left <= -0.05:   patch.set_facecolor("#ef4444"); patch.set_alpha(0.8)
-                elif left >= 0.05:  patch.set_facecolor("#10b981"); patch.set_alpha(0.8)
-                else:               patch.set_facecolor("#9ca3af"); patch.set_alpha(0.7)
-            ax.axvline(-0.05, color="#ef4444", linestyle="--", linewidth=1.2, label="Neg threshold")
-            ax.axvline(+0.05, color="#10b981", linestyle="--", linewidth=1.2, label="Pos threshold")
-            ax.set_xlabel("Compound Score (−1 = very negative, +1 = very positive)", fontsize=9)
-            ax.set_ylabel("Comment Count", fontsize=9)
-            ax.set_title(f"{sent_dept} — VADER Compound Distribution", fontsize=11, fontweight="bold")
-            ax.legend(fontsize=8)
-            ax.grid(alpha=0.3, linestyle="--")
-            ax.set_facecolor("#fafafa")
-            fig.patch.set_facecolor("white")
-            st.pyplot(fig, use_container_width=True)
-            plt.close()
-
-        # Physician negative ratio scatter
-        with col_sr:
-            st.markdown("**Negative Ratio per Physician**")
-            sent_s = sentiment_summary(sent_raw)
-            fig2, ax2 = plt.subplots(figsize=(6, 4))
-            ax2.scatter(sent_s["total_comments"], sent_s["negative_ratio"],
-                        alpha=0.6, color="#3b82f6", s=50, label="Physicians")
-            flagged_s = sent_s[sent_s["negative_outlier"]]
-            ax2.scatter(flagged_s["total_comments"], flagged_s["negative_ratio"],
-                        color="#ef4444", s=90, zorder=5, label=f"Sentiment Outliers (n={len(flagged_s)})")
-            ax2.set_xlabel("Number of Comments", fontsize=9)
-            ax2.set_ylabel("Negative Comment Ratio", fontsize=9)
-            ax2.set_title(f"{sent_dept} — Negative Ratio by Physician", fontsize=11, fontweight="bold")
-            ax2.legend(fontsize=8)
-            ax2.grid(alpha=0.3, linestyle="--")
-            ax2.set_facecolor("#fafafa")
-            fig2.patch.set_facecolor("white")
-            st.pyplot(fig2, use_container_width=True)
-            plt.close()
-
-        # Comment browser
         st.markdown("---")
-        st.markdown("**Comment Browser**")
-        cc1, cc2 = st.columns(2)
-        with cc1:
-            sentiment_filter = st.selectbox("Filter by Sentiment", ["All","NEGATIVE","POSITIVE","NEUTRAL"], key="sent_filter")
-        with cc2:
-            min_conf = st.slider("Min. VADER confidence (|compound|)", 0.0, 1.0, 0.0, 0.05, key="sent_conf")
 
-        display_sent = sent_raw.copy()
-        if sentiment_filter != "All":
-            display_sent = display_sent[display_sent["sentiment"] == sentiment_filter]
-        display_sent = display_sent[display_sent["compound"].abs() >= min_conf]
-        display_sent = display_sent.sort_values("compound")
+        # ── Chart 1: Sentiment breakdown by department (stacked bar) ─────────
+        st.markdown('<div class="section-header">📊 Sentiment Breakdown by Department</div>', unsafe_allow_html=True)
 
-        st.markdown(f"Showing **{len(display_sent)}** comments")
-        for _, crow in display_sent.head(50).iterrows():
-            css  = "neg" if crow["sentiment"]=="NEGATIVE" else ("pos" if crow["sentiment"]=="POSITIVE" else "neu")
-            emo  = "🔴" if crow["sentiment"]=="NEGATIVE" else ("🟢" if crow["sentiment"]=="POSITIVE" else "⚪")
-            yr   = str(int(crow["year"])) if "year" in crow and pd.notna(crow.get("year")) else "—"
-            rg   = crow.get("raters_group","—")
-            pid  = crow.get("physician_id","—")
-            st.markdown(f"""
-            <div class="comment-card {css}">
-                <div style="font-size:11px; color:#9ca3af; margin-bottom:5px">
-                    {emo} <b>{crow["sentiment"]}</b> &nbsp;·&nbsp; Compound: <b>{crow["compound"]:.3f}</b>
-                    &nbsp;·&nbsp; Physician: <b>{pid}</b>
-                    &nbsp;·&nbsp; Year: {yr} &nbsp;·&nbsp; {rg}
-                </div>
-                <div style="font-size:13px; color:#374151">{crow["comments"]}</div>
-            </div>""", unsafe_allow_html=True)
+        dept_sent = (
+            all_sent.groupby(["dept","sentiment"], as_index=False)
+            .size()
+            .rename(columns={"size":"count"})
+        )
+        dept_totals = dept_sent.groupby("dept")["count"].transform("sum")
+        dept_sent["pct"] = dept_sent["count"] / dept_totals * 100
+
+        depts_order  = dept_sent.groupby("dept")["count"].sum().sort_values(ascending=False).index.tolist()
+        neg_pct  = dept_sent[dept_sent["sentiment"]=="NEGATIVE"].set_index("dept")["pct"].reindex(depts_order).fillna(0)
+        pos_pct  = dept_sent[dept_sent["sentiment"]=="POSITIVE"].set_index("dept")["pct"].reindex(depts_order).fillna(0)
+        neu_pct  = dept_sent[dept_sent["sentiment"]=="NEUTRAL"].set_index("dept")["pct"].reindex(depts_order).fillna(0)
+        neg_cnt  = dept_sent[dept_sent["sentiment"]=="NEGATIVE"].set_index("dept")["count"].reindex(depts_order).fillna(0)
+        pos_cnt  = dept_sent[dept_sent["sentiment"]=="POSITIVE"].set_index("dept")["count"].reindex(depts_order).fillna(0)
+
+        fig_sb, ax_sb = plt.subplots(figsize=(10, max(4, len(depts_order)*0.45)))
+        y = range(len(depts_order))
+        b1 = ax_sb.barh(list(y), neg_pct.values, color="#ef4444", alpha=0.85, label="Negative")
+        b2 = ax_sb.barh(list(y), neu_pct.values, left=neg_pct.values, color="#9ca3af", alpha=0.75, label="Neutral")
+        b3 = ax_sb.barh(list(y), pos_pct.values, left=(neg_pct+neu_pct).values, color="#10b981", alpha=0.85, label="Positive")
+
+        # Annotate negative % on each bar
+        for i, (np_, nc) in enumerate(zip(neg_pct.values, neg_cnt.values)):
+            if np_ > 3:
+                ax_sb.text(np_/2, i, f"{np_:.1f}%", va="center", ha="center",
+                           fontsize=8, fontweight="700", color="white")
+
+        ax_sb.set_yticks(list(y))
+        ax_sb.set_yticklabels(depts_order, fontsize=9)
+        ax_sb.set_xlabel("% of Comments", fontsize=10)
+        ax_sb.set_title("Sentiment Breakdown by Department (% of comments)", fontsize=12, fontweight="bold")
+        ax_sb.axvline(100, color="#e5e7eb", linewidth=0.8)
+        ax_sb.legend(fontsize=9, loc="lower right")
+        ax_sb.set_xlim(0, 100)
+        ax_sb.grid(axis="x", alpha=0.25, linestyle="--")
+        ax_sb.set_facecolor("#fafafa")
+        fig_sb.patch.set_facecolor("white")
+        plt.tight_layout()
+        st.pyplot(fig_sb, use_container_width=True)
+        plt.close()
+
+        st.markdown("---")
+
+        # ── Chart 2: Yearly sentiment trend (2023-2025) ───────────────────────
+        st.markdown('<div class="section-header">📈 Yearly Sentiment Trend (2023–2025)</div>', unsafe_allow_html=True)
+
+        trend_dept_sent = st.selectbox("Filter by Department", ["All Departments"] + available_depts, key="sent_trend_dept")
+        df_trend_sent = all_sent if trend_dept_sent == "All Departments" else all_sent[all_sent["dept"] == trend_dept_sent]
+
+        if "year" not in df_trend_sent.columns or df_trend_sent["year"].isna().all():
+            st.warning("Year data not available in sentiment data.")
+        else:
+            yr_sent = (
+                df_trend_sent.groupby(["year","sentiment"], as_index=False)
+                .size()
+                .rename(columns={"size":"count"})
+            )
+            yr_totals = yr_sent.groupby("year")["count"].transform("sum")
+            yr_sent["pct"] = yr_sent["count"] / yr_totals * 100
+            years_s = sorted(df_trend_sent["year"].dropna().unique().astype(int))
+
+            neg_yr = yr_sent[yr_sent["sentiment"]=="NEGATIVE"].set_index("year")["pct"].reindex(years_s).fillna(0)
+            pos_yr = yr_sent[yr_sent["sentiment"]=="POSITIVE"].set_index("year")["pct"].reindex(years_s).fillna(0)
+            neu_yr = yr_sent[yr_sent["sentiment"]=="NEUTRAL"].set_index("year")["pct"].reindex(years_s).fillna(0)
+            total_yr = yr_sent.groupby("year")["count"].sum().reindex(years_s).fillna(0)
+
+            fig_yr, (ax_yr1, ax_yr2) = plt.subplots(1, 2, figsize=(12, 4.5))
+
+            # Left: stacked bar by year
+            w = 0.5
+            x = range(len(years_s))
+            ax_yr1.bar(x, neg_yr.values, width=w, color="#ef4444", alpha=0.85, label="Negative")
+            ax_yr1.bar(x, neu_yr.values, width=w, bottom=neg_yr.values, color="#9ca3af", alpha=0.75, label="Neutral")
+            ax_yr1.bar(x, pos_yr.values, width=w, bottom=(neg_yr+neu_yr).values, color="#10b981", alpha=0.85, label="Positive")
+            for xi, np_ in zip(x, neg_yr.values):
+                ax_yr1.text(xi, np_/2, f"{np_:.1f}%", ha="center", va="center",
+                            fontsize=9, fontweight="700", color="white")
+            ax_yr1.set_xticks(list(x))
+            ax_yr1.set_xticklabels([str(y) for y in years_s], fontsize=10)
+            ax_yr1.set_ylabel("% of Comments", fontsize=10)
+            ax_yr1.set_title("Sentiment Mix by Year", fontsize=11, fontweight="bold")
+            ax_yr1.legend(fontsize=9)
+            ax_yr1.set_ylim(0, 100)
+            ax_yr1.grid(axis="y", alpha=0.3, linestyle="--")
+            ax_yr1.set_facecolor("#fafafa")
+
+            # Right: negative % trend line
+            ax_yr2.plot(years_s, neg_yr.values, color="#ef4444", linewidth=2.5,
+                        marker="o", markersize=8, label="Negative %")
+            ax_yr2.plot(years_s, pos_yr.values, color="#10b981", linewidth=2.5,
+                        marker="s", markersize=8, label="Positive %")
+            for yr_v, nv, pv in zip(years_s, neg_yr.values, pos_yr.values):
+                ax_yr2.annotate(f"{nv:.1f}%", (yr_v, nv), textcoords="offset points",
+                                xytext=(0, 10), ha="center", fontsize=9, color="#ef4444", fontweight="700")
+                ax_yr2.annotate(f"{pv:.1f}%", (yr_v, pv), textcoords="offset points",
+                                xytext=(0,-15), ha="center", fontsize=9, color="#10b981", fontweight="700")
+            ax_yr2.set_xticks(years_s)
+            ax_yr2.set_xticklabels([str(y) for y in years_s], fontsize=10)
+            ax_yr2.set_ylabel("% of Comments", fontsize=10)
+            ax_yr2.set_title("Negative vs Positive Trend", fontsize=11, fontweight="bold")
+            ax_yr2.legend(fontsize=9)
+            ax_yr2.grid(alpha=0.3, linestyle="--")
+            ax_yr2.set_facecolor("#fafafa")
+
+            fig_yr.patch.set_facecolor("white")
+            plt.tight_layout()
+            st.pyplot(fig_yr, use_container_width=True)
+            plt.close()
+
+            # Summary table
+            st.markdown("**Year-by-Year Summary**")
+            yr_table = pd.DataFrame({
+                "Year":             [str(y) for y in years_s],
+                "Total Comments":   total_yr.astype(int).values,
+                "Negative %":       neg_yr.round(1).values,
+                "Neutral %":        neu_yr.round(1).values,
+                "Positive %":       pos_yr.round(1).values,
+            })
+            st.dataframe(yr_table, use_container_width=True, hide_index=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
