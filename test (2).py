@@ -626,9 +626,9 @@ with tab2:
 # TAB 3 — DEPARTMENT VIEW
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab3:
-    st.markdown('<div class="section-header">📊 Department-Level Analysis</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">📊 Project-Level Analysis</div>', unsafe_allow_html=True)
 
-    dept_sel = st.selectbox("Select Department", available_depts, key="dept_view")
+    dept_sel = st.selectbox("Select Project", available_depts, key="dept_view")
     _, phys_d, _ = data[dept_sel]
 
     if phys_d is None or phys_d.empty:
@@ -715,14 +715,14 @@ with tab3:
         method_df["Physicians Flagged"] = method_df["Flag Column"].apply(
             lambda c: int(phys_d[c].sum()) if c in phys_d.columns else 0
         )
-        method_df["% of Department"] = (
+        method_df["% of Project"] = (
             method_df["Physicians Flagged"] / len(phys_d) * 100
         ).round(1).astype(str) + "%"
         st.dataframe(method_df[["Method","Physicians Flagged","% of Department"]],
                      use_container_width=True, hide_index=True)
 
         # Within-dept ranking table
-        st.markdown("**Physician Ranking within Department**")
+        st.markdown("**Physician Ranking within Project**")
         rank_cols = ["physician_id","avg_behavior_score","n_forms","z_score",
                      "low_iqr_outlier","low_z_outlier","low_bottom10",
                      "negative_outlier","risk_score"]
