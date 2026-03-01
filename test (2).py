@@ -131,15 +131,12 @@ def add_outlier_flags(phys_df):
     scores   = df["avg_behavior_score"]
     pop_mean = scores.mean()
     pop_std  = scores.std(ddof=0)
-    df["z_score"]           = (scores - pop_mean) / pop_std
-    df["low_z_outlier"]     = df["z_score"] <= -2
-    Q1, Q3                  = scores.quantile(0.25), scores.quantile(0.75)
-    IQR                     = Q3 - Q1
-    df["low_iqr_outlier"]   = scores < (Q1 - 1.5 * IQR)
-    df["low_bottom10"]      = scores <= scores.quantile(0.10)
-    df["se"]                = pop_std / np.sqrt(df["n_forms"])
-    df["lower_funnel_95"]   = pop_mean - 1.96 * df["se"]
-    df["low_funnel_outlier"]= scores < df["lower_funnel_95"]
+    df["z_score"]         = (scores - pop_mean) / pop_std
+    df["low_z_outlier"]   = df["z_score"] <= -2
+    Q1, Q3                = scores.quantile(0.25), scores.quantile(0.75)
+    IQR                   = Q3 - Q1
+    df["low_iqr_outlier"] = scores < (Q1 - 1.5 * IQR)
+    df["low_bottom10"]    = scores <= scores.quantile(0.10)
     return df, pop_mean, pop_std
 
 vader = SentimentIntensityAnalyzer()
@@ -189,7 +186,7 @@ def merge_sentiment(phys_df, sent_s):
 
 def add_risk(phys_df):
     df = phys_df.copy()
-    df["risk_score"] = df["low_funnel_outlier"].astype(int) + df["negative_outlier"].astype(int)
+    df["risk_score"] = df["low_iqr_outlier"].astype(int) + df["negative_outlier"].astype(int)
     df["final_flag"] = df["risk_score"] == 2
     return df
 
@@ -293,10 +290,10 @@ if not any_uploaded:
         <div class="metric-card">
             <div class="metric-label">Methodology</div>
             <div style="margin-top:8px; font-size:14px; color:#374151; line-height:1.6">
-                📊 Funnel Plot (95% LCL)<br>
                 📏 IQR Outlier Detection<br>
                 📉 Z-Score Analysis<br>
-                🔢 Bottom 10% Threshold
+                🔢 Bottom 10% Threshold<br>
+                🔗 Complaints × Sentiment
             </div>
         </div>""", unsafe_allow_html=True)
     with c2:
@@ -470,7 +467,7 @@ with tab1:
             "Priority (2)":    int((phys['risk_score']==2).sum()),
             "Monitor (1)":     int((phys['risk_score']==1).sum()),
             "Clear (0)":       int((phys['risk_score']==0).sum()),
-            "Funnel Outliers": int(phys['low_funnel_outlier'].sum()),
+            "IQR Outliers":    int(phys['low_iqr_outlier'].sum()),
             "Sentiment Flags": int(phys['negative_outlier'].sum()),
         }
         summary_rows.append(row)
@@ -515,7 +512,6 @@ with tab2:
         "avg_behavior_score": "Avg Score",
         "n_forms":            "Evaluations",
         "z_score":            "Z-Score",
-        "low_funnel_outlier": "Funnel Flag",
         "low_iqr_outlier":    "IQR Flag",
         "low_z_outlier":      "Z-Flag",
         "negative_ratio":     "Neg. Ratio",
@@ -577,8 +573,8 @@ with tab2:
         with dc5:
             st.metric("Z-Score", f"{row.get('z_score', 0):.2f}")
         with dc6:
-            funnel = "🔴 FLAGGED" if row.get("low_funnel_outlier", False) else "🟢 Clear"
-            st.metric("Funnel Plot", funnel)
+            iqr_f = "🔴 FLAGGED" if row.get("low_iqr_outlier", False) else "🟢 Clear"
+            st.metric("IQR Outlier", iqr_f)
         with dc7:
             neg_r = row.get("negative_ratio", np.nan)
             st.metric("Neg. Comment Ratio", f"{neg_r:.1%}" if pd.notna(neg_r) else "—")
@@ -629,26 +625,31 @@ with tab3:
         d1, d2, d3, d4 = st.columns(4)
         with d1: st.metric("Physicians", len(phys_d))
         with d2: st.metric("Dept. Mean Score", f"{phys_d['avg_behavior_score'].mean():.3f}")
-        with d3: st.metric("Funnel Outliers", int(phys_d["low_funnel_outlier"].sum()))
+        with d3: st.metric("IQR Outliers", int(phys_d["low_iqr_outlier"].sum()))
         with d4: st.metric("Priority Flags", int((phys_d["risk_score"]==2).sum()))
 
         col_l, col_r = st.columns(2)
 
-        # Funnel plot
+        # IQR scatter plot
         with col_l:
-            st.markdown("**Funnel Plot — Score vs. Evaluations**")
+            st.markdown("**IQR Outlier View — Score Distribution**")
             fig, ax = plt.subplots(figsize=(6, 4.5))
-            df_s = phys_d.sort_values("n_forms")
-            ax.scatter(df_s["n_forms"], df_s["avg_behavior_score"],
-                       alpha=0.6, color="#3b82f6", s=55, label="Physicians", zorder=3)
-            ax.plot(df_s["n_forms"], df_s["lower_funnel_95"],
-                    color="#ef4444", linewidth=2, linestyle="--", label="95% LCL")
-            outliers = df_s[df_s["low_funnel_outlier"]]
-            ax.scatter(outliers["n_forms"], outliers["avg_behavior_score"],
-                       color="#ef4444", s=100, zorder=5, label=f"Low Outliers (n={len(outliers)})")
-            ax.set_xlabel("Number of Evaluations", fontsize=10)
+            scores_d  = phys_d["avg_behavior_score"]
+            Q1d, Q3d  = scores_d.quantile(0.25), scores_d.quantile(0.75)
+            iqr_fence = Q1d - 1.5 * (Q3d - Q1d)
+            normal    = phys_d[~phys_d["low_iqr_outlier"]]
+            outliers  = phys_d[phys_d["low_iqr_outlier"]]
+            ax.scatter(normal.index,  normal["avg_behavior_score"],
+                       alpha=0.6, color="#3b82f6", s=55, label="Within range", zorder=3)
+            ax.scatter(outliers.index, outliers["avg_behavior_score"],
+                       color="#ef4444", s=100, zorder=5, label=f"IQR Outliers (n={len(outliers)})")
+            ax.axhline(iqr_fence, color="#ef4444", linewidth=2, linestyle="--",
+                       label=f"IQR Lower Fence ({iqr_fence:.2f})")
+            ax.axhline(scores_d.mean(), color="#1d4ed8", linewidth=1.5, linestyle=":",
+                       label=f"Mean ({scores_d.mean():.2f})")
+            ax.set_xlabel("Physician Index", fontsize=10)
             ax.set_ylabel("Avg Behaviour Score", fontsize=10)
-            ax.set_title(f"{dept_sel} Funnel Plot", fontsize=11, fontweight="bold")
+            ax.set_title(f"{dept_sel} — IQR Outlier View", fontsize=11, fontweight="bold")
             ax.legend(fontsize=9)
             ax.grid(alpha=0.3, linestyle="--")
             ax.set_facecolor("#fafafa")
@@ -664,10 +665,11 @@ with tab3:
             n, bins, patches = ax2.hist(scores, bins=20, edgecolor="white",
                                          linewidth=0.8, color="#3b82f6", alpha=0.75)
 
-            # Colour funnel outliers red in the histogram
-            funnel_thresh = phys_d["lower_funnel_95"].min()
+            # Colour IQR outliers red in the histogram
+            Q1h, Q3h   = scores.quantile(0.25), scores.quantile(0.75)
+            iqr_thresh = Q1h - 1.5 * (Q3h - Q1h)
             for patch, left_edge in zip(patches, bins[:-1]):
-                if left_edge < funnel_thresh:
+                if left_edge < iqr_thresh:
                     patch.set_facecolor("#ef4444")
                     patch.set_alpha(0.8)
 
@@ -676,7 +678,7 @@ with tab3:
             ax2.axvline(scores.quantile(0.10), color="#f59e0b", linewidth=1.5,
                         linestyle=":", label=f"10th pct ({scores.quantile(.1):.2f})")
 
-            red_patch   = mpatches.Patch(color="#ef4444", alpha=0.8, label="Below funnel LCL")
+            red_patch   = mpatches.Patch(color="#ef4444", alpha=0.8, label="Below IQR fence")
             blue_patch  = mpatches.Patch(color="#3b82f6", alpha=0.75, label="Within range")
             ax2.legend(handles=[red_patch, blue_patch] +
                        [plt.Line2D([0],[0],color="#1d4ed8",linewidth=2,label=f"Mean ({scores.mean():.2f})"),
@@ -695,9 +697,9 @@ with tab3:
         # Outlier method comparison table
         st.markdown("**Outlier Method Comparison**")
         method_df = pd.DataFrame({
-            "Method":       ["Funnel Plot (95%)", "IQR Lower Fence", "Z-Score (≤−2)", "Bottom 10%"],
-            "Flag Column":  ["low_funnel_outlier","low_iqr_outlier","low_z_outlier","low_bottom10"],
-        })
+                "Method":       ["IQR Lower Fence", "Z-Score (≤−2)", "Bottom 10%", "Complaints + Neg. Sentiment"],
+                "Flag Column":  ["low_iqr_outlier", "low_z_outlier", "low_bottom10", "combined_flag"],
+            })
         method_df["Physicians Flagged"] = method_df["Flag Column"].apply(
             lambda c: int(phys_d[c].sum()) if c in phys_d.columns else 0
         )
@@ -711,14 +713,14 @@ with tab3:
         st.markdown("**Physician Ranking within Department**")
         rank_df = phys_d[[
             "physician_id","avg_behavior_score","n_forms","z_score",
-            "low_funnel_outlier","negative_outlier","risk_score"
+            "low_iqr_outlier","low_z_outlier","low_bottom10","negative_outlier","risk_score"
         ]].copy()
         rank_df = rank_df.sort_values("avg_behavior_score")
         rank_df["Percentile"] = (rank_df["avg_behavior_score"].rank(pct=True)*100).round(1).astype(str) + "%"
         rank_df["avg_behavior_score"] = rank_df["avg_behavior_score"].round(3)
         rank_df["z_score"] = rank_df["z_score"].round(2)
         rank_df.columns = ["Physician ID","Avg Score","Evaluations","Z-Score",
-                           "Funnel Flag","Sentiment Flag","Risk Score","Percentile"]
+                           "IQR Flag","Z-Flag","Bottom 10%","Sentiment Flag","Risk Score","Percentile"]
         st.dataframe(rank_df.reset_index(drop=True), use_container_width=True, hide_index=True,
                      column_config={"Risk Score": st.column_config.ProgressColumn(min_value=0, max_value=2, format="%d"),
                                     "Avg Score":  st.column_config.ProgressColumn(min_value=0, max_value=4, format="%.3f")})
@@ -865,8 +867,8 @@ with tab5:
                     "Year":             yr,
                     "Physicians":       len(phys_yr),
                     "Avg Score":        round(phys_yr["avg_behavior_score"].mean(), 3),
-                    "Funnel Outliers":  int(phys_yr["low_funnel_outlier"].sum()),
-                    "% Flagged":        round(phys_yr["low_funnel_outlier"].mean()*100, 1),
+                    "IQR Outliers":     int(phys_yr["low_iqr_outlier"].sum()),
+                    "% Flagged":        round(phys_yr["low_iqr_outlier"].mean()*100, 1),
                     "Median Score":     round(phys_yr["avg_behavior_score"].median(), 3),
                     "Score Std":        round(phys_yr["avg_behavior_score"].std(), 3),
                 })
@@ -917,7 +919,7 @@ with tab5:
                 plt.close()
 
             with col_t2:
-                st.markdown("**% Physicians Flagged by Funnel Plot**")
+                st.markdown("**% Physicians Flagged by IQR**")
                 fig2, ax2 = plt.subplots(figsize=(6, 4))
                 bar_cols = ["#10b981" if p < 10 else ("#f59e0b" if p < 20 else "#ef4444")
                             for p in trend_df["% Flagged"]]
@@ -929,8 +931,8 @@ with tab5:
                              ha="center", va="bottom", fontsize=10, fontweight="700")
                 ax2.set_xticks(years_avail)
                 ax2.set_xlabel("Year", fontsize=10)
-                ax2.set_ylabel("% Physicians Below Funnel LCL", fontsize=10)
-                ax2.set_title(f"{trend_dept} — Flagged Rate Over Time", fontsize=11, fontweight="bold")
+                ax2.set_ylabel("% Physicians Below IQR Fence", fontsize=10)
+                ax2.set_title(f"{trend_dept} — IQR Flagged Rate Over Time", fontsize=11, fontweight="bold")
                 ax2.grid(axis="y", alpha=0.3, linestyle="--")
                 ax2.set_facecolor("#fafafa")
                 fig2.patch.set_facecolor("white")
@@ -1745,3 +1747,253 @@ with tab6:
         csv_ind = show_renamed.to_csv(index=False).encode("utf-8")
         st.download_button("⬇️ Export filtered table as CSV", csv_ind,
                            "division_physicians.csv", "text/csv")
+
+        # ══════════════════════════════════════════════════════════════════════
+        # COMPLAINTS × SENTIMENT CROSS-ANALYSIS
+        # ══════════════════════════════════════════════════════════════════════
+        st.markdown("---")
+        st.markdown('<div class="section-header">🔗 Complaints × Sentiment — Combined Outlier Analysis</div>', unsafe_allow_html=True)
+        st.markdown(
+            "Physicians flagged here have **both** a high patient complaint count (IQR outlier) "
+            "**and** negative peer sentiment from survey comments. "
+            "Convergence of both signals = strongest evidence for review."
+        )
+
+        # ── Check if survey sentiment data is available ───────────────────────
+        sent_frames = []
+        for dept_name in available_depts:
+            _, _, sent_raw = data[dept_name]
+            if sent_raw is not None and not sent_raw.empty:
+                sent_raw_copy = sent_raw.copy()
+                sent_raw_copy["dept_source"] = dept_name
+                sent_frames.append(sent_raw_copy)
+
+        if not sent_frames:
+            st.warning("No survey comment data loaded yet. Upload your behaviour survey CSVs in the sidebar to enable this analysis.")
+        else:
+            # Combine all sentiment data
+            all_sent = pd.concat(sent_frames, ignore_index=True)
+
+            # Build per-physician sentiment summary across all departments
+            sent_cross = (
+                all_sent.assign(is_neg=(all_sent["sentiment"] == "NEGATIVE"))
+                .groupby("physician_id", as_index=False)
+                .agg(
+                    total_comments   =("is_neg",   "count"),
+                    negative_comments=("is_neg",   "sum"),
+                    avg_compound     =("compound", "mean"),
+                )
+            )
+            sent_cross["negative_ratio"] = sent_cross["negative_comments"] / sent_cross["total_comments"]
+
+            # Sentiment flag: IQR upper fence on negative_ratio (min 3 comments)
+            Q1s, Q3s = sent_cross["negative_ratio"].quantile(0.25), sent_cross["negative_ratio"].quantile(0.75)
+            sent_ub  = Q3s + 1.5 * (Q3s - Q1s)
+            sent_cross["sentiment_flag"] = (
+                (sent_cross["negative_ratio"] > sent_ub) &
+                (sent_cross["total_comments"] >= 3)
+            )
+
+            # ── Complaints: IQR upper fence per physician ─────────────────────
+            if "PatientComplaints" not in df_filt.columns or "Aubnetid" not in df_filt.columns:
+                st.warning("PatientComplaints or Aubnetid column not found in indicators file.")
+            else:
+                complaints = (
+                    df_filt.groupby("Aubnetid", as_index=False)
+                    .agg(
+                        total_complaints =("PatientComplaints", "sum"),
+                        department       =("Department",        lambda x: x.mode()[0] if not x.empty else "—"),
+                        division         =("Division",          lambda x: x.mode()[0] if not x.empty else "—"),
+                    )
+                )
+                complaints["total_complaints"] = pd.to_numeric(complaints["total_complaints"], errors="coerce").fillna(0)
+
+                # IQR outlier on complaints
+                Q1c, Q3c = complaints["total_complaints"].quantile(0.25), complaints["total_complaints"].quantile(0.75)
+                IQRc     = Q3c - Q1c
+                complaints_ub = Q3c + 1.5 * IQRc
+                complaints["complaints_flag"] = complaints["total_complaints"] > complaints_ub
+
+                # ── Merge complaints + sentiment on physician ID ───────────────
+                # Indicators uses Aubnetid; sentiment uses physician_id — same field
+                merged = complaints.merge(
+                    sent_cross.rename(columns={"physician_id": "Aubnetid"}),
+                    on="Aubnetid", how="left"
+                )
+                merged["sentiment_flag"]  = merged["sentiment_flag"].fillna(False)
+                merged["negative_ratio"]  = merged["negative_ratio"].fillna(0)
+                merged["avg_compound"]    = merged["avg_compound"].fillna(0)
+                merged["total_comments"]  = merged["total_comments"].fillna(0).astype(int)
+
+                # ── Combined outlier badge ────────────────────────────────────
+                def combined_badge(row):
+                    if row["complaints_flag"] and row["sentiment_flag"]:
+                        return "Priority"
+                    elif row["complaints_flag"] or row["sentiment_flag"]:
+                        return "Monitor"
+                    return "Clear"
+
+                merged["combined_status"] = merged.apply(combined_badge, axis=1)
+
+                # ── Summary KPIs ──────────────────────────────────────────────
+                n_priority = (merged["combined_status"] == "Priority").sum()
+                n_monitor  = (merged["combined_status"] == "Monitor").sum()
+                n_clear    = (merged["combined_status"] == "Clear").sum()
+                n_total    = len(merged)
+
+                cx1, cx2, cx3, cx4 = st.columns(4)
+                with cx1:
+                    st.markdown(f'''<div class="metric-card danger">
+                        <div class="metric-label">⚠ Priority (Both Flags)</div>
+                        <div class="metric-value">{n_priority}</div>
+                        <div class="metric-sub">{n_priority/n_total*100:.1f}% of physicians</div>
+                    </div>''', unsafe_allow_html=True)
+                with cx2:
+                    st.markdown(f'''<div class="metric-card warning">
+                        <div class="metric-label">👁 Monitor (One Flag)</div>
+                        <div class="metric-value">{n_monitor}</div>
+                        <div class="metric-sub">{n_monitor/n_total*100:.1f}% of physicians</div>
+                    </div>''', unsafe_allow_html=True)
+                with cx3:
+                    st.markdown(f'''<div class="metric-card success">
+                        <div class="metric-label">✓ Clear</div>
+                        <div class="metric-value">{n_clear}</div>
+                        <div class="metric-sub">{n_clear/n_total*100:.1f}% of physicians</div>
+                    </div>''', unsafe_allow_html=True)
+                with cx4:
+                    st.markdown(f'''<div class="metric-card neutral">
+                        <div class="metric-label">IQR Complaint Threshold</div>
+                        <div class="metric-value">{complaints_ub:.0f}</div>
+                        <div class="metric-sub">complaints to trigger flag</div>
+                    </div>''', unsafe_allow_html=True)
+
+                st.markdown("<br>", unsafe_allow_html=True)
+
+                # ── Side-by-side scatter: complaints vs sentiment ─────────────
+                st.markdown("**Complaints vs Sentiment Score — All Physicians**")
+                st.caption("Top-left = high complaints + negative sentiment = Priority · Dashed lines = IQR thresholds")
+
+                fig_s, ax_s = plt.subplots(figsize=(10, 6))
+
+                colour_map = {"Priority": "#ef4444", "Monitor": "#f59e0b", "Clear": "#10b981"}
+                for status, grp in merged.groupby("combined_status"):
+                    ax_s.scatter(
+                        grp["total_complaints"],
+                        grp["avg_compound"],
+                        c=colour_map.get(status, "#6b7280"),
+                        s=70, alpha=0.75, zorder=3,
+                        label=f"{status} (n={len(grp)})"
+                    )
+
+                # Threshold lines
+                ax_s.axvline(complaints_ub, color="#ef4444", linestyle="--",
+                             linewidth=1.5, alpha=0.7, label=f"Complaint IQR fence ({complaints_ub:.0f})")
+                ax_s.axhline(-0.05, color="#f59e0b", linestyle=":",
+                             linewidth=1.5, alpha=0.7, label="Sentiment neutral threshold")
+
+                # Quadrant labels
+                y_range = merged["avg_compound"].max() - merged["avg_compound"].min()
+                y_top   = merged["avg_compound"].max() - y_range * 0.05
+                y_bot   = merged["avg_compound"].min() + y_range * 0.05
+                x_right = merged["total_complaints"].max() * 0.98
+
+                ax_s.text(complaints_ub + 0.3, y_bot,
+                          "⚠ HIGH RISK\nComplaints + Negative",
+                          fontsize=8, color="#ef4444", fontweight="700",
+                          va="bottom", ha="left",
+                          bbox=dict(boxstyle="round,pad=0.3", facecolor="#fef2f2", alpha=0.8))
+
+                ax_s.set_xlabel("Total Patient Complaints", fontsize=11)
+                ax_s.set_ylabel("Avg VADER Compound Score (−1=negative, +1=positive)", fontsize=11)
+                ax_s.set_title("Patient Complaints vs Peer Sentiment — Combined Outlier View",
+                               fontsize=12, fontweight="bold")
+                ax_s.legend(fontsize=9, loc="upper right")
+                ax_s.grid(alpha=0.25, linestyle="--")
+                ax_s.set_facecolor("#fafafa")
+                fig_s.patch.set_facecolor("white")
+                plt.tight_layout()
+                st.pyplot(fig_s, use_container_width=True)
+                plt.close()
+
+                # ── Department peer comparison bar chart ──────────────────────
+                st.markdown("**Priority Physicians vs Department Peers**")
+
+                dept_cross = (
+                    merged.groupby("department", as_index=False)
+                    .agg(
+                        Total        =("Aubnetid",         "count"),
+                        Priority     =("combined_status",  lambda x: (x == "Priority").sum()),
+                        Monitor      =("combined_status",  lambda x: (x == "Monitor").sum()),
+                        Avg_Complaints=("total_complaints","mean"),
+                        Avg_Compound  =("avg_compound",    "mean"),
+                    )
+                )
+                dept_cross["Priority_pct"] = (dept_cross["Priority"] / dept_cross["Total"] * 100).round(1)
+                dept_cross = dept_cross.sort_values("Priority_pct", ascending=False)
+
+                fig_d, ax_d = plt.subplots(figsize=(10, max(4, len(dept_cross)*0.45)))
+                bar_c = ["#ef4444" if p > 0 else "#10b981" for p in dept_cross["Priority_pct"]]
+                bars_d = ax_d.barh(dept_cross["department"], dept_cross["Priority_pct"],
+                                   color=bar_c, edgecolor="white", linewidth=0.8, alpha=0.85)
+                for bar, pct, n in zip(bars_d, dept_cross["Priority_pct"], dept_cross["Priority"]):
+                    label = f"{pct:.1f}%  ({int(n)} physicians)" if n > 0 else "0%"
+                    ax_d.text(max(pct + 0.2, 0.5), bar.get_y() + bar.get_height()/2,
+                              label, va="center", fontsize=9, fontweight="600",
+                              color="#ef4444" if n > 0 else "#6b7280")
+                ax_d.set_xlabel("% Physicians with Priority Flag (High Complaints + Negative Sentiment)", fontsize=10)
+                ax_d.set_title("Priority Flag Rate by Department", fontsize=11, fontweight="bold")
+                ax_d.grid(axis="x", alpha=0.3, linestyle="--")
+                ax_d.set_facecolor("#fafafa")
+                fig_d.patch.set_facecolor("white")
+                plt.tight_layout()
+                st.pyplot(fig_d, use_container_width=True)
+                plt.close()
+
+                # ── Physician table (Priority first) ──────────────────────────
+                st.markdown("**Physician Combined Outlier Table**")
+                st.caption("Sorted by status → complaints → sentiment score")
+
+                status_order = {"Priority": 0, "Monitor": 1, "Clear": 2}
+                merged["_sort"] = merged["combined_status"].map(status_order)
+                table_out = (
+                    merged.sort_values(["_sort", "total_complaints", "avg_compound"],
+                                       ascending=[True, False, True])
+                    .drop(columns=["_sort"])
+                    [["Aubnetid", "department", "division",
+                      "total_complaints", "complaints_flag",
+                      "total_comments", "negative_ratio", "avg_compound",
+                      "sentiment_flag", "combined_status"]]
+                    .rename(columns={
+                        "Aubnetid":          "Physician ID",
+                        "department":        "Department",
+                        "division":          "Division",
+                        "total_complaints":  "Complaints",
+                        "complaints_flag":   "Complaint Flag",
+                        "total_comments":    "Comments Scored",
+                        "negative_ratio":    "Neg. Ratio",
+                        "avg_compound":      "VADER Score",
+                        "sentiment_flag":    "Sentiment Flag",
+                        "combined_status":   "Status",
+                    })
+                    .reset_index(drop=True)
+                )
+                table_out["Neg. Ratio"] = table_out["Neg. Ratio"].apply(lambda x: f"{x:.1%}")
+                table_out["VADER Score"] = table_out["VADER Score"].apply(lambda x: f"{x:.3f}")
+
+                max_cmp2 = int(table_out["Complaints"].max()) if len(table_out) > 0 else 10
+                st.dataframe(
+                    table_out,
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "Complaints": st.column_config.ProgressColumn(
+                            min_value=0, max_value=max_cmp2, format="%d"),
+                        "Status": st.column_config.SelectboxColumn(
+                            options=["Priority", "Monitor", "Clear"]),
+                    }
+                )
+
+                # Export
+                csv_cross = table_out.to_csv(index=False).encode("utf-8")
+                st.download_button("⬇️ Export combined outlier table", csv_cross,
+                                   "complaints_sentiment_outliers.csv", "text/csv")
