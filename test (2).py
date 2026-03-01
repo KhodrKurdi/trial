@@ -529,6 +529,7 @@ with tab2:
         "behaviour_flag":     "Behaviour Flag",
         "low_iqr_outlier":    "IQR Flag",
         "low_z_outlier":      "Z-Flag",
+        "low_bottom10":       "Bottom 10%",
         "negative_ratio":     "Neg. Ratio",
         "avg_compound":       "VADER Score",
         "experience_flag":    "Experience Flag",
