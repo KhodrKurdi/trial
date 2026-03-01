@@ -257,8 +257,8 @@ with st.sidebar:
     st.markdown("**v4.0 · VADER Sentiment**  \n*All IDs anonymised*", unsafe_allow_html=True)
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
-@st.cache_data
-def load_and_process(files_aubmc, files_ed, files_patho, min_f, threshold):
+@st.cache_data(hash_funcs={}, show_spinner=False)
+def load_and_process(files_aubmc, files_ed, files_patho, min_f, threshold, _version="v5.0"):
     depts = {}
 
     def load_dept(file_list, name):
@@ -340,7 +340,8 @@ with st.spinner("Processing data and running VADER sentiment analysis..."):
         tuple(f for f in files_ed),
         tuple(f for f in files_patho),
         min_forms,
-        sent_thresh
+        sent_thresh,
+        _version="v5.0"
     )
 
 # Build combined physician table from available departments
@@ -443,16 +444,19 @@ with tab1:
     with col_right:
         st.markdown('<div class="section-header">Risk Score Breakdown</div>', unsafe_allow_html=True)
         fig2, ax2 = plt.subplots(figsize=(5, 4.5))
-        risk_counts = all_phys["risk_score"].value_counts().sort_index()
-        bar_labels  = {0:"Clear (0)", 1:"Monitor (1)", 2:"Monitor (2)", 3:"Priority (3)", 4:"Priority (4)"}
-        bar_colors  = {0:"#10b981", 1:"#f59e0b", 2:"#f59e0b", 3:"#ef4444", 4:"#b91c1c"}
+        agg_labels = ["Clear (0)", "Monitor (1–2)", "Priority (3–4)"]
+        agg_values = [
+            int((all_phys["risk_score"] == 0).sum()),
+            int(all_phys["risk_score"].between(1, 2).sum()),
+            int((all_phys["risk_score"] >= 3).sum()),
+        ]
+        agg_colors = ["#10b981", "#f59e0b", "#ef4444"]
         bars = ax2.bar(
-            [bar_labels.get(i, str(i)) for i in risk_counts.index],
-            risk_counts.values,
-            color=[bar_colors.get(i,"#6366f1") for i in risk_counts.index],
+            agg_labels, agg_values,
+            color=agg_colors,
             edgecolor="white", linewidth=1.5, width=0.55
         )
-        for bar, val in zip(bars, risk_counts.values):
+        for bar, val in zip(bars, agg_values):
             ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.3,
                      str(val), ha="center", va="bottom", fontweight="700", fontsize=12)
         ax2.set_ylabel("Number of Physicians", fontsize=10)
