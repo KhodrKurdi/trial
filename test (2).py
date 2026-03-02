@@ -251,7 +251,7 @@ with st.sidebar:
     st.markdown("**v5.0 · VADER Sentiment**  \n*All IDs anonymised*", unsafe_allow_html=True)
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
-@st.cache_data(hash_funcs={}, show_spinner=False)
+@st.cache_data(show_spinner=False)
 def load_and_process(files_aubmc, files_ed, files_patho, min_f, threshold, _version="v5.0"):
     depts = {}
 
@@ -414,54 +414,111 @@ with tab1:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    col_left, col_right = st.columns([1.2, 1])
+    # ── Row 1: 4 charts side by side ─────────────────────────────────────────
+    st.markdown('<div class="section-header">📊 Outlier Detection Methods &amp; Risk Breakdown</div>', unsafe_allow_html=True)
 
-    with col_left:
-        st.markdown('<div class="section-header">Department Score Comparison</div>', unsafe_allow_html=True)
-        fig, ax = plt.subplots(figsize=(7, 4.5))
-        dept_data  = [data[d][1]["avg_behavior_score"] for d in available_depts]
-        colours    = ["#3b82f6","#f59e0b","#10b981","#8b5cf6"][:len(available_depts)]
-        bp = ax.boxplot(dept_data, patch_artist=True, notch=False,
-                        medianprops=dict(color="white", linewidth=2.5))
-        for patch, col in zip(bp["boxes"], colours):
-            patch.set_facecolor(col); patch.set_alpha(0.8)
-        ax.set_xticks(range(1, len(available_depts)+1))
-        ax.set_xticklabels(available_depts, fontsize=11)
-        ax.set_ylabel("Avg Behaviour Score (0–4)", fontsize=10)
-        ax.set_title("Score Distribution by Department", fontsize=12, fontweight="bold", pad=10)
-        ax.grid(axis="y", alpha=0.3, linestyle="--")
-        ax.set_facecolor("#fafafa")
-        fig.patch.set_facecolor("white")
-        st.pyplot(fig, use_container_width=True)
-        plt.close()
+    scores_all = all_phys["avg_behavior_score"].dropna()
+    Q1g, Q3g   = scores_all.quantile(0.25), scores_all.quantile(0.75)
+    iqr_fence  = Q1g - 1.5 * (Q3g - Q1g)
+    bot10_val  = scores_all.quantile(0.10)
+    n_iqr  = int(all_phys["low_iqr_outlier"].sum())  if "low_iqr_outlier" in all_phys.columns else 0
+    n_z    = int(all_phys["low_z_outlier"].sum())    if "low_z_outlier"   in all_phys.columns else 0
+    n_bot  = int(all_phys["low_bottom10"].sum())     if "low_bottom10"    in all_phys.columns else 0
 
-    with col_right:
-        st.markdown('<div class="section-header">Risk Score Breakdown</div>', unsafe_allow_html=True)
-        fig2, ax2 = plt.subplots(figsize=(5, 4.5))
-        agg_labels = ["Clear (0)", "Monitor (1–2)", "Priority (3–4)"]
+    v1, v2, v3, v4 = st.columns(4)
+
+    # IQR histogram
+    with v1:
+        st.caption(f"**IQR Lower Fence** — {n_iqr} flagged")
+        fig1, ax1 = plt.subplots(figsize=(3.5, 3))
+        mask_iqr = all_phys["low_iqr_outlier"].fillna(False).astype(bool)
+        ax1.hist(all_phys[~mask_iqr]["avg_behavior_score"].dropna(), bins=20,
+                 color="#3b82f6", alpha=0.7, label=f"Normal ({(~mask_iqr).sum()})")
+        ax1.hist(all_phys[mask_iqr]["avg_behavior_score"].dropna(),  bins=8,
+                 color="#ef4444", alpha=0.9, label=f"Flagged ({mask_iqr.sum()})")
+        ax1.axvline(iqr_fence, color="#ef4444", linestyle="--", linewidth=1.8,
+                    label=f"Fence ({iqr_fence:.2f})")
+        ax1.set_title("IQR Outliers", fontsize=10, fontweight="bold")
+        ax1.set_xlabel("Avg Score", fontsize=8); ax1.set_ylabel("Count", fontsize=8)
+        ax1.legend(fontsize=7); ax1.grid(axis="y", alpha=0.25, linestyle="--")
+        ax1.set_facecolor("#fafafa"); fig1.patch.set_facecolor("white")
+        plt.tight_layout(); st.pyplot(fig1, use_container_width=True); plt.close()
+
+    # Z-Score histogram
+    with v2:
+        st.caption(f"**Z-Score ≤ −2** — {n_z} flagged")
+        fig2, ax2 = plt.subplots(figsize=(3.5, 3))
+        mask_z = all_phys["low_z_outlier"].fillna(False).astype(bool) if "low_z_outlier" in all_phys.columns else pd.Series(False, index=all_phys.index)
+        ax2.hist(all_phys[~mask_z]["z_score"].dropna(), bins=20,
+                 color="#3b82f6", alpha=0.7, label=f"Normal ({(~mask_z).sum()})")
+        ax2.hist(all_phys[mask_z]["z_score"].dropna(),  bins=8,
+                 color="#f59e0b", alpha=0.9, label=f"Flagged ({mask_z.sum()})")
+        ax2.axvline(-2, color="#f59e0b", linestyle="--", linewidth=1.8, label="Z = −2")
+        ax2.set_title("Z-Score Outliers", fontsize=10, fontweight="bold")
+        ax2.set_xlabel("Z-Score", fontsize=8); ax2.set_ylabel("Count", fontsize=8)
+        ax2.legend(fontsize=7); ax2.grid(axis="y", alpha=0.25, linestyle="--")
+        ax2.set_facecolor("#fafafa"); fig2.patch.set_facecolor("white")
+        plt.tight_layout(); st.pyplot(fig2, use_container_width=True); plt.close()
+
+    # Bottom 10% histogram
+    with v3:
+        st.caption(f"**Bottom 10%** — {n_bot} flagged")
+        fig3, ax3 = plt.subplots(figsize=(3.5, 3))
+        mask_b = all_phys["low_bottom10"].fillna(False).astype(bool) if "low_bottom10" in all_phys.columns else pd.Series(False, index=all_phys.index)
+        ax3.hist(all_phys[~mask_b]["avg_behavior_score"].dropna(), bins=20,
+                 color="#3b82f6", alpha=0.7, label=f"Normal ({(~mask_b).sum()})")
+        ax3.hist(all_phys[mask_b]["avg_behavior_score"].dropna(),  bins=8,
+                 color="#8b5cf6", alpha=0.9, label=f"Flagged ({mask_b.sum()})")
+        ax3.axvline(bot10_val, color="#8b5cf6", linestyle="--", linewidth=1.8,
+                    label=f"P10 ({bot10_val:.2f})")
+        ax3.set_title("Bottom 10% Outliers", fontsize=10, fontweight="bold")
+        ax3.set_xlabel("Avg Score", fontsize=8); ax3.set_ylabel("Count", fontsize=8)
+        ax3.legend(fontsize=7); ax3.grid(axis="y", alpha=0.25, linestyle="--")
+        ax3.set_facecolor("#fafafa"); fig3.patch.set_facecolor("white")
+        plt.tight_layout(); st.pyplot(fig3, use_container_width=True); plt.close()
+
+    # Risk Score breakdown bar
+    with v4:
+        st.caption("**Risk Score Breakdown**")
+        fig4, ax4 = plt.subplots(figsize=(3.5, 3))
+        agg_labels = ["Clear\n(0)", "Monitor\n(1–2)", "Priority\n(3–4)"]
         agg_values = [
             int((all_phys["risk_score"] == 0).sum()),
             int(all_phys["risk_score"].between(1, 2).sum()),
             int((all_phys["risk_score"] >= 3).sum()),
         ]
-        agg_colors = ["#10b981", "#f59e0b", "#ef4444"]
-        bars = ax2.bar(
-            agg_labels, agg_values,
-            color=agg_colors,
-            edgecolor="white", linewidth=1.5, width=0.55
-        )
-        for bar, val in zip(bars, agg_values):
-            ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.3,
-                     str(val), ha="center", va="bottom", fontweight="700", fontsize=12)
-        ax2.set_ylabel("Number of Physicians", fontsize=10)
-        ax2.set_title("Composite Risk Distribution", fontsize=12, fontweight="bold", pad=10)
-        ax2.grid(axis="y", alpha=0.3, linestyle="--")
-        ax2.set_facecolor("#fafafa")
-        fig2.patch.set_facecolor("white")
-        ax2.spines["top"].set_visible(False)
-        ax2.spines["right"].set_visible(False)
-        st.pyplot(fig2, use_container_width=True)
-        plt.close()
+        bars4 = ax4.bar(agg_labels, agg_values,
+                        color=["#10b981","#f59e0b","#ef4444"],
+                        edgecolor="white", linewidth=1.5, width=0.55)
+        for bar, val in zip(bars4, agg_values):
+            ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.3,
+                     str(val), ha="center", va="bottom", fontweight="700", fontsize=11)
+        ax4.set_ylabel("Physicians", fontsize=8)
+        ax4.set_title("Risk Distribution", fontsize=10, fontweight="bold")
+        ax4.grid(axis="y", alpha=0.25, linestyle="--")
+        ax4.spines["top"].set_visible(False); ax4.spines["right"].set_visible(False)
+        ax4.set_facecolor("#fafafa"); fig4.patch.set_facecolor("white")
+        plt.tight_layout(); st.pyplot(fig4, use_container_width=True); plt.close()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Row 2: Dept score box plot (full width) ───────────────────────────────
+    st.markdown('<div class="section-header">🏥 Department Score Comparison</div>', unsafe_allow_html=True)
+    fig_d, ax_d = plt.subplots(figsize=(10, 4))
+    dept_data = [data[d][1]["avg_behavior_score"] for d in available_depts]
+    colours   = ["#3b82f6","#f59e0b","#10b981","#8b5cf6"][:len(available_depts)]
+    bp = ax_d.boxplot(dept_data, patch_artist=True, notch=False,
+                      medianprops=dict(color="white", linewidth=2.5))
+    for patch, col in zip(bp["boxes"], colours):
+        patch.set_facecolor(col); patch.set_alpha(0.8)
+    ax_d.set_xticks(range(1, len(available_depts)+1))
+    ax_d.set_xticklabels(available_depts, fontsize=11)
+    ax_d.set_ylabel("Avg Behaviour Score (0–4)", fontsize=10)
+    ax_d.set_title("Score Distribution by Department", fontsize=12, fontweight="bold", pad=10)
+    ax_d.grid(axis="y", alpha=0.3, linestyle="--")
+    ax_d.set_facecolor("#fafafa"); fig_d.patch.set_facecolor("white")
+    plt.tight_layout(); st.pyplot(fig_d, use_container_width=True); plt.close()
+
 
     st.markdown('<div class="section-header">Department Summary Table</div>', unsafe_allow_html=True)
     summary_rows = []
