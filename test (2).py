@@ -3,12 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as _VaderAnalyzer
-try:
-    from transformers import pipeline as hf_pipeline
-    ROBERTA_AVAILABLE = True
-except ImportError:
-    ROBERTA_AVAILABLE = False
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import re
 import io
 import warnings
@@ -141,36 +136,14 @@ def add_outlier_flags(phys_df):
     df["low_bottom10"]    = scores <= scores.quantile(0.10)
     return df, pop_mean, pop_std
 
-@st.cache_resource(show_spinner="Loading RoBERTa sentiment model...")
-def load_roberta():
-    if not ROBERTA_AVAILABLE:
-        return None
-    return hf_pipeline(
-        "sentiment-analysis",
-        model="cardiffnlp/twitter-roberta-base-sentiment-latest",
-        tokenizer="cardiffnlp/twitter-roberta-base-sentiment-latest",
-        max_length=512,
-        truncation=True,
-        device=-1,  # CPU
-    )
+vader = SentimentIntensityAnalyzer()
 
-_vader_fallback = _VaderAnalyzer()
-
-def score_roberta(text, roberta):
-    """Score a single comment. Uses RoBERTa if available, falls back to VADER."""
+def score_vader(text, threshold=-0.05):
     try:
-        if roberta is not None:
-            result = roberta(str(text)[:512])[0]
-            label  = result["label"].upper()
-            score  = result["score"]
-            compound = score if label == "POSITIVE" else (-score if label == "NEGATIVE" else 0.0)
-            return {"compound": compound, "sentiment": label}
-        else:
-            # VADER fallback
-            s = _vader_fallback.polarity_scores(str(text))
-            c = s["compound"]
-            label = "POSITIVE" if c >= 0.05 else ("NEGATIVE" if c <= -0.05 else "NEUTRAL")
-            return {"compound": c, "sentiment": label}
+        s = vader.polarity_scores(str(text))
+        c = s["compound"]
+        label = "POSITIVE" if c >= abs(threshold) else ("NEGATIVE" if c <= threshold else "NEUTRAL")
+        return {"compound": c, "sentiment": label}
     except:
         return {"compound": 0.0, "sentiment": "NEUTRAL"}
 
@@ -181,8 +154,7 @@ def run_sentiment(df, threshold=-0.05):
         (df["comments"].astype(str).str.strip() != "")
     ].copy()
     df_s["comments"] = df_s["comments"].astype(str).str.strip()
-    roberta = load_roberta()
-    results = df_s["comments"].apply(lambda t: score_roberta(t, roberta))
+    results = df_s["comments"].apply(lambda t: score_vader(t, threshold))
     df_s = pd.concat([df_s, pd.DataFrame(results.tolist(), index=df_s.index)], axis=1)
     return df_s
 
@@ -273,10 +245,10 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 🔧 Settings")
     min_forms   = st.slider("Min. evaluations to include", 1, 20, 3)
-    sent_thresh = st.slider("RoBERTa negative threshold", -0.5, 0.0, -0.05, 0.01,
+    sent_thresh = st.slider("VADER negative threshold", -0.5, 0.0, -0.05, 0.01,
                             help="Compound score ≤ this value = NEGATIVE")
     st.markdown("---")
-    st.markdown("**v5.0 · RoBERTa Sentiment**  \n*All IDs anonymised*", unsafe_allow_html=True)
+    st.markdown("**v5.0 · VADER Sentiment**  \n*All IDs anonymised*", unsafe_allow_html=True)
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(hash_funcs={}, show_spinner=False)
@@ -313,7 +285,7 @@ any_uploaded = any(f is not None for f in files_aubmc + files_ed + files_patho)
 if not any_uploaded:
     # ── LANDING PAGE ─────────────────────────────────────────────────────────
     st.markdown("# 🏥 AUBMC Physician Performance Dashboard")
-    st.markdown("### Multi-method outlier detection · RoBERTa sentiment · 2023–2025")
+    st.markdown("### Multi-method outlier detection · VADER sentiment · 2023–2025")
     st.markdown("---")
 
     c1, c2, c3 = st.columns(3)
@@ -333,9 +305,9 @@ if not any_uploaded:
         <div class="metric-card warning">
             <div class="metric-label">Sentiment Engine</div>
             <div style="margin-top:8px; font-size:14px; color:#374151; line-height:1.6">
-                💬 RoBERTa NLP (transformer-based)<br>
+                💬 VADER NLP (rule-based)<br>
                 📝 Free-text comment scoring<br>
-                🔄 Confidence-weighted compound score<br>
+                🔄 −1.0 to +1.0 compound scale<br>
                 🚫 Self-evaluations excluded
             </div>
         </div>""", unsafe_allow_html=True)
@@ -356,7 +328,7 @@ if not any_uploaded:
     st.stop()
 
 # ── PROCESS DATA ─────────────────────────────────────────────────────────────
-with st.spinner("Processing data and running RoBERTa sentiment analysis (first load may take ~30s)..."):
+with st.spinner("Processing data and running VADER sentiment analysis..."):
     data = load_and_process(
         tuple(f for f in files_aubmc),
         tuple(f for f in files_ed),
