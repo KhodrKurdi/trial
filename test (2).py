@@ -611,45 +611,80 @@ with tab2:
     st.markdown("---")
     st.markdown('<div class="section-header">🔍 Individual Physician Deep-Dive</div>', unsafe_allow_html=True)
 
-    # Only show physicians that appear in the current filter
-    phys_options = df_view["physician_id"].tolist()
-    if phys_options:
-        selected_id = st.selectbox("Select Physician ID", phys_options, key="deep_id")
-        row = df_view[df_view["physician_id"] == selected_id].iloc[0]
+    dd1, dd2, dd3 = st.columns(3)
+    with dd1:
+        dd_dept = st.selectbox("Department", available_depts, key="deep_dept")
+    with dd2:
+        # Build year list from raw data for selected dept
+        raw_dd, phys_dd_all, sent_dd = data[dd_dept]
+        if raw_dd is not None and "year" in raw_dd.columns:
+            yr_opts = ["All Years"] + sorted(raw_dd["year"].dropna().unique().astype(int).tolist(), reverse=True)
+        else:
+            yr_opts = ["All Years"]
+        dd_year = st.selectbox("Year", yr_opts, key="deep_year")
+    with dd3:
+        # Filter physicians by dept (and year if selected)
+        if raw_dd is not None:
+            if dd_year == "All Years":
+                dd_raw_filt = raw_dd
+            else:
+                dd_raw_filt = raw_dd[raw_dd["year"] == int(dd_year)]
+            phys_in_yr = sorted(dd_raw_filt["physician_id"].dropna().unique().tolist())
+        else:
+            phys_in_yr = []
+        if phys_in_yr:
+            selected_id = st.selectbox("Physician ID", phys_in_yr, key="deep_id")
+        else:
+            selected_id = None
+            st.info("No physicians for this selection.")
 
-        dc1, dc2, dc3, dc4 = st.columns(4)
-        with dc1:
-            st.metric("Department", row.get("department","—"))
-        with dc2:
-            st.metric("Avg Behaviour Score", f"{row['avg_behavior_score']:.3f} / 4.0")
-        with dc3:
-            st.metric("Evaluations Received", int(row["n_forms"]))
-        with dc4:
-            st.metric("Risk Score (0–4)", f"{int(row['risk_score'])} / 4")
+    if selected_id and raw_dd is not None:
+        # Get aggregated row — use year-filtered data if year selected
+        if dd_year == "All Years":
+            phys_src = phys_dd_all
+        else:
+            yr_raw = raw_dd[raw_dd["year"] == int(dd_year)]
+            if not yr_raw.empty:
+                phys_src = aggregate_physician(yr_raw)
+                phys_src, _, _ = add_outlier_flags(phys_src)
+                phys_src = add_risk(phys_src)
+                phys_src["department"] = dd_dept
+            else:
+                phys_src = phys_dd_all
 
-        dc5, dc6, dc7, dc8 = st.columns(4)
-        with dc5:
-            st.metric("Z-Score", f"{row.get('z_score', 0):.2f}")
-        with dc6:
-            iqr_dd = "🔴 YES" if row.get("low_iqr_outlier", False) else "🟢 No"
-            st.metric("IQR Outlier", iqr_dd)
-        with dc7:
-            neg_r = row.get("negative_ratio", np.nan)
-            st.metric("Neg. Comment Ratio", f"{neg_r:.1%}" if pd.notna(neg_r) else "—")
-        with dc8:
-            neg_s = "🔴 YES" if row.get("negative_outlier", False) else "🟢 No"
-            st.metric("Neg. Sentiment", neg_s)
+        row_mask = phys_src["physician_id"] == selected_id if phys_src is not None else pd.Series(False)
+        if phys_src is None or not row_mask.any():
+            st.warning(f"No data found for {selected_id}.")
+        else:
+            row = phys_src[row_mask].iloc[0]
+            year_label = f" — {dd_year}" if dd_year != "All Years" else " — All Years"
 
-        # Show this physician's comments
-        dept_name = row.get("department","AUBMC")
-        if dept_name in data:
-            _, _, sent_raw = data[dept_name]
-            if sent_raw is not None and not sent_raw.empty and "physician_id" in sent_raw.columns:
-                phys_comments = sent_raw[sent_raw["physician_id"] == selected_id].copy()
+            dc1, dc2, dc3, dc4 = st.columns(4)
+            with dc1: st.metric("Department", dd_dept)
+            with dc2: st.metric(f"Avg Score{year_label}", f"{row['avg_behavior_score']:.3f} / 4.0")
+            with dc3: st.metric("Evaluations", int(row["n_forms"]))
+            with dc4: st.metric("Risk Score (0–4)", f"{int(row['risk_score'])} / 4")
+
+            dc5, dc6, dc7, dc8 = st.columns(4)
+            with dc5: st.metric("Z-Score", f"{row.get('z_score', 0):.2f}")
+            with dc6:
+                iqr_dd = "🔴 YES" if row.get("low_iqr_outlier", False) else "🟢 No"
+                st.metric("IQR Outlier", iqr_dd)
+            with dc7:
+                neg_r = row.get("negative_ratio", np.nan)
+                st.metric("Neg. Comment Ratio", f"{neg_r:.1%}" if pd.notna(neg_r) else "—")
+            with dc8:
+                neg_s = "🔴 YES" if row.get("negative_outlier", False) else "🟢 No"
+                st.metric("Neg. Sentiment", neg_s)
+
+            # Comments — filter by year if selected
+            if sent_dd is not None and not sent_dd.empty and "physician_id" in sent_dd.columns:
+                phys_comments = sent_dd[sent_dd["physician_id"] == selected_id].copy()
+                if dd_year != "All Years" and "year" in phys_comments.columns:
+                    phys_comments = phys_comments[phys_comments["year"] == int(dd_year)]
                 if not phys_comments.empty:
-                    st.markdown(f"**Comments for this physician** ({len(phys_comments)} total):")
-                    phys_comments_sorted = phys_comments.sort_values("compound")
-                    for _, crow in phys_comments_sorted.iterrows():
+                    st.markdown(f"**Peer Comments** ({len(phys_comments)} total{', ' + dd_year if dd_year != 'All Years' else ''}):")
+                    for _, crow in phys_comments.sort_values("compound").iterrows():
                         css_class = "neg" if crow["sentiment"]=="NEGATIVE" else ("pos" if crow["sentiment"]=="POSITIVE" else "neu")
                         emoji     = "🔴" if crow["sentiment"]=="NEGATIVE" else ("🟢" if crow["sentiment"]=="POSITIVE" else "⚪")
                         year_str  = str(int(crow["year"])) if "year" in crow and pd.notna(crow.get("year")) else "—"
@@ -663,9 +698,10 @@ with tab2:
                             <div style="font-size:14px; color:#374151">{crow["comments"]}</div>
                         </div>""", unsafe_allow_html=True)
                 else:
-                    st.info("No comments available for this physician.")
-    else:
+                    st.info("No comments available for this selection.")
+    elif not selected_id:
         st.info("No physicians match the current filter.")
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
