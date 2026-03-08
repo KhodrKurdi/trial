@@ -112,6 +112,13 @@ def compute_score(df):
 def add_year(df):
     if "fillout_date" in df.columns:
         df["year"] = pd.to_datetime(df["fillout_date"], errors="coerce").dt.year
+    elif "year" not in df.columns:
+        # Fallback: try to detect year column by name variants
+        year_candidates = [c for c in df.columns if "year" in c.lower() or "date" in c.lower()]
+        if year_candidates:
+            df["year"] = pd.to_datetime(df[year_candidates[0]], errors="coerce").dt.year
+        else:
+            df["year"] = np.nan  # year unknown — will be excluded from 2025 filter
     return df
 
 def aggregate_physician(df):
@@ -202,7 +209,9 @@ def process_dept(df_raw, dept_name, threshold=-0.05):
     df = map_ratings(df)
     df = compute_score(df)
     df = add_year(df)
-    phys = aggregate_physician(df)
+    # Aggregate and flag on 2025 only — consistent with notebook methodology
+    df_2025 = df[df["year"] == 2025] if ("year" in df.columns and not df[df["year"] == 2025].empty) else df
+    phys = aggregate_physician(df_2025)
     phys, mean, std = add_outlier_flags(phys)
     sent_raw = run_sentiment(df, threshold) if "comments" in df.columns else pd.DataFrame()
     if not sent_raw.empty:
@@ -379,7 +388,7 @@ with tab1:
     avg_score  = all_phys["avg_behavior_score"].mean()
     pct_neg    = (all_phys["negative_outlier"] == True).sum()
 
-    c1, c2, c3, c4, c5 = st.columns(5)
+    c1, c2, c3, c4, c5, c6 = st.columns(6)
     with c1:
         st.markdown(f"""<div class="metric-card neutral">
             <div class="metric-label">Total Physicians</div>
@@ -410,6 +419,12 @@ with tab1:
             <div class="metric-label">Overall Avg Score</div>
             <div class="metric-value">{avg_score:.2f}</div>
             <div class="metric-sub">scale: 0 – 4</div>
+        </div>""", unsafe_allow_html=True)
+    with c6:
+        st.markdown(f"""<div class="metric-card {'danger' if pct_neg > 0 else 'success'}">
+            <div class="metric-label">Neg. Sentiment Flags</div>
+            <div class="metric-value">{pct_neg}</div>
+            <div class="metric-sub">{pct_neg/total*100:.1f}% of physicians</div>
         </div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -647,6 +662,12 @@ with tab2:
             if not yr_raw.empty:
                 phys_src = aggregate_physician(yr_raw)
                 phys_src, _, _ = add_outlier_flags(phys_src)
+                # Re-merge 2025 sentiment for this year's risk computation
+                if sent_dd is not None and not sent_dd.empty and int(dd_year) == 2025:
+                    sent_yr = sentiment_summary(sent_dd, min_comments=3)
+                    phys_src = merge_sentiment(phys_src, sent_yr)
+                else:
+                    phys_src["negative_outlier"] = False
                 phys_src = add_risk(phys_src)
                 phys_src["department"] = dd_dept
             else:
@@ -791,8 +812,8 @@ with tab3:
         # Outlier method comparison table
         st.markdown("**Outlier Method Comparison**")
         method_df = pd.DataFrame({
-                "Method":       ["IQR Lower Fence", "Z-Score (≤−2)", "Bottom 10%", "Complaints + Neg. Sentiment"],
-                "Flag Column":  ["low_iqr_outlier", "low_z_outlier", "low_bottom10", "combined_flag"],
+                "Method":       ["IQR Lower Fence", "Z-Score (≤−2)", "Bottom 10%", "Neg. Sentiment"],
+                "Flag Column":  ["low_iqr_outlier", "low_z_outlier", "low_bottom10", "negative_outlier"],
             })
         method_df["Physicians Flagged"] = method_df["Flag Column"].apply(
             lambda c: int(phys_d[c].sum()) if c in phys_d.columns else 0
@@ -1001,7 +1022,7 @@ with tab5:
         trend_dept = st.selectbox("Department", available_depts, key="trend_dept")
     raw_d, phys_d, _ = data[trend_dept]
 
-    if raw_d is None or "year" not in raw_d.columns or raw_d["year"].isna().all():
+    if raw_d is None or raw_d.empty or "year" not in raw_d.columns or raw_d["year"].isna().all():
         st.warning("Year data not available. Check that your files include a Fillout Date column.")
     else:
         years_avail = sorted(raw_d["year"].dropna().unique().astype(int))
@@ -1913,9 +1934,9 @@ with tab6:
         st.markdown("---")
         st.markdown('<div class="section-header">🔗 Complaints × Sentiment — Combined Outlier Analysis</div>', unsafe_allow_html=True)
         st.markdown(
-            "Physicians flagged here have **both** a high patient complaint count (IQR outlier) "
-            "**and** negative peer sentiment from survey comments. "
-            "Convergence of both signals = strongest evidence for review."
+            "Physicians flagged here have **≥1 patient complaint** "
+            "**and/or** negative peer sentiment from survey comments. "
+            "Priority = both signals active · Monitor = one signal · Clear = neither."
         )
 
         # ── Check if survey sentiment data is available ───────────────────────
@@ -1978,11 +1999,9 @@ with tab6:
                 )
                 complaints["total_complaints"] = pd.to_numeric(complaints["total_complaints"], errors="coerce").fillna(0)
 
-                # IQR outlier on complaints
-                Q1c, Q3c = complaints["total_complaints"].quantile(0.25), complaints["total_complaints"].quantile(0.75)
-                IQRc     = Q3c - Q1c
-                complaints_ub = Q3c + 1.5 * IQRc
-                complaints["complaints_flag"] = complaints["total_complaints"] > complaints_ub
+                # Flag: any physician with >= 1 complaint (zero-tolerance rule)
+                complaints_ub = 0  # kept for scatter plot reference line
+                complaints["complaints_flag"] = complaints["total_complaints"] >= 1
 
                 # ── Merge complaints + sentiment on physician ID ───────────────
                 # Indicators uses Aubnetid; sentiment uses physician_id — same field
@@ -2031,10 +2050,11 @@ with tab6:
                         <div class="metric-sub">{n_clear/n_total*100:.1f}% of physicians</div>
                     </div>''', unsafe_allow_html=True)
                 with cx4:
+                    has_any = int((complaints["total_complaints"] >= 1).sum())
                     st.markdown(f'''<div class="metric-card neutral">
-                        <div class="metric-label">IQR Complaint Threshold</div>
-                        <div class="metric-value">{complaints_ub:.0f}</div>
-                        <div class="metric-sub">complaints to trigger flag</div>
+                        <div class="metric-label">With ≥1 Complaint</div>
+                        <div class="metric-value">{has_any}</div>
+                        <div class="metric-sub">flagged physicians</div>
                     </div>''', unsafe_allow_html=True)
 
                 st.markdown("<br>", unsafe_allow_html=True)
