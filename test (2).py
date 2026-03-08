@@ -1127,25 +1127,6 @@ with tab5:
                 st.pyplot(fig2, use_container_width=True)
                 plt.close()
 
-            st.markdown("**Score Distribution by Year (Colleague Comparison)**")
-            fig3, ax3 = plt.subplots(figsize=(10, 4.5))
-            year_scores = [raw_d[raw_d["year"]==yr]["overall_score"].dropna() for yr in years_avail]
-            positions   = list(range(1, len(years_avail)+1))
-            bp = ax3.boxplot(year_scores, positions=positions, patch_artist=True,
-                              medianprops=dict(color="white", linewidth=2.5))
-            yr_colours = ["#3b82f6","#f59e0b","#10b981","#8b5cf6"]
-            for patch, col in zip(bp["boxes"], yr_colours[:len(years_avail)]):
-                patch.set_facecolor(col); patch.set_alpha(0.75)
-            ax3.set_xticks(positions)
-            ax3.set_xticklabels([str(y) for y in years_avail], fontsize=11)
-            ax3.set_ylabel("Form-Level Score (0–4)", fontsize=10)
-            ax3.set_title(f"{trend_dept} — Score Distribution Per Year (All Forms)", fontsize=12, fontweight="bold")
-            ax3.grid(axis="y", alpha=0.3, linestyle="--")
-            ax3.set_facecolor("#fafafa")
-            fig3.patch.set_facecolor("white")
-            st.pyplot(fig3, use_container_width=True)
-            plt.close()
-
             st.markdown("**Year-over-Year Summary Table**")
             st.dataframe(trend_df, use_container_width=True, hide_index=True)
 
