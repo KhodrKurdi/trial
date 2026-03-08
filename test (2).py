@@ -704,7 +704,8 @@ with tab2:
                 if dd_year != "All Years" and "year" in phys_comments.columns:
                     phys_comments = phys_comments[phys_comments["year"] == int(dd_year)]
                 if not phys_comments.empty:
-                    st.markdown(f"**Peer Comments** ({len(phys_comments)} total{', ' + dd_year if dd_year != 'All Years' else ''}):")
+                    yr_suffix = f", {dd_year}" if dd_year != "All Years" else ""
+                    st.markdown(f"**Peer Comments** ({len(phys_comments)} total{yr_suffix}):")
                     for _, crow in phys_comments.sort_values("compound").iterrows():
                         css_class = "neg" if crow["sentiment"]=="NEGATIVE" else ("pos" if crow["sentiment"]=="POSITIVE" else "neu")
                         emoji     = "🔴" if crow["sentiment"]=="NEGATIVE" else ("🟢" if crow["sentiment"]=="POSITIVE" else "⚪")
