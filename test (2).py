@@ -733,13 +733,125 @@ with tab3:
     st.markdown('<div class="section-header">📊 Department-Level Analysis</div>', unsafe_allow_html=True)
 
     dept_sel = st.selectbox("Select Department", available_depts, key="dept_view")
-    raw_d3, phys_d, sent_d3 = data[dept_sel]
+    _, phys_d, _ = data[dept_sel]
 
     if phys_d is None or phys_d.empty:
         st.warning("No data available for this department.")
     else:
-        # ── KPI row ───────────────────────────────────────────────────────────
-        overall_mean = all_phys["avg_behavior_score"].mean()  # hospital-wide benchmark
+        d1, d2, d3, d4 = st.columns(4)
+        with d1: st.metric("Physicians", len(phys_d))
+        with d2: st.metric("Dept. Mean Score", f"{phys_d['avg_behavior_score'].mean():.3f}")
+        with d3: st.metric("IQR Outliers", int(phys_d["low_iqr_outlier"].sum()) if "low_iqr_outlier" in phys_d.columns else 0)
+        with d4: st.metric("Priority Flags", int((phys_d["risk_score"]>=3).sum()))
+
+        col_l, col_r = st.columns(2)
+
+        # IQR scatter plot
+        with col_l:
+            st.markdown("**IQR Outlier View — Score Distribution**")
+            fig, ax = plt.subplots(figsize=(6, 4.5))
+            scores_d  = phys_d["avg_behavior_score"]
+            Q1d, Q3d  = scores_d.quantile(0.25), scores_d.quantile(0.75)
+            iqr_fence = Q1d - 1.5 * (Q3d - Q1d)
+            normal    = phys_d[~phys_d["low_iqr_outlier"]] if "low_iqr_outlier" in phys_d.columns else phys_d
+            outliers  = phys_d[phys_d["low_iqr_outlier"]]  if "low_iqr_outlier" in phys_d.columns else phys_d.iloc[0:0]
+            ax.scatter(normal.index,  normal["avg_behavior_score"],
+                       alpha=0.6, color="#3b82f6", s=55, label="Within range", zorder=3)
+            ax.scatter(outliers.index, outliers["avg_behavior_score"],
+                       color="#ef4444", s=100, zorder=5, label=f"IQR Outliers (n={len(outliers)})")
+            ax.axhline(iqr_fence, color="#ef4444", linewidth=2, linestyle="--",
+                       label=f"IQR Lower Fence ({iqr_fence:.2f})")
+            ax.axhline(scores_d.mean(), color="#1d4ed8", linewidth=1.5, linestyle=":",
+                       label=f"Mean ({scores_d.mean():.2f})")
+            ax.set_xlabel("Physician Index", fontsize=10)
+            ax.set_ylabel("Avg Behaviour Score", fontsize=10)
+            ax.set_title(f"{dept_sel} — IQR Score Outliers", fontsize=11, fontweight="bold")
+            ax.legend(fontsize=9)
+            ax.grid(alpha=0.3, linestyle="--")
+            ax.set_facecolor("#fafafa")
+            fig.patch.set_facecolor("white")
+            st.pyplot(fig, use_container_width=True)
+            plt.close()
+
+        # Within-dept colleague comparison histogram
+        with col_r:
+            st.markdown("**Score Distribution — Colleague Comparison**")
+            fig2, ax2 = plt.subplots(figsize=(6, 4.5))
+            scores = phys_d["avg_behavior_score"]
+            n, bins, patches = ax2.hist(scores, bins=20, edgecolor="white",
+                                         linewidth=0.8, color="#3b82f6", alpha=0.75)
+
+            # Colour IQR outliers red in the histogram
+            Q1h, Q3h   = scores.quantile(0.25), scores.quantile(0.75)
+            iqr_thresh = Q1h - 1.5 * (Q3h - Q1h)
+            for patch, left_edge in zip(patches, bins[:-1]):
+                if left_edge < iqr_thresh:
+                    patch.set_facecolor("#ef4444")
+                    patch.set_alpha(0.8)
+
+            ax2.axvline(scores.mean(), color="#1d4ed8", linewidth=2,
+                        linestyle="-", label=f"Mean ({scores.mean():.2f})")
+            ax2.axvline(scores.quantile(0.10), color="#f59e0b", linewidth=1.5,
+                        linestyle=":", label=f"10th pct ({scores.quantile(.1):.2f})")
+
+            red_patch   = mpatches.Patch(color="#ef4444", alpha=0.8, label="Below IQR fence")
+            blue_patch  = mpatches.Patch(color="#3b82f6", alpha=0.75, label="Within range")
+            ax2.legend(handles=[red_patch, blue_patch] +
+                       [plt.Line2D([0],[0],color="#1d4ed8",linewidth=2,label=f"Mean ({scores.mean():.2f})"),
+                        plt.Line2D([0],[0],color="#f59e0b",linewidth=1.5,linestyle=":",label=f"10th pct")],
+                       fontsize=8)
+
+            ax2.set_xlabel("Avg Behaviour Score (0–4)", fontsize=10)
+            ax2.set_ylabel("Number of Physicians", fontsize=10)
+            ax2.set_title(f"{dept_sel} — Colleague Comparison", fontsize=11, fontweight="bold")
+            ax2.grid(axis="y", alpha=0.3, linestyle="--")
+            ax2.set_facecolor("#fafafa")
+            fig2.patch.set_facecolor("white")
+            st.pyplot(fig2, use_container_width=True)
+            plt.close()
+
+        # Outlier method comparison table
+        st.markdown("**Outlier Method Comparison**")
+        method_df = pd.DataFrame({
+                "Method":       ["IQR Lower Fence", "Z-Score (≤−2)", "Bottom 10%", "Neg. Sentiment"],
+                "Flag Column":  ["low_iqr_outlier", "low_z_outlier", "low_bottom10", "negative_outlier"],
+            })
+        method_df["Physicians Flagged"] = method_df["Flag Column"].apply(
+            lambda c: int(phys_d[c].sum()) if c in phys_d.columns else 0
+        )
+        method_df["% of Department"] = (
+            method_df["Physicians Flagged"] / len(phys_d) * 100
+        ).round(1).astype(str) + "%"
+        st.dataframe(method_df[["Method","Physicians Flagged","% of Department"]],
+                     use_container_width=True, hide_index=True)
+
+        # Within-dept ranking table
+        st.markdown("**Physician Ranking within Department**")
+        rank_cols = ["physician_id","avg_behavior_score","n_forms","z_score",
+                     "low_iqr_outlier","low_z_outlier","low_bottom10",
+                     "negative_outlier","risk_score"]
+        rank_cols = [c for c in rank_cols if c in phys_d.columns]
+        rank_df = phys_d[rank_cols].copy()
+        rank_df = rank_df.sort_values("avg_behavior_score")
+        rank_df["Percentile"] = (rank_df["avg_behavior_score"].rank(pct=True)*100).round(1).astype(str) + "%"
+        rank_df["avg_behavior_score"] = rank_df["avg_behavior_score"].round(3)
+        if "z_score" in rank_df.columns:
+            rank_df["z_score"] = rank_df["z_score"].round(2)
+        col_rename = {
+            "physician_id":       "Physician ID",
+            "avg_behavior_score": "Avg Score",
+            "n_forms":            "Evaluations",
+            "z_score":            "Z-Score",
+            "low_iqr_outlier":    "IQR Flag",
+            "low_z_outlier":      "Z-Flag",
+            "low_bottom10":       "Bottom 10%",
+            "negative_outlier":   "Neg. Sentiment",
+            "risk_score":         "Risk Score",
+        }
+        rank_df = rank_df.rename(columns={k:v for k,v in col_rename.items() if k in rank_df.columns})
+        st.dataframe(rank_df.reset_index(drop=True), use_container_width=True, hide_index=True,
+                     column_config={"Risk Score": st.column_config.ProgressColumn(min_value=0, max_value=4, format="%d"),
+                                    "Avg Score":  st.column_config.ProgressColumn(min_value=0, max_value=4, format="%.3f")})
         dept_mean    = phys_d["avg_behavior_score"].mean()
         delta_vs_hosp = dept_mean - overall_mean
 
