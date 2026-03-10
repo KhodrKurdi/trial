@@ -733,89 +733,206 @@ with tab3:
     st.markdown('<div class="section-header">📊 Department-Level Analysis</div>', unsafe_allow_html=True)
 
     dept_sel = st.selectbox("Select Department", available_depts, key="dept_view")
-    _, phys_d, _ = data[dept_sel]
+    raw_d3, phys_d, sent_d3 = data[dept_sel]
 
     if phys_d is None or phys_d.empty:
         st.warning("No data available for this department.")
     else:
-        d1, d2, d3, d4 = st.columns(4)
+        # ── KPI row ───────────────────────────────────────────────────────────
+        overall_mean = all_phys["avg_behavior_score"].mean()  # hospital-wide benchmark
+        dept_mean    = phys_d["avg_behavior_score"].mean()
+        delta_vs_hosp = dept_mean - overall_mean
+
+        d1, d2, d3, d4, d5 = st.columns(5)
         with d1: st.metric("Physicians", len(phys_d))
-        with d2: st.metric("Dept. Mean Score", f"{phys_d['avg_behavior_score'].mean():.3f}")
+        with d2: st.metric("Dept. Mean Score", f"{dept_mean:.3f}",
+                           delta=f"{delta_vs_hosp:+.3f} vs hospital",
+                           delta_color="normal")
         with d3: st.metric("IQR Outliers", int(phys_d["low_iqr_outlier"].sum()) if "low_iqr_outlier" in phys_d.columns else 0)
         with d4: st.metric("Priority Flags", int((phys_d["risk_score"]>=3).sum()))
+        with d5:
+            monitor_n = int((phys_d["risk_score"].between(1,2)).sum())
+            st.metric("Monitor", monitor_n)
 
-        col_l, col_r = st.columns(2)
+        st.markdown("---")
 
-        # IQR scatter plot
-        with col_l:
+        # ── ROW 1: Score distribution + Score band donut ──────────────────────
+        st.markdown('<div class="section-header">📈 Score Distribution & Bands</div>', unsafe_allow_html=True)
+        rb1, rb2 = st.columns(2)
+
+        with rb1:
+            st.markdown("**Score Distribution — Colleague Comparison**")
+            fig2, ax2 = plt.subplots(figsize=(6, 4.5))
+            scores = phys_d["avg_behavior_score"]
+            Q1h, Q3h   = scores.quantile(0.25), scores.quantile(0.75)
+            iqr_thresh = Q1h - 1.5 * (Q3h - Q1h)
+            n, bins, patches = ax2.hist(scores, bins=20, edgecolor="white", linewidth=0.8, color="#3b82f6", alpha=0.75)
+            for patch, left_edge in zip(patches, bins[:-1]):
+                if left_edge < iqr_thresh:
+                    patch.set_facecolor("#ef4444"); patch.set_alpha(0.8)
+            ax2.axvline(scores.mean(),         color="#1d4ed8", linewidth=2,   linestyle="-",  label=f"Dept mean ({scores.mean():.2f})")
+            ax2.axvline(overall_mean,          color="#8b5cf6", linewidth=1.8, linestyle="--", label=f"Hospital mean ({overall_mean:.2f})")
+            ax2.axvline(scores.quantile(0.10), color="#f59e0b", linewidth=1.5, linestyle=":",  label=f"P10 ({scores.quantile(.1):.2f})")
+            red_patch  = mpatches.Patch(color="#ef4444", alpha=0.8,  label="Below IQR fence")
+            blue_patch = mpatches.Patch(color="#3b82f6", alpha=0.75, label="Within range")
+            ax2.legend(handles=[red_patch, blue_patch,
+                                 plt.Line2D([0],[0],color="#1d4ed8",linewidth=2,label=f"Dept mean"),
+                                 plt.Line2D([0],[0],color="#8b5cf6",linewidth=1.8,linestyle="--",label="Hospital mean"),
+                                 plt.Line2D([0],[0],color="#f59e0b",linewidth=1.5,linestyle=":",label="P10")],
+                       fontsize=8)
+            ax2.set_xlabel("Avg Behaviour Score (0–4)", fontsize=10)
+            ax2.set_ylabel("Number of Physicians", fontsize=10)
+            ax2.set_title(f"{dept_sel} — Score Distribution", fontsize=11, fontweight="bold")
+            ax2.grid(axis="y", alpha=0.3, linestyle="--")
+            ax2.set_facecolor("#fafafa"); fig2.patch.set_facecolor("white")
+            st.pyplot(fig2, use_container_width=True); plt.close()
+
+        with rb2:
+            st.markdown("**Score Band Distribution**")
+            scores_b = phys_d["avg_behavior_score"]
+            bands = {
+                "Excellent (3.5–4.0)": ((scores_b >= 3.5)).sum(),
+                "Good (3.0–3.5)":      ((scores_b >= 3.0) & (scores_b < 3.5)).sum(),
+                "Fair (2.5–3.0)":      ((scores_b >= 2.5) & (scores_b < 3.0)).sum(),
+                "Needs Attention (<2.5)": (scores_b < 2.5).sum(),
+            }
+            band_colors = ["#10b981","#3b82f6","#f59e0b","#ef4444"]
+            band_labels = [f"{k}\n({v})" for k,v in bands.items()]
+            band_vals   = list(bands.values())
+            non_zero    = [(v,l,c) for v,l,c in zip(band_vals,band_labels,band_colors) if v > 0]
+            if non_zero:
+                vals_nz, labs_nz, cols_nz = zip(*non_zero)
+                fig_b, ax_b = plt.subplots(figsize=(6, 4.5))
+                wedges, texts, autotexts = ax_b.pie(
+                    vals_nz, labels=labs_nz, colors=cols_nz,
+                    autopct=lambda p: f"{p:.1f}%" if p > 3 else "",
+                    startangle=90, pctdistance=0.75,
+                    wedgeprops=dict(width=0.55, edgecolor="white", linewidth=2)
+                )
+                for t in texts:     t.set_fontsize(9)
+                for t in autotexts: t.set_fontsize(9); t.set_fontweight("bold"); t.set_color("white")
+                ax_b.set_title(f"{dept_sel} — Score Bands", fontsize=11, fontweight="bold")
+                fig_b.patch.set_facecolor("white")
+                st.pyplot(fig_b, use_container_width=True); plt.close()
+
+        st.markdown("---")
+
+        # ── ROW 2: IQR scatter + Rater group breakdown ────────────────────────
+        st.markdown('<div class="section-header">🔍 Outlier View & Rater Breakdown</div>', unsafe_allow_html=True)
+        rc1, rc2 = st.columns(2)
+
+        with rc1:
             st.markdown("**IQR Outlier View — Score Distribution**")
             fig, ax = plt.subplots(figsize=(6, 4.5))
             scores_d  = phys_d["avg_behavior_score"]
             Q1d, Q3d  = scores_d.quantile(0.25), scores_d.quantile(0.75)
             iqr_fence = Q1d - 1.5 * (Q3d - Q1d)
-            normal    = phys_d[~phys_d["low_iqr_outlier"]] if "low_iqr_outlier" in phys_d.columns else phys_d
-            outliers  = phys_d[phys_d["low_iqr_outlier"]]  if "low_iqr_outlier" in phys_d.columns else phys_d.iloc[0:0]
-            ax.scatter(normal.index,  normal["avg_behavior_score"],
+            normal   = phys_d[~phys_d["low_iqr_outlier"]] if "low_iqr_outlier" in phys_d.columns else phys_d
+            outliers = phys_d[phys_d["low_iqr_outlier"]]  if "low_iqr_outlier" in phys_d.columns else phys_d.iloc[0:0]
+            ax.scatter(range(len(normal)),   normal["avg_behavior_score"],
                        alpha=0.6, color="#3b82f6", s=55, label="Within range", zorder=3)
-            ax.scatter(outliers.index, outliers["avg_behavior_score"],
+            ax.scatter(range(len(outliers)), outliers["avg_behavior_score"],
                        color="#ef4444", s=100, zorder=5, label=f"IQR Outliers (n={len(outliers)})")
-            ax.axhline(iqr_fence, color="#ef4444", linewidth=2, linestyle="--",
-                       label=f"IQR Lower Fence ({iqr_fence:.2f})")
-            ax.axhline(scores_d.mean(), color="#1d4ed8", linewidth=1.5, linestyle=":",
-                       label=f"Mean ({scores_d.mean():.2f})")
+            ax.axhline(iqr_fence,       color="#ef4444", linewidth=2,   linestyle="--", label=f"IQR fence ({iqr_fence:.2f})")
+            ax.axhline(scores_d.mean(), color="#1d4ed8", linewidth=1.5, linestyle=":",  label=f"Mean ({scores_d.mean():.2f})")
+            ax.axhline(overall_mean,    color="#8b5cf6", linewidth=1.5, linestyle="--", label=f"Hospital mean ({overall_mean:.2f})", alpha=0.7)
             ax.set_xlabel("Physician Index", fontsize=10)
             ax.set_ylabel("Avg Behaviour Score", fontsize=10)
             ax.set_title(f"{dept_sel} — IQR Score Outliers", fontsize=11, fontweight="bold")
-            ax.legend(fontsize=9)
-            ax.grid(alpha=0.3, linestyle="--")
-            ax.set_facecolor("#fafafa")
-            fig.patch.set_facecolor("white")
-            st.pyplot(fig, use_container_width=True)
-            plt.close()
+            ax.legend(fontsize=8); ax.grid(alpha=0.3, linestyle="--")
+            ax.set_facecolor("#fafafa"); fig.patch.set_facecolor("white")
+            st.pyplot(fig, use_container_width=True); plt.close()
 
-        # Within-dept colleague comparison histogram
-        with col_r:
-            st.markdown("**Score Distribution — Colleague Comparison**")
-            fig2, ax2 = plt.subplots(figsize=(6, 4.5))
-            scores = phys_d["avg_behavior_score"]
-            n, bins, patches = ax2.hist(scores, bins=20, edgecolor="white",
-                                         linewidth=0.8, color="#3b82f6", alpha=0.75)
+        with rc2:
+            st.markdown("**Rater Group Breakdown**")
+            if raw_d3 is not None and "raters_group" in raw_d3.columns and "overall_score" in raw_d3.columns:
+                rater_df = (
+                    raw_d3[raw_d3["raters_group"] != "Faculty Self-Evaluation"]
+                    .groupby("raters_group")["overall_score"]
+                    .agg(["mean","count"])
+                    .reset_index()
+                    .rename(columns={"raters_group":"Rater Group","mean":"Avg Score","count":"# Ratings"})
+                    .sort_values("Avg Score")
+                )
+                if not rater_df.empty:
+                    fig_r, ax_r = plt.subplots(figsize=(6, max(3.5, len(rater_df)*0.5)))
+                    rater_colors = ["#ef4444" if s < iqr_fence else "#3b82f6" for s in rater_df["Avg Score"]]
+                    bars_r = ax_r.barh(rater_df["Rater Group"], rater_df["Avg Score"],
+                                       color=rater_colors, edgecolor="white", linewidth=0.8, alpha=0.85)
+                    ax_r.axvline(scores_d.mean(), color="#1d4ed8", linewidth=1.8, linestyle="--",
+                                 label=f"Dept mean ({scores_d.mean():.2f})")
+                    ax_r.axvline(overall_mean, color="#8b5cf6", linewidth=1.5, linestyle=":",
+                                 label=f"Hospital mean ({overall_mean:.2f})", alpha=0.8)
+                    for bar, val, cnt in zip(bars_r, rater_df["Avg Score"], rater_df["# Ratings"]):
+                        ax_r.text(val + 0.01, bar.get_y() + bar.get_height()/2,
+                                  f"{val:.2f}  (n={cnt})", va="center", fontsize=9, fontweight="600")
+                    ax_r.set_xlabel("Avg Score (0–4)", fontsize=10)
+                    ax_r.set_title(f"{dept_sel} — Avg Score by Rater Group", fontsize=11, fontweight="bold")
+                    ax_r.set_xlim(0, 4.3)
+                    ax_r.legend(fontsize=8); ax_r.grid(axis="x", alpha=0.3, linestyle="--")
+                    ax_r.set_facecolor("#fafafa"); fig_r.patch.set_facecolor("white")
+                    plt.tight_layout()
+                    st.pyplot(fig_r, use_container_width=True); plt.close()
+                else:
+                    st.info("No rater group data available.")
+            else:
+                st.info("Rater group data not available.")
 
-            # Colour IQR outliers red in the histogram
-            Q1h, Q3h   = scores.quantile(0.25), scores.quantile(0.75)
-            iqr_thresh = Q1h - 1.5 * (Q3h - Q1h)
-            for patch, left_edge in zip(patches, bins[:-1]):
-                if left_edge < iqr_thresh:
-                    patch.set_facecolor("#ef4444")
-                    patch.set_alpha(0.8)
+        st.markdown("---")
 
-            ax2.axvline(scores.mean(), color="#1d4ed8", linewidth=2,
-                        linestyle="-", label=f"Mean ({scores.mean():.2f})")
-            ax2.axvline(scores.quantile(0.10), color="#f59e0b", linewidth=1.5,
-                        linestyle=":", label=f"10th pct ({scores.quantile(.1):.2f})")
+        # ── ROW 3: Question-level heatmap (full width) ────────────────────────
+        st.markdown('<div class="section-header">🌡️ Question-Level Behaviour Heatmap</div>', unsafe_allow_html=True)
+        st.caption("Average score per behaviour question across all physicians — sorted lowest to highest. Red = concern area.")
 
-            red_patch   = mpatches.Patch(color="#ef4444", alpha=0.8, label="Below IQR fence")
-            blue_patch  = mpatches.Patch(color="#3b82f6", alpha=0.75, label="Within range")
-            ax2.legend(handles=[red_patch, blue_patch] +
-                       [plt.Line2D([0],[0],color="#1d4ed8",linewidth=2,label=f"Mean ({scores.mean():.2f})"),
-                        plt.Line2D([0],[0],color="#f59e0b",linewidth=1.5,linestyle=":",label=f"10th pct")],
-                       fontsize=8)
+        if raw_d3 is not None:
+            q_cols = [c for c in raw_d3.columns if c.startswith("q_")]
+            if q_cols:
+                q_means = raw_d3[q_cols].apply(pd.to_numeric, errors="coerce").mean().sort_values()
+                # Shorten labels for display
+                short_labels = [c.replace("q_","").replace("_"," ").title()[:40] for c in q_means.index]
 
-            ax2.set_xlabel("Avg Behaviour Score (0–4)", fontsize=10)
-            ax2.set_ylabel("Number of Physicians", fontsize=10)
-            ax2.set_title(f"{dept_sel} — Colleague Comparison", fontsize=11, fontweight="bold")
-            ax2.grid(axis="y", alpha=0.3, linestyle="--")
-            ax2.set_facecolor("#fafafa")
-            fig2.patch.set_facecolor("white")
-            st.pyplot(fig2, use_container_width=True)
-            plt.close()
+                fig_h, ax_h = plt.subplots(figsize=(12, max(4, len(q_means)*0.38)))
+                bar_h_colors = ["#ef4444" if v < 2.5 else "#f59e0b" if v < 3.0 else "#3b82f6" if v < 3.5 else "#10b981"
+                                 for v in q_means.values]
+                bars_h = ax_h.barh(short_labels, q_means.values,
+                                   color=bar_h_colors, edgecolor="white", linewidth=0.6, alpha=0.88)
+                ax_h.axvline(q_means.mean(), color="#6b7280", linewidth=1.5, linestyle="--",
+                             label=f"Question avg ({q_means.mean():.2f})")
+                for bar, val in zip(bars_h, q_means.values):
+                    ax_h.text(val + 0.01, bar.get_y() + bar.get_height()/2,
+                              f"{val:.2f}", va="center", fontsize=8, fontweight="600")
+                ax_h.set_xlabel("Avg Score (0–4)", fontsize=10)
+                ax_h.set_title(f"{dept_sel} — Behaviour Question Scores (lowest → highest)",
+                               fontsize=12, fontweight="bold")
+                ax_h.set_xlim(0, 4.3)
+                ax_h.legend(fontsize=9, loc="lower right")
+                ax_h.grid(axis="x", alpha=0.25, linestyle="--")
+                ax_h.set_facecolor("#fafafa"); fig_h.patch.set_facecolor("white")
+                plt.tight_layout()
+                st.pyplot(fig_h, use_container_width=True); plt.close()
+
+                # Legend explanation
+                lc1, lc2, lc3, lc4 = st.columns(4)
+                with lc1: st.markdown("🔴 **< 2.5** — Critical concern")
+                with lc2: st.markdown("🟡 **2.5–3.0** — Needs attention")
+                with lc3: st.markdown("🔵 **3.0–3.5** — Acceptable")
+                with lc4: st.markdown("🟢 **≥ 3.5** — Strong")
+            else:
+                st.info("No question columns (q_*) found in data.")
+        else:
+            st.info("Raw data not available for heatmap.")
+
+        st.markdown("---")
+
+        # ── ROW 4: Outlier method table + Ranking table with YoY delta ────────
+        st.markdown('<div class="section-header">📋 Outlier Methods & Physician Ranking</div>', unsafe_allow_html=True)
 
         # Outlier method comparison table
         st.markdown("**Outlier Method Comparison**")
         method_df = pd.DataFrame({
-                "Method":       ["IQR Lower Fence", "Z-Score (≤−2)", "Bottom 10%", "Neg. Sentiment"],
-                "Flag Column":  ["low_iqr_outlier", "low_z_outlier", "low_bottom10", "negative_outlier"],
-            })
+            "Method":      ["IQR Lower Fence", "Z-Score (≤−2)", "Bottom 10%", "Neg. Sentiment"],
+            "Flag Column": ["low_iqr_outlier",  "low_z_outlier", "low_bottom10","negative_outlier"],
+        })
         method_df["Physicians Flagged"] = method_df["Flag Column"].apply(
             lambda c: int(phys_d[c].sum()) if c in phys_d.columns else 0
         )
@@ -825,18 +942,40 @@ with tab3:
         st.dataframe(method_df[["Method","Physicians Flagged","% of Department"]],
                      use_container_width=True, hide_index=True)
 
-        # Within-dept ranking table
         st.markdown("**Physician Ranking within Department**")
+        st.caption("Sorted lowest → highest score · Δ = change vs prior year · coloured 🔴 declining / 🟢 improving")
+
+        # Build YoY delta if raw data available
+        yoy_delta = {}
+        if raw_d3 is not None and "year" in raw_d3.columns:
+            years_avail_d = sorted(raw_d3["year"].dropna().unique().astype(int))
+            if len(years_avail_d) >= 2:
+                last_yr  = years_avail_d[-1]
+                prev_yr  = years_avail_d[-2]
+                agg_last = aggregate_physician(raw_d3[raw_d3["year"] == last_yr]).set_index("physician_id")["avg_behavior_score"]
+                agg_prev = aggregate_physician(raw_d3[raw_d3["year"] == prev_yr]).set_index("physician_id")["avg_behavior_score"]
+                for pid in agg_last.index:
+                    if pid in agg_prev.index:
+                        yoy_delta[pid] = round(agg_last[pid] - agg_prev[pid], 3)
+
         rank_cols = ["physician_id","avg_behavior_score","n_forms","z_score",
-                     "low_iqr_outlier","low_z_outlier","low_bottom10",
-                     "negative_outlier","risk_score"]
+                     "low_iqr_outlier","low_z_outlier","low_bottom10","negative_outlier","risk_score"]
         rank_cols = [c for c in rank_cols if c in phys_d.columns]
-        rank_df = phys_d[rank_cols].copy()
-        rank_df = rank_df.sort_values("avg_behavior_score")
+        rank_df = phys_d[rank_cols].copy().sort_values("avg_behavior_score")
         rank_df["Percentile"] = (rank_df["avg_behavior_score"].rank(pct=True)*100).round(1).astype(str) + "%"
+
+        # Add YoY delta column
+        if yoy_delta:
+            rank_df["YoY Δ"] = rank_df["physician_id"].map(yoy_delta)
+            rank_df["YoY Δ"] = rank_df["YoY Δ"].apply(
+                lambda x: f"▲ {x:+.3f}" if pd.notna(x) and x > 0 else (
+                          f"▼ {x:+.3f}" if pd.notna(x) and x < 0 else ("— 0.000" if pd.notna(x) else "—"))
+            )
+
         rank_df["avg_behavior_score"] = rank_df["avg_behavior_score"].round(3)
         if "z_score" in rank_df.columns:
             rank_df["z_score"] = rank_df["z_score"].round(2)
+
         col_rename = {
             "physician_id":       "Physician ID",
             "avg_behavior_score": "Avg Score",
@@ -850,8 +989,51 @@ with tab3:
         }
         rank_df = rank_df.rename(columns={k:v for k,v in col_rename.items() if k in rank_df.columns})
         st.dataframe(rank_df.reset_index(drop=True), use_container_width=True, hide_index=True,
-                     column_config={"Risk Score": st.column_config.ProgressColumn(min_value=0, max_value=4, format="%d"),
-                                    "Avg Score":  st.column_config.ProgressColumn(min_value=0, max_value=4, format="%.3f")})
+                     column_config={
+                         "Risk Score": st.column_config.ProgressColumn(min_value=0, max_value=4, format="%d"),
+                         "Avg Score":  st.column_config.ProgressColumn(min_value=0, max_value=4, format="%.3f"),
+                     })
+
+        # ── Flagged physician summary cards ───────────────────────────────────
+        flagged_phys = phys_d[phys_d["risk_score"] >= 1].sort_values("risk_score", ascending=False)
+        if not flagged_phys.empty:
+            st.markdown("---")
+            st.markdown('<div class="section-header">⚠️ Flagged Physician Summary</div>', unsafe_allow_html=True)
+            st.caption(f"{len(flagged_phys)} physician(s) with at least one flag — Priority (🔴 score ≥3) and Monitor (🟡 score 1–2)")
+
+            for _, fp in flagged_phys.iterrows():
+                rs = int(fp["risk_score"])
+                status_color = "#fef2f2" if rs >= 3 else "#fffbeb"
+                border_color = "#ef4444" if rs >= 3 else "#f59e0b"
+                status_label = "⚠ Priority" if rs >= 3 else "👁 Monitor"
+                flags_active = []
+                if fp.get("low_iqr_outlier", False): flags_active.append("IQR")
+                if fp.get("low_z_outlier",   False): flags_active.append("Z-Score")
+                if fp.get("low_bottom10",    False): flags_active.append("Bottom 10%")
+                if fp.get("negative_outlier",False): flags_active.append("Neg. Sentiment")
+                flags_str = " · ".join(flags_active) if flags_active else "—"
+                neg_ratio = fp.get("negative_ratio", np.nan)
+                neg_str   = f"{neg_ratio:.1%}" if pd.notna(neg_ratio) else "—"
+                delta_str = ""
+                if yoy_delta and fp["physician_id"] in yoy_delta:
+                    d = yoy_delta[fp["physician_id"]]
+                    delta_str = f"&nbsp;·&nbsp; YoY: <b style='color:{'#10b981' if d>0 else '#ef4444'}'>{'▲' if d>0 else '▼'} {d:+.3f}</b>"
+                st.markdown(f"""
+                <div style="background:{status_color}; border-left:4px solid {border_color};
+                            border-radius:10px; padding:14px 18px; margin-bottom:10px;
+                            box-shadow:0 1px 3px rgba(0,0,0,0.06)">
+                    <div style="display:flex; justify-content:space-between; align-items:center">
+                        <span style="font-size:15px; font-weight:700; color:#111827">{fp['physician_id']}</span>
+                        <span style="font-size:13px; font-weight:700; color:{border_color}">{status_label} &nbsp;|&nbsp; Risk {rs}/4</span>
+                    </div>
+                    <div style="font-size:12px; color:#6b7280; margin-top:6px">
+                        Score: <b style="color:#111827">{fp['avg_behavior_score']:.3f}</b>
+                        &nbsp;·&nbsp; Evals: <b>{int(fp['n_forms'])}</b>
+                        &nbsp;·&nbsp; Neg. Ratio: <b>{neg_str}</b>
+                        &nbsp;·&nbsp; Flags: <b>{flags_str}</b>
+                        {delta_str}
+                    </div>
+                </div>""", unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
