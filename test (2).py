@@ -1589,7 +1589,8 @@ DIV_TO_DEPT = {
 with tab6:
     st.markdown('<div class="section-header">🏢 Departments & Divisions — Indicators Analysis</div>', unsafe_allow_html=True)
 
-    with st.expander("📂 Upload Physicians Indicators CSV", expanded=ind_file is None):
+    _ind_already_uploaded = st.session_state.get("ind_upload") is not None
+    with st.expander("📂 Upload Physicians Indicators CSV", expanded=not _ind_already_uploaded):
         ind_file = st.file_uploader(
             "Upload CSV", type="csv", key="ind_upload", label_visibility="collapsed",
             help="Expected columns: Aubnetid, FiscalCycle, Division, ClinicVisits, ClinicWaitingTime, PatientComplaints"
@@ -2138,4 +2139,3 @@ with tab6:
                 csv_cross = table_out.to_csv(index=False).encode("utf-8")
                 st.download_button("⬇️ Export combined outlier table", csv_cross,
                                    "complaints_sentiment_outliers.csv", "text/csv")
-
