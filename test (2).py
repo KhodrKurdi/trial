@@ -1588,12 +1588,12 @@ DIV_TO_DEPT = {
 
 with tab6:
     st.markdown('<div class="section-header">🏢 Departments & Divisions — Indicators Analysis</div>', unsafe_allow_html=True)
-    st.markdown("Upload the **Physicians Indicators CSV** to explore performance by department and division.")
 
-    ind_file = st.file_uploader(
-        "📂 Upload Physicians_Indicators CSV", type="csv", key="ind_upload",
-        help="Expected columns: Aubnetid, FiscalCycle, Division, ClinicVisits, ClinicWaitingTime, PatientComplaints"
-    )
+    with st.expander("📂 Upload Physicians Indicators CSV", expanded=ind_file is None):
+        ind_file = st.file_uploader(
+            "Upload CSV", type="csv", key="ind_upload", label_visibility="collapsed",
+            help="Expected columns: Aubnetid, FiscalCycle, Division, ClinicVisits, ClinicWaitingTime, PatientComplaints"
+        )
 
     if ind_file is None:
         col_land1, col_land2 = st.columns([1, 1])
@@ -1637,19 +1637,8 @@ with tab6:
         # ── Cycle filter ──────────────────────────────────────────────────────
         cycles = ["All"] + sorted(ind_df["FiscalCycle"].dropna().unique().tolist(), reverse=True) \
                  if "FiscalCycle" in ind_df.columns else ["All"]
-        fc1, fc2 = st.columns([1, 3])
-        with fc1:
-            sel_cycle = st.selectbox("Fiscal Cycle", cycles, key="ind_cycle")
+        sel_cycle = st.selectbox("Fiscal Cycle", cycles, key="ind_cycle")
         df_filt = ind_df if sel_cycle == "All" else ind_df[ind_df["FiscalCycle"] == sel_cycle]
-        n_dept = df_filt["Department"].nunique() if "Department" in df_filt.columns else "—"
-        n_div  = df_filt["Division_norm"].nunique() if "Division_norm" in df_filt.columns else "—"
-        with fc2:
-            st.markdown(
-                f"<div style='padding-top:28px; color:#6b7280; font-size:13px'>"
-                f"{len(df_filt):,} physicians &nbsp;·&nbsp; {n_dept} departments &nbsp;·&nbsp; {n_div} divisions"
-                f"</div>",
-                unsafe_allow_html=True
-            )
 
         st.markdown("---")
 
