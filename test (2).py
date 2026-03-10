@@ -2066,52 +2066,6 @@ with tab6:
 
                 st.markdown("<br>", unsafe_allow_html=True)
 
-                # ── Side-by-side scatter: complaints vs sentiment ─────────────
-                st.markdown("**Complaints vs Sentiment Score — All Physicians**")
-                st.caption("Top-left = high complaints + negative sentiment = Priority · Dashed lines = IQR thresholds")
-
-                fig_s, ax_s = plt.subplots(figsize=(10, 6))
-
-                colour_map = {"Priority": "#ef4444", "Monitor": "#f59e0b", "Clear": "#10b981"}
-                for status, grp in merged.groupby("combined_status"):
-                    ax_s.scatter(
-                        grp["total_complaints"],
-                        grp["avg_compound"],
-                        c=colour_map.get(status, "#6b7280"),
-                        s=70, alpha=0.75, zorder=3,
-                        label=f"{status} (n={len(grp)})"
-                    )
-
-                # Threshold lines
-                ax_s.axvline(complaints_ub, color="#ef4444", linestyle="--",
-                             linewidth=1.5, alpha=0.7, label=f"Complaint IQR fence ({complaints_ub:.0f})")
-                ax_s.axhline(-0.05, color="#f59e0b", linestyle=":",
-                             linewidth=1.5, alpha=0.7, label="Sentiment neutral threshold")
-
-                # Quadrant labels
-                y_range = merged["avg_compound"].max() - merged["avg_compound"].min()
-                y_top   = merged["avg_compound"].max() - y_range * 0.05
-                y_bot   = merged["avg_compound"].min() + y_range * 0.05
-                x_right = merged["total_complaints"].max() * 0.98
-
-                ax_s.text(complaints_ub + 0.3, y_bot,
-                          "⚠ HIGH RISK\nComplaints + Negative",
-                          fontsize=8, color="#ef4444", fontweight="700",
-                          va="bottom", ha="left",
-                          bbox=dict(boxstyle="round,pad=0.3", facecolor="#fef2f2", alpha=0.8))
-
-                ax_s.set_xlabel("Total Patient Complaints", fontsize=11)
-                ax_s.set_ylabel("Avg Sentiment Score (−1=negative, +1=positive)", fontsize=11)
-                ax_s.set_title("Patient Complaints vs Peer Sentiment — Combined Outlier View",
-                               fontsize=12, fontweight="bold")
-                ax_s.legend(fontsize=9, loc="upper right")
-                ax_s.grid(alpha=0.25, linestyle="--")
-                ax_s.set_facecolor("#fafafa")
-                fig_s.patch.set_facecolor("white")
-                plt.tight_layout()
-                st.pyplot(fig_s, use_container_width=True)
-                plt.close()
-
                 # ── Department peer comparison bar chart ──────────────────────
                 st.markdown("**Priority Physicians vs Department Peers**")
 
@@ -2126,7 +2080,8 @@ with tab6:
                     )
                 )
                 dept_cross["Priority_pct"] = (dept_cross["Priority"] / dept_cross["Total"] * 100).round(1)
-                dept_cross = dept_cross.sort_values("Priority_pct", ascending=False)
+                # Sort descending, then flip for barh so highest is at top
+                dept_cross = dept_cross.sort_values("Priority_pct", ascending=True)
 
                 fig_d, ax_d = plt.subplots(figsize=(10, max(4, len(dept_cross)*0.45)))
                 bar_c = ["#ef4444" if p > 0 else "#10b981" for p in dept_cross["Priority_pct"]]
