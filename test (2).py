@@ -1818,7 +1818,7 @@ with tab6:
             }
             metric_col   = metric_col_map[div_metric]
             sort_col_div = metric_col if metric_col in div_summary.columns else "Total_Visits"
-            div_plot = div_summary.sort_values(sort_col_div, ascending=False).head(top_n)
+            div_plot = div_summary.sort_values(sort_col_div, ascending=False).head(top_n).sort_values(sort_col_div, ascending=True)
 
             # Colour by complaints presence (consistent cue regardless of metric)
             if "Total_Complaints" in div_plot.columns:
