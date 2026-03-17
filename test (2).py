@@ -185,6 +185,15 @@ def run_sentiment(df, threshold=-0.05):
     return df_s
 
 def sentiment_summary(df_sent, min_comments=5, threshold=-0.05):
+    # Check if any comment has compound < 0 (catches comments VADER labels NEUTRAL but are still negative-leaning)
+    has_any_negative = (
+        df_sent[df_sent["compound"] < 0]
+        .groupby("physician_id")
+        .size()
+        .reset_index(name="n_neg_compound")
+    )
+    has_any_negative["has_negative"] = True
+
     s = (
         df_sent.assign(is_neg=(df_sent["sentiment"]=="NEGATIVE"))
         .groupby("physician_id", as_index=False)
@@ -193,8 +202,14 @@ def sentiment_summary(df_sent, min_comments=5, threshold=-0.05):
              avg_compound=("compound","mean"))
     )
     s["negative_ratio"] = s["negative_comments"] / s["total_comments"]
-    # Flag if avg compound score is negative OR physician has any negative comments
-    s["negative_outlier"] = (s["avg_compound"] < 0) | (s["negative_comments"] > 0)
+
+    # Merge in the any-negative flag
+    s = s.merge(has_any_negative[["physician_id","has_negative"]], on="physician_id", how="left")
+    s["has_negative"] = s["has_negative"].fillna(False)
+
+    # Flag if physician has ANY comment with compound < 0
+    s["negative_outlier"] = s["has_negative"]
+    s = s.drop(columns=["has_negative"])
     return s
 
 def merge_sentiment(phys_df, sent_s):
@@ -236,10 +251,20 @@ def process_dept(df_raw, dept_name, threshold=-0.05, min_f=1):
     phys, mean, std = add_outlier_flags(phys)
     sent_raw = run_sentiment(df, threshold) if "comments" in df.columns else pd.DataFrame()
     if not sent_raw.empty:
-        # Use 2025 only for negative_outlier flag (consistent with complaints logic)
-        sent_2025 = sent_raw[sent_raw["year"] == 2025] if "year" in sent_raw.columns and not sent_raw[sent_raw["year"] == 2025].empty else sent_raw
-        sent_s = sentiment_summary(sent_2025)
-        phys   = merge_sentiment(phys, sent_s)
+        # Compute sentiment on 2025 comments where available, else fall back to all years.
+        # This ensures physicians with comments only in 2023/2024 are still evaluated.
+        if "year" in sent_raw.columns and not sent_raw[sent_raw["year"] == 2025].empty:
+            sent_2025 = sent_raw[sent_raw["year"] == 2025]
+        else:
+            sent_2025 = sent_raw
+        sent_s_2025 = sentiment_summary(sent_2025)
+
+        # For physicians with no 2025 comments, supplement from all-years sentiment
+        sent_s_all  = sentiment_summary(sent_raw)
+        missing     = ~sent_s_all["physician_id"].isin(sent_s_2025["physician_id"])
+        sent_s      = pd.concat([sent_s_2025, sent_s_all[missing]], ignore_index=True)
+
+        phys = merge_sentiment(phys, sent_s)
     else:
         phys["total_comments"]   = 0
         phys["negative_ratio"]   = np.nan
@@ -275,7 +300,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.0"):
+def load_from_github(urls, min_f, threshold, _version="v5.1"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -308,7 +333,7 @@ with st.spinner("Loading data from GitHub and running VADER sentiment analysis..
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.0"
+        _version="v5.1"
     )
 
 # Build combined physician table from available departments
@@ -702,7 +727,7 @@ with tab2:
                 phys_src, _, _ = add_outlier_flags(phys_src)
                 # Re-merge 2025 sentiment for this year's risk computation
                 if sent_dd is not None and not sent_dd.empty and int(dd_year) == 2025:
-                    sent_yr = sentiment_summary(sent_dd, min_comments=5)
+                    sent_yr = sentiment_summary(sent_dd)
                     phys_src = merge_sentiment(phys_src, sent_yr)
                 else:
                     phys_src["negative_outlier"] = False
@@ -1646,7 +1671,7 @@ with tab6:
     st.markdown('<div class="section-header">🏢 Departments & Divisions — Indicators Analysis</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.0"):
+    def load_indicators(url, _version="v5.1"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -1672,7 +1697,7 @@ with tab6:
                 df[col] = pd.to_numeric(df[col], errors="coerce")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.0")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.1")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'] in the source file.")
