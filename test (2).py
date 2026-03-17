@@ -122,11 +122,25 @@ def add_year(df):
     return df
 
 def aggregate_physician(df):
-    return (
-        df.groupby("physician_id", as_index=False)
-        .agg(avg_behavior_score=("overall_score","mean"),
-             n_forms=("overall_score","count"))
-    )
+    # Exclude self-evaluations — not peer assessments
+    if "raters_group" in df.columns:
+        df = df[df["raters_group"] != "Faculty Self-Evaluation"].copy()
+
+    q_cols = [c for c in df.columns if c.startswith("q_")]
+
+    # Flat mean: stack all question responses across all forms per physician,
+    # drop NaN, then take a single mean — avoids mean-of-means distortion
+    # where forms with fewer answered questions get equal weight to full forms
+    def flat_mean(grp):
+        vals = grp[q_cols].values.flatten()
+        vals = vals[~pd.isnull(vals)]
+        return float(vals.mean()) if len(vals) > 0 else np.nan
+
+    grouped = df.groupby("physician_id")
+    scores  = grouped.apply(flat_mean).reset_index()
+    scores.columns = ["physician_id", "avg_behavior_score"]
+    n_forms = grouped.size().reset_index(name="n_forms")
+    return scores.merge(n_forms, on="physician_id")
 
 def add_outlier_flags(phys_df):
     df = phys_df.copy()
@@ -1024,6 +1038,9 @@ with tab5:
     with tf1:
         trend_dept = st.selectbox("Department", available_depts, key="trend_dept")
     raw_d, phys_d, _ = data[trend_dept]
+    # Exclude self-evaluations from all trend calculations
+    if raw_d is not None and "raters_group" in raw_d.columns:
+        raw_d = raw_d[raw_d["raters_group"] != "Faculty Self-Evaluation"].copy()
 
     if raw_d is None or raw_d.empty or "year" not in raw_d.columns or raw_d["year"].isna().all():
         st.warning("Year data not available. Check that your files include a Fillout Date column.")
