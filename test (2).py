@@ -254,8 +254,8 @@ GITHUB_URLS = {
     "ed_23":    "ED, Behavior survey responses, 2023.csv",
     "ed_24":    "ED, Behavior survey responses, 2024.csv",
     "ed_25":    "ED, Behavior raw data 2025.csv",
-    "patho_23": "ED, Behavior raw data 2025.csv",
-    "patho_24": "ED, Behavior raw data 2025.csv",
+    "patho_23": "Patho & Lab, Behavior survey responses, 2023.csv",
+    "patho_24": "Patho & Lab, Behavior survey responses, 2023.csv",
     "patho_25": "ED, Behavior raw data 2025.csv",
 }
 
