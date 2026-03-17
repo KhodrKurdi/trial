@@ -136,6 +136,20 @@ st.markdown("""
 
 # ─── MATPLOTLIB TOKYO NIGHT STYLE ───────────────────────────────────────────
 import matplotlib as _mpl
+_mpl.rcParams.update({
+    "figure.facecolor":  "#1a1b2e",
+    "axes.facecolor":    "#16213e",
+    "axes.edgecolor":    "#0f3460",
+    "axes.labelcolor":   "#6272a4",
+    "axes.titlecolor":   "#00d4ff",
+    "xtick.color":       "#6272a4",
+    "ytick.color":       "#6272a4",
+    "grid.color":        "#0f3460",
+    "text.color":        "#cdd6f4",
+    "legend.facecolor":  "#16213e",
+    "legend.edgecolor":  "#0f3460",
+    "legend.labelcolor": "#cdd6f4",
+})
 _TN = {
     "bg":      "#1a1b2e",
     "surface": "#16213e",
@@ -401,7 +415,7 @@ GITHUB_URLS = {
     "patho_25": "Patho,Lab, Behavior raw data 2025.csv",
 
     # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
-    "indicators": "Physicians indicators.csv",
+    "indicators": "Physicians indicators.csv",,
 }
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
@@ -549,7 +563,7 @@ with tab1:
     ax_risk.set_title("Composite Risk Distribution — All Physicians", fontsize=14, fontweight="bold", pad=14)
     ax_risk.tick_params(axis="x", labelsize=14)
     ax_risk.grid(axis="y", alpha=0.3, linestyle="--")
-    ax_risk.set_facecolor("#16213e"); fig_risk.patch.set_facecolor("white")
+    ax_risk.set_facecolor("#16213e"); fig_risk.patch.set_facecolor(_TN["bg"])
     ax_risk.spines["top"].set_visible(False); ax_risk.spines["right"].set_visible(False)
     plt.tight_layout(); st.pyplot(fig_risk, use_container_width=True); plt.close()
 
@@ -596,7 +610,7 @@ with tab1:
     ax_dr.set_title("Priority · Monitor · Clear by Department", fontsize=13, fontweight="bold", pad=12)
     ax_dr.legend(fontsize=10, loc="upper right")
     ax_dr.grid(axis="y", alpha=0.3, linestyle="--")
-    ax_dr.set_facecolor("#16213e"); fig_dr.patch.set_facecolor("white")
+    ax_dr.set_facecolor("#16213e"); fig_dr.patch.set_facecolor(_TN["bg"])
     ax_dr.spines["top"].set_visible(False); ax_dr.spines["right"].set_visible(False)
     plt.tight_layout(); st.pyplot(fig_dr, use_container_width=True); plt.close()
 
@@ -681,7 +695,7 @@ with tab1:
             ax_sent.set_title("Comment Sentiment Split", fontsize=10, fontweight="bold")
             ax_sent.axis("off")
             ax_sent.legend(fontsize=8, loc="lower center", bbox_to_anchor=(0.5, -0.55), ncol=3)
-            fig_sent.patch.set_facecolor("white")
+            fig_sent.patch.set_facecolor(_TN["bg"])
             plt.tight_layout(); st.pyplot(fig_sent, use_container_width=True); plt.close()
 
             # Neg sentiment outlier physicians
@@ -975,7 +989,7 @@ with tab3:
             ax2.set_title(f"{dept_sel} — Colleague Comparison", fontsize=11, fontweight="bold")
             ax2.grid(axis="y", alpha=0.3, linestyle="--")
             ax2.set_facecolor("#16213e")
-            fig2.patch.set_facecolor("white")
+            fig2.patch.set_facecolor(_TN["bg"])
             st.pyplot(fig2, use_container_width=True)
             plt.close()
 
@@ -1097,7 +1111,7 @@ with tab4:
         ax_sb.set_xlim(0, 100)
         ax_sb.grid(axis="x", alpha=0.25, linestyle="--")
         ax_sb.set_facecolor("#16213e")
-        fig_sb.patch.set_facecolor("white")
+        fig_sb.patch.set_facecolor(_TN["bg"])
         plt.tight_layout()
         st.pyplot(fig_sb, use_container_width=True)
         plt.close()
@@ -1165,7 +1179,7 @@ with tab4:
             ax_yr2.grid(alpha=0.3, linestyle="--")
             ax_yr2.set_facecolor("#16213e")
 
-            fig_yr.patch.set_facecolor("white")
+            fig_yr.patch.set_facecolor(_TN["bg"])
             plt.tight_layout()
             st.pyplot(fig_yr, use_container_width=True)
             plt.close()
@@ -1296,7 +1310,7 @@ with tab5:
                 ax2.set_title(f"{trend_dept} — IQR Flagged Rate Over Time", fontsize=11, fontweight="bold")
                 ax2.grid(axis="y", alpha=0.3, linestyle="--")
                 ax2.set_facecolor("#16213e")
-                fig2.patch.set_facecolor("white")
+                fig2.patch.set_facecolor(_TN["bg"])
                 ax2.spines["top"].set_visible(False)
                 ax2.spines["right"].set_visible(False)
                 st.pyplot(fig2, use_container_width=True)
@@ -1429,7 +1443,7 @@ with tab5:
                                       fontsize=11, fontweight="bold")
                         ax2.grid(axis="y", alpha=0.3, linestyle="--")
                         ax2.set_facecolor("#16213e")
-                        fig2.patch.set_facecolor("white")
+                        fig2.patch.set_facecolor(_TN["bg"])
                         ax2.spines["top"].set_visible(False)
                         ax2.spines["right"].set_visible(False)
                         st.pyplot(fig2, use_container_width=True)
@@ -1482,7 +1496,7 @@ with tab5:
                         ax3.legend(fontsize=9)
                         ax3.grid(axis="x", alpha=0.3, linestyle="--")
                         ax3.set_facecolor("#16213e")
-                        fig3.patch.set_facecolor("white")
+                        fig3.patch.set_facecolor(_TN["bg"])
                         st.pyplot(fig3, use_container_width=True)
                         plt.close()
 
@@ -1543,7 +1557,7 @@ with tab5:
                         ax_bp.legend(fontsize=9, loc="lower right")
                         ax_bp.grid(axis="y", alpha=0.3, linestyle="--")
                         ax_bp.set_facecolor("#16213e")
-                        fig_bp.patch.set_facecolor("white")
+                        fig_bp.patch.set_facecolor(_TN["bg"])
                         plt.tight_layout()
                         st.pyplot(fig_bp, use_container_width=True)
                         plt.close()
@@ -1590,7 +1604,7 @@ with tab5:
                         ax_bp2.legend(fontsize=9, loc="lower right")
                         ax_bp2.grid(axis="y", alpha=0.3, linestyle="--")
                         ax_bp2.set_facecolor("#16213e")
-                        fig_bp2.patch.set_facecolor("white")
+                        fig_bp2.patch.set_facecolor(_TN["bg"])
                         plt.tight_layout()
                         st.pyplot(fig_bp2, use_container_width=True)
                         plt.close()
@@ -1930,7 +1944,7 @@ with tab6:
                     ax2.set_title("Patient Complaints by Department", fontsize=11, fontweight="bold")
                     ax2.grid(axis="x", alpha=0.3, linestyle="--")
                     ax2.set_facecolor("#16213e")
-                    fig2.patch.set_facecolor("white")
+                    fig2.patch.set_facecolor(_TN["bg"])
                     plt.tight_layout()
                     st.pyplot(fig2, use_container_width=True)
                     plt.close()
@@ -2029,7 +2043,7 @@ with tab6:
             )
             ax3.grid(axis="x", alpha=0.3, linestyle="--")
             ax3.set_facecolor("#16213e")
-            fig3.patch.set_facecolor("white")
+            fig3.patch.set_facecolor(_TN["bg"])
             ax3.legend(handles=[
                 mpatches.Patch(color="#00d4ff", alpha=0.87, label="No complaints"),
                 mpatches.Patch(color="#ffa500", alpha=0.87, label="1–2 complaints"),
