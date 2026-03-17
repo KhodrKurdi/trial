@@ -150,6 +150,26 @@ _mpl.rcParams.update({
     "legend.edgecolor":  "#0f3460",
     "legend.labelcolor": "#cdd6f4",
 })
+def tn_apply(fig, *axes):
+    """Apply Tokyo Night theme to a matplotlib figure and any number of axes."""
+    fig.patch.set_facecolor(_TN["bg"])
+    for ax in axes:
+        ax.set_facecolor(_TN["surface"])
+        ax.tick_params(colors=_TN["subtext"], labelsize=9)
+        for sp in ax.spines.values():
+            sp.set_edgecolor(_TN["grid"])
+        ax.xaxis.label.set_color(_TN["subtext"])
+        ax.yaxis.label.set_color(_TN["subtext"])
+        ax.title.set_color(_TN["cyan"])
+        ax.grid(color=_TN["grid"], linestyle="--", alpha=0.4)
+        # Make legend text white if legend exists
+        leg = ax.get_legend()
+        if leg:
+            leg.get_frame().set_facecolor(_TN["surface"])
+            leg.get_frame().set_edgecolor(_TN["grid"])
+            for txt in leg.get_texts():
+                txt.set_color(_TN["text"])
+
 _TN = {
     "bg":      "#1a1b2e",
     "surface": "#16213e",
@@ -404,6 +424,7 @@ sent_thresh = -0.01
 
 GITHUB_URLS = {
     # ── Behaviour survey CSVs (3 departments × 3 years) ──────────────────────
+    # ── Behaviour survey CSVs (3 departments × 3 years) ──────────────────────
     "aubmc_23": "AUBMC, Behavior survey responses, 2023.csv",
     "aubmc_24": "AUBMC, Behavior survey responses, 2024.csv",
     "aubmc_25": "AUBMC, Behavior raw data 2025.csv",
@@ -415,7 +436,7 @@ GITHUB_URLS = {
     "patho_25": "Patho,Lab, Behavior raw data 2025.csv",
 
     # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
-    "indicators": "Physicians indicators.csv",,
+    "indicators": "Physicians indicators.csv",
 }
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
@@ -953,6 +974,7 @@ with tab3:
             ax.grid(alpha=0.3, linestyle="--")
             ax.set_facecolor("#16213e")
             fig.patch.set_facecolor(_TN["bg"])
+            tn_apply(fig, ax)
             st.pyplot(fig, use_container_width=True)
             plt.close()
 
@@ -990,6 +1012,7 @@ with tab3:
             ax2.grid(axis="y", alpha=0.3, linestyle="--")
             ax2.set_facecolor("#16213e")
             fig2.patch.set_facecolor(_TN["bg"])
+            tn_apply(fig2, patch, ax2)
             st.pyplot(fig2, use_container_width=True)
             plt.close()
 
@@ -1113,6 +1136,7 @@ with tab4:
         ax_sb.set_facecolor("#16213e")
         fig_sb.patch.set_facecolor(_TN["bg"])
         plt.tight_layout()
+        tn_apply(fig_sb, ax_sb)
         st.pyplot(fig_sb, use_container_width=True)
         plt.close()
 
@@ -1181,6 +1205,7 @@ with tab4:
 
             fig_yr.patch.set_facecolor(_TN["bg"])
             plt.tight_layout()
+            tn_apply(fig_yr, ax_yr1, ax_yr2)
             st.pyplot(fig_yr, use_container_width=True)
             plt.close()
 
@@ -1290,6 +1315,7 @@ with tab5:
                 ax.grid(alpha=0.3, linestyle="--")
                 ax.set_facecolor("#16213e")
                 fig.patch.set_facecolor(_TN["bg"])
+                tn_apply(fig, ax)
                 st.pyplot(fig, use_container_width=True)
                 plt.close()
 
@@ -1313,6 +1339,7 @@ with tab5:
                 fig2.patch.set_facecolor(_TN["bg"])
                 ax2.spines["top"].set_visible(False)
                 ax2.spines["right"].set_visible(False)
+                tn_apply(fig2, ax2)
                 st.pyplot(fig2, use_container_width=True)
                 plt.close()
 
@@ -1420,6 +1447,7 @@ with tab5:
                         ax.grid(alpha=0.3, linestyle="--")
                         ax.set_facecolor("#16213e")
                         fig.patch.set_facecolor(_TN["bg"])
+                        tn_apply(fig, ax)
                         st.pyplot(fig, use_container_width=True)
                         plt.close()
 
@@ -1446,6 +1474,7 @@ with tab5:
                         fig2.patch.set_facecolor(_TN["bg"])
                         ax2.spines["top"].set_visible(False)
                         ax2.spines["right"].set_visible(False)
+                        tn_apply(fig2, ax2)
                         st.pyplot(fig2, use_container_width=True)
                         plt.close()
 
@@ -1497,6 +1526,7 @@ with tab5:
                         ax3.grid(axis="x", alpha=0.3, linestyle="--")
                         ax3.set_facecolor("#16213e")
                         fig3.patch.set_facecolor(_TN["bg"])
+                        tn_apply(fig3, ax3)
                         st.pyplot(fig3, use_container_width=True)
                         plt.close()
 
@@ -1559,6 +1589,7 @@ with tab5:
                         ax_bp.set_facecolor("#16213e")
                         fig_bp.patch.set_facecolor(_TN["bg"])
                         plt.tight_layout()
+                        tn_apply(fig_bp, ax_bp)
                         st.pyplot(fig_bp, use_container_width=True)
                         plt.close()
 
@@ -1606,6 +1637,7 @@ with tab5:
                         ax_bp2.set_facecolor("#16213e")
                         fig_bp2.patch.set_facecolor(_TN["bg"])
                         plt.tight_layout()
+                        tn_apply(fig_bp2, ax_bp2)
                         st.pyplot(fig_bp2, use_container_width=True)
                         plt.close()
 
@@ -1923,6 +1955,7 @@ with tab6:
                 ax.set_facecolor("#16213e")
                 fig.patch.set_facecolor(_TN["bg"])
                 plt.tight_layout()
+                tn_apply(fig, ax)
                 st.pyplot(fig, use_container_width=True)
                 plt.close()
 
@@ -1946,6 +1979,7 @@ with tab6:
                     ax2.set_facecolor("#16213e")
                     fig2.patch.set_facecolor(_TN["bg"])
                     plt.tight_layout()
+                    tn_apply(fig2, ax2)
                     st.pyplot(fig2, use_container_width=True)
                     plt.close()
 
@@ -2050,6 +2084,7 @@ with tab6:
                 mpatches.Patch(color="#e040fb", alpha=0.87, label="3+ complaints"),
             ], fontsize=8, loc="lower right")
             plt.tight_layout()
+            tn_apply(fig3, ax3)
             st.pyplot(fig3, use_container_width=True)
             plt.close()
 
