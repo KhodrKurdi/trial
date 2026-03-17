@@ -1065,6 +1065,7 @@ with tab5:
             for yr in years_avail:
                 df_yr   = raw_d[raw_d["year"] == yr]
                 phys_yr = aggregate_physician(df_yr)
+                phys_yr = phys_yr[phys_yr["n_forms"] >= min_forms].copy().reset_index(drop=True)
                 phys_yr, _, _ = add_outlier_flags(phys_yr)
                 trend_rows.append({
                     "Year":             yr,
@@ -1161,11 +1162,14 @@ with tab5:
                     if yr_data.empty:
                         continue
                     q_cols = [c for c in yr_data.columns if c.startswith("q_")]
+                    # Flat mean across all question responses — consistent with aggregate_physician
+                    flat_vals = yr_data[q_cols].values.flatten()
+                    flat_vals = flat_vals[~pd.isnull(flat_vals)]
+                    flat_mean = float(flat_vals.mean()) if len(flat_vals) > 0 else np.nan
                     phys_year_rows.append({
                         "Year":           yr,
                         "Forms":          len(yr_data),
-                        "Avg Score":      round(yr_data["overall_score"].mean(), 3),
-                        "Median Score":   round(yr_data["overall_score"].median(), 3),
+                        "Avg Score":      round(flat_mean, 3),
                         "Min Score":      round(yr_data["overall_score"].min(), 3),
                         "Max Score":      round(yr_data["overall_score"].max(), 3),
                         "Score Std":      round(yr_data["overall_score"].std(), 3) if len(yr_data) > 1 else 0.0,
@@ -1175,11 +1179,13 @@ with tab5:
                 if phys_trend.empty:
                     st.warning("No year-level data available for this physician.")
                 else:
-                    # Compute dept avg per year for benchmarking
+                    # Compute dept avg per year for benchmarking — flat mean consistent with aggregate_physician
                     dept_avgs = {}
                     for yr in years_avail:
-                        yr_all = raw_d[raw_d["year"] == yr]["overall_score"].dropna()
-                        dept_avgs[yr] = yr_all.mean() if not yr_all.empty else np.nan
+                        yr_df   = raw_d[raw_d["year"] == yr]
+                        phys_yr_bench = aggregate_physician(yr_df)
+                        phys_yr_bench = phys_yr_bench[phys_yr_bench["n_forms"] >= min_forms]
+                        dept_avgs[yr] = phys_yr_bench["avg_behavior_score"].mean() if not phys_yr_bench.empty else np.nan
 
                     # KPI summary cards
                     years_seen = phys_trend["Year"].tolist()
@@ -1278,6 +1284,7 @@ with tab5:
                     for yr in phys_trend["Year"].tolist():
                         yr_all   = raw_d[raw_d["year"] == yr]
                         phys_agg = aggregate_physician(yr_all)
+                        phys_agg = phys_agg[phys_agg["n_forms"] >= min_forms].copy()
                         if selected_phys in phys_agg["physician_id"].values:
                             phys_agg["pct"] = phys_agg["avg_behavior_score"].rank(pct=True) * 100
                             pct_val = phys_agg.loc[
@@ -1443,8 +1450,14 @@ with tab5:
                         row = {"Physician ID": pid}
                         all_scores = []
                         for yr in years_avail:
-                            yr_scores = pid_data[pid_data["year"] == yr]["overall_score"].dropna()
-                            avg = round(yr_scores.mean(), 3) if not yr_scores.empty else np.nan
+                            yr_data_pid = pid_data[pid_data["year"] == yr]
+                            if yr_data_pid.empty:
+                                avg = np.nan
+                            else:
+                                q_cols_pid = [c for c in yr_data_pid.columns if c.startswith("q_")]
+                                flat_pid = yr_data_pid[q_cols_pid].values.flatten()
+                                flat_pid = flat_pid[~pd.isnull(flat_pid)]
+                                avg = round(float(flat_pid.mean()), 3) if len(flat_pid) > 0 else np.nan
                             row[str(yr)] = avg
                             if not np.isnan(avg):
                                 all_scores.append(avg)
