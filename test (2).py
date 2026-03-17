@@ -172,10 +172,13 @@ def score_vader(text, threshold=-0.05):
         return {"compound": 0.0, "sentiment": "NEUTRAL"}
 
 def run_sentiment(df, threshold=-0.05):
+    # Meaningless comment values to exclude
+    SKIP_COMMENTS = {"d/a", "n/a", "na", "n.a", "n.a.", "-", "--", "---", "none", "nil", ".", "no comment", "no comments"}
     df_s = df[
         (df.get("raters_group", pd.Series(dtype=str)) != "Faculty Self-Evaluation") &
         (df["comments"].notna()) &
-        (df["comments"].astype(str).str.strip() != "")
+        (df["comments"].astype(str).str.strip() != "") &
+        (~df["comments"].astype(str).str.strip().str.lower().isin(SKIP_COMMENTS))
     ].copy()
     df_s["comments"] = df_s["comments"].astype(str).str.strip()
     results = df_s["comments"].apply(lambda t: score_vader(t, threshold))
@@ -270,6 +273,9 @@ GITHUB_URLS = {
 
     # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
     "indicators": "Physicians indicators.csv",
+
+    # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
+    "indicators": "REPLACE_WITH_INDICATORS_URL",
 }
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
