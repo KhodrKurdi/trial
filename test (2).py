@@ -212,8 +212,12 @@ def tn_fig(ax, fig, title="", xlabel="", ylabel=""):
     if xlabel:  ax.set_xlabel(xlabel, color=_TN["subtext"], fontsize=10)
     if ylabel:  ax.set_ylabel(ylabel, color=_TN["subtext"], fontsize=10)
 
-def aubmc_table(df, height=None):
+def aubmc_table(df, height=None, highlight_col=None, highlight_val=None):
     """Render a dataframe as a styled HTML table matching AUBMC theme."""
+    # Accept Styler objects — extract underlying DataFrame
+    if hasattr(df, "data"):
+        df = df.data
+
     def fmt_cell(val):
         if isinstance(val, bool):
             return "✅" if val else "—"
@@ -223,9 +227,11 @@ def aubmc_table(df, height=None):
 
     rows = ""
     for i, (_, row) in enumerate(df.iterrows()):
-        bg = "#f0f8ff" if i % 2 == 0 else "#ffffff"
+        is_highlighted = highlight_col and highlight_val and str(row.get(highlight_col, "")) == str(highlight_val)
+        bg = "#dbeafe" if is_highlighted else ("#f0f8ff" if i % 2 == 0 else "#ffffff")
+        fw = "700" if is_highlighted else "400"
         cells = "".join(
-            f'<td style="padding:8px 12px; color:#1a365d; font-size:13px; border-bottom:1px solid #bee3f8;">{fmt_cell(v)}</td>'
+            f'<td style="padding:8px 12px; color:#1a365d; font-size:13px; font-weight:{fw}; border-bottom:1px solid #bee3f8;">{fmt_cell(v)}</td>'
             for v in row
         )
         rows += f'<tr style="background:{bg}">{cells}</tr>'
@@ -236,7 +242,7 @@ def aubmc_table(df, height=None):
     )
 
     table_html = f"""
-    <div style="overflow-x:auto; border-radius:10px; border:1px solid #bee3f8; box-shadow:0 2px 8px rgba(43,123,200,0.1);">
+    <div style="overflow-x:auto; border-radius:10px; border:1px solid #bee3f8; box-shadow:0 2px 8px rgba(43,123,200,0.1); margin-bottom:8px;">
         <table style="width:100%; border-collapse:collapse; background:#ffffff;">
             <thead><tr>{headers}</tr></thead>
             <tbody>{rows}</tbody>
@@ -434,7 +440,7 @@ def risk_pill(score):
     if score >= 1:   return '<span class="pill-yellow">👁 Monitor</span>'
     return '<span class="pill-green">✓ Clear</span>'
 
-def process_dept(df_raw, dept_name, threshold=-0.05, min_f=3):
+def process_dept(df_raw, dept_name, threshold=-0.05, min_f=1):
     df = clean_headers(df_raw)
     df = map_ratings(df)
     df = compute_score(df)
@@ -816,7 +822,7 @@ with tab1:
             "Sentiment Flags": int(phys['negative_outlier'].sum()) if 'negative_outlier' in phys.columns else 0,
         }
         summary_rows.append(row)
-    st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
+    aubmc_table(pd.DataFrame(summary_rows))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -874,19 +880,7 @@ with tab2:
     if "Avg Compound" in show_df.columns:
         show_df["Avg Compound"] = show_df["Avg Compound"].apply(lambda x: f"{x:.3f}" if pd.notna(x) else "—")
 
-    st.dataframe(
-        show_df.reset_index(drop=True),
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Risk Score": st.column_config.ProgressColumn(
-                "Risk Score", min_value=0, max_value=4, format="%d"
-            ),
-            "Avg Score": st.column_config.ProgressColumn(
-                "Avg Score", min_value=0, max_value=4, format="%.3f"
-            ),
-        }
-    )
+    aubmc_table(show_df.reset_index(drop=True))
 
     # CSV export
     csv_out = df_view.to_csv(index=False).encode("utf-8")
@@ -1095,8 +1089,7 @@ with tab3:
         method_df["% of Department"] = (
             method_df["Physicians Flagged"] / len(phys_d) * 100
         ).round(1).astype(str) + "%"
-        st.dataframe(method_df[["Method","Physicians Flagged","% of Department"]],
-                     use_container_width=True, hide_index=True)
+        aubmc_table(method_df[["Method","Physicians Flagged","% of Department"]])
 
         # Within-dept ranking table
         st.markdown("**Physician Ranking within Department**")
@@ -1122,9 +1115,7 @@ with tab3:
             "risk_score":         "Risk Score",
         }
         rank_df = rank_df.rename(columns={k:v for k,v in col_rename.items() if k in rank_df.columns})
-        st.dataframe(rank_df.reset_index(drop=True), use_container_width=True, hide_index=True,
-                     column_config={"Risk Score": st.column_config.ProgressColumn(min_value=0, max_value=4, format="%d"),
-                                    "Avg Score":  st.column_config.ProgressColumn(min_value=0, max_value=4, format="%.3f")})
+        aubmc_table(rank_df.reset_index(drop=True))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1747,10 +1738,11 @@ with tab5:
                         return [""] * len(row)
 
                     yr_fmt = {str(yr): lambda x: f"{x:.3f}" if pd.notna(x) else "—" for yr in years_avail}
-                    styled = peer_df.style.apply(highlight_selected, axis=1).format(
-                        {**yr_fmt, "Overall Avg": lambda x: f"{x:.3f}" if pd.notna(x) else "—"}
-                    )
-                    aubmc_table(styled)
+                    # Format numeric columns
+                    for col in [str(yr) for yr in years_avail] + ["Overall Avg"]:
+                        if col in peer_df.columns:
+                            peer_df[col] = peer_df[col].apply(lambda x: f"{x:.3f}" if pd.notna(x) else "—")
+                    aubmc_table(peer_df, highlight_col="Physician ID", highlight_val=selected_phys)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2054,13 +2046,7 @@ with tab6:
             dept_display = dept_summary.copy()
             dept_display.columns = ["Department", "Physicians", "Divisions", "Total Visits",
                                      "Avg Wait (min)", "Total Complaints", "Avg Complaints/Physician"]
-            st.dataframe(dept_display, use_container_width=True, hide_index=True,
-                         column_config={
-                             "Total Visits": st.column_config.ProgressColumn(
-                                 min_value=0, max_value=int(dept_display["Total Visits"].max()), format="%d"),
-                             "Total Complaints": st.column_config.ProgressColumn(
-                                 min_value=0, max_value=max(1, int(dept_display["Total Complaints"].max())), format="%d"),
-                         })
+            aubmc_table(dept_display)
 
         st.markdown("---")
 
@@ -2167,13 +2153,7 @@ with tab6:
                  .replace("Total_Complaints", "Total Complaints")
                 for c in div_display.columns
             ]
-            st.dataframe(div_display, use_container_width=True, hide_index=True,
-                         column_config={
-                             "Total Visits": st.column_config.ProgressColumn(
-                                 min_value=0, max_value=int(div_display["Total Visits"].max()) if "Total Visits" in div_display.columns else 100, format="%d"),
-                             "Total Complaints": st.column_config.ProgressColumn(
-                                 min_value=0, max_value=max(1, int(div_display["Total Complaints"].max())) if "Total Complaints" in div_display.columns else 1, format="%d"),
-                         })
+            aubmc_table(div_display)
 
         st.markdown("---")
 
@@ -2218,13 +2198,7 @@ with tab6:
 
         max_visits = int(df_filt["ClinicVisits"].max())     if "ClinicVisits"      in df_filt.columns else 100
         max_cmp    = int(df_filt["PatientComplaints"].max())if "PatientComplaints" in df_filt.columns else 10
-        st.dataframe(show_renamed, use_container_width=True, hide_index=True,
-                     column_config={
-                         "Clinic Visits": st.column_config.ProgressColumn(
-                             min_value=0, max_value=max_visits, format="%d"),
-                         "Complaints":    st.column_config.ProgressColumn(
-                             min_value=0, max_value=max(1, max_cmp), format="%d"),
-                     })
+        aubmc_table(show_renamed)
 
         csv_ind = show_renamed.to_csv(index=False).encode("utf-8")
         st.download_button("⬇️ Export filtered table as CSV", csv_ind,
