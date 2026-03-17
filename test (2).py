@@ -212,6 +212,38 @@ def tn_fig(ax, fig, title="", xlabel="", ylabel=""):
     if xlabel:  ax.set_xlabel(xlabel, color=_TN["subtext"], fontsize=10)
     if ylabel:  ax.set_ylabel(ylabel, color=_TN["subtext"], fontsize=10)
 
+def aubmc_table(df, height=None):
+    """Render a dataframe as a styled HTML table matching AUBMC theme."""
+    def fmt_cell(val):
+        if isinstance(val, bool):
+            return "✅" if val else "—"
+        if isinstance(val, float) and val != val:  # NaN check
+            return "—"
+        return str(val)
+
+    rows = ""
+    for i, (_, row) in enumerate(df.iterrows()):
+        bg = "#f0f8ff" if i % 2 == 0 else "#ffffff"
+        cells = "".join(
+            f'<td style="padding:8px 12px; color:#1a365d; font-size:13px; border-bottom:1px solid #bee3f8;">{fmt_cell(v)}</td>'
+            for v in row
+        )
+        rows += f'<tr style="background:{bg}">{cells}</tr>'
+
+    headers = "".join(
+        f'<th style="padding:10px 12px; background:#2b7bc8; color:#ffffff; font-size:12px; font-weight:600; text-align:left; white-space:nowrap;">{c}</th>'
+        for c in df.columns
+    )
+
+    table_html = f"""
+    <div style="overflow-x:auto; border-radius:10px; border:1px solid #bee3f8; box-shadow:0 2px 8px rgba(43,123,200,0.1);">
+        <table style="width:100%; border-collapse:collapse; background:#ffffff;">
+            <thead><tr>{headers}</tr></thead>
+            <tbody>{rows}</tbody>
+        </table>
+    </div>"""
+    st.markdown(table_html, unsafe_allow_html=True)
+
 # ─── HELPER FUNCTIONS ────────────────────────────────────────────────────────
 RATING_SCALE = {
     "Always": 4, "Most of the time": 3,
@@ -1253,7 +1285,7 @@ with tab4:
                 "Neutral %":        neu_yr.round(1).values,
                 "Positive %":       pos_yr.round(1).values,
             })
-            st.dataframe(yr_table, use_container_width=True, hide_index=True)
+            aubmc_table(yr_table)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1379,7 +1411,7 @@ with tab5:
                 plt.close()
 
             st.markdown("**Year-over-Year Summary Table**")
-            st.dataframe(trend_df, use_container_width=True, hide_index=True)
+            aubmc_table(trend_df)
 
         # ── INDIVIDUAL PHYSICIAN VIEW ─────────────────────────────────────────
         else:
@@ -1568,7 +1600,7 @@ with tab5:
                         st.markdown("**Year-by-Year Summary for this Physician**")
                         merged_summary = phys_trend.merge(pct_df[["Year","Percentile Rank","Dept Mean Score","Physicians in Dept"]],
                                                           on="Year", how="left")
-                        st.dataframe(merged_summary, use_container_width=True, hide_index=True)
+                        aubmc_table(merged_summary)
 
                     # ── PEER COMPARISON ───────────────────────────────────────
                     st.markdown("---")
@@ -1718,7 +1750,7 @@ with tab5:
                     styled = peer_df.style.apply(highlight_selected, axis=1).format(
                         {**yr_fmt, "Overall Avg": lambda x: f"{x:.3f}" if pd.notna(x) else "—"}
                     )
-                    st.dataframe(styled, use_container_width=True, hide_index=True)
+                    aubmc_table(styled)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
