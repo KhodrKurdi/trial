@@ -193,9 +193,8 @@ def sentiment_summary(df_sent, min_comments=5, threshold=-0.05):
              avg_compound=("compound","mean"))
     )
     s["negative_ratio"] = s["negative_comments"] / s["total_comments"]
-    Q1, Q3 = s["negative_ratio"].quantile(0.25), s["negative_ratio"].quantile(0.75)
-    ub = Q3 + 1.5*(Q3-Q1)
-    s["negative_outlier"] = (s["negative_ratio"] > ub) & (s["total_comments"] >= min_comments)
+    # Flag if avg compound score is negative OR physician has any negative comments
+    s["negative_outlier"] = (s["avg_compound"] < 0) | (s["negative_comments"] > 0)
     return s
 
 def merge_sentiment(phys_df, sent_s):
