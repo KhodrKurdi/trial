@@ -19,54 +19,149 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ─── CUSTOM CSS ──────────────────────────────────────────────────────────────
+# ─── TOKYO NIGHT THEME ───────────────────────────────────────────────────────
+# Palette:
+#   bg:       #1a1b2e  (deep navy)
+#   surface:  #16213e  (card bg)
+#   surface2: #0f3460  (elevated surface)
+#   cyan:     #00d4ff  (primary accent)
+#   magenta:  #e040fb  (danger/priority)
+#   green:    #00ff9f  (success/clear)
+#   amber:    #ffa500  (warning/monitor)
+#   purple:   #7c3aed  (neutral accent)
+#   text:     #cdd6f4  (primary text)
+#   subtext:  #6272a4  (secondary text)
 st.markdown("""
 <style>
-    .main { background-color: #f8f9fb; }
+    /* ── Global background ── */
+    .stApp, .main, [data-testid="stAppViewContainer"] {
+        background-color: #1a1b2e !important;
+    }
+    [data-testid="stHeader"] { background-color: #1a1b2e !important; }
+    .block-container { padding-top: 1.5rem !important; }
+
+    /* ── Metric cards ── */
     .metric-card {
-        background: white;
+        background: #16213e;
         border-radius: 12px;
         padding: 20px 24px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        border-left: 4px solid #2563eb;
+        box-shadow: 0 0 12px rgba(0,212,255,0.08);
+        border-left: 4px solid #00d4ff;
         margin-bottom: 8px;
     }
-    .metric-card.warning { border-left-color: #f59e0b; }
-    .metric-card.danger  { border-left-color: #ef4444; }
-    .metric-card.success { border-left-color: #10b981; }
-    .metric-card.neutral { border-left-color: #6366f1; }
-    .metric-label { font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .metric-value { font-size: 32px; font-weight: 700; color: #111827; line-height: 1.2; }
-    .metric-sub   { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+    .metric-card.warning { border-left-color: #ffa500; box-shadow: 0 0 12px rgba(255,165,0,0.1); }
+    .metric-card.danger  { border-left-color: #e040fb; box-shadow: 0 0 12px rgba(224,64,251,0.1); }
+    .metric-card.success { border-left-color: #00ff9f; box-shadow: 0 0 12px rgba(0,255,159,0.1); }
+    .metric-card.neutral { border-left-color: #7c3aed; box-shadow: 0 0 12px rgba(124,58,237,0.1); }
+    .metric-label { font-size: 12px; color: #6272a4; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .metric-value { font-size: 32px; font-weight: 700; color: #cdd6f4; line-height: 1.2; }
+    .metric-sub   { font-size: 12px; color: #6272a4; margin-top: 2px; }
+
+    /* ── Section headers ── */
     .section-header {
-        font-size: 18px; font-weight: 700; color: #1f2937;
-        border-bottom: 2px solid #e5e7eb;
+        font-size: 18px; font-weight: 700; color: #00d4ff;
+        border-bottom: 2px solid #0f3460;
         padding-bottom: 8px; margin-bottom: 16px;
+        text-shadow: 0 0 8px rgba(0,212,255,0.4);
     }
-    .pill-red    { background:#fef2f2; color:#dc2626; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; }
-    .pill-yellow { background:#fffbeb; color:#d97706; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; }
-    .pill-green  { background:#f0fdf4; color:#16a34a; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; }
-    .pill-grey   { background:#f3f4f6; color:#6b7280; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+
+    /* ── Pills ── */
+    .pill-red    { background: rgba(224,64,251,0.15); color: #e040fb; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; border: 1px solid rgba(224,64,251,0.3); }
+    .pill-yellow { background: rgba(255,165,0,0.15);  color: #ffa500; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; border: 1px solid rgba(255,165,0,0.3); }
+    .pill-green  { background: rgba(0,255,159,0.15);  color: #00ff9f; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; border: 1px solid rgba(0,255,159,0.3); }
+    .pill-grey   { background: rgba(98,114,164,0.15); color: #6272a4; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; border: 1px solid rgba(98,114,164,0.3); }
+
+    /* ── Tabs ── */
     div[data-testid="stSidebarNav"] { display: none; }
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 6px;
+        background: #16213e !important;
+        border-radius: 10px;
+        padding: 4px;
+    }
     .stTabs [data-baseweb="tab"] {
-        background: white; border-radius: 8px 8px 0 0;
-        font-weight: 600; color: #374151;
+        background: transparent !important;
+        border-radius: 8px 8px 0 0;
+        font-weight: 600;
+        color: #6272a4 !important;
+        transition: all 0.2s;
     }
-    .stTabs [aria-selected="true"] { background: #2563eb !important; color: white !important; }
+    .stTabs [data-baseweb="tab"]:hover { color: #00d4ff !important; }
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #0f3460, #16213e) !important;
+        color: #00d4ff !important;
+        border-bottom: 2px solid #00d4ff !important;
+        text-shadow: 0 0 8px rgba(0,212,255,0.5);
+    }
+
+    /* ── Comment cards ── */
     .comment-card {
-        background: white; border-radius: 10px; padding: 14px 18px;
-        margin-bottom: 10px; border-left: 3px solid #e5e7eb;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        background: #16213e;
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+        border-left: 3px solid #0f3460;
+        box-shadow: 0 0 8px rgba(0,0,0,0.3);
     }
-    .comment-card.neg { border-left-color: #ef4444; }
-    .comment-card.pos { border-left-color: #10b981; }
-    .comment-card.neu { border-left-color: #d1d5db; }
-    /* Hide sidebar and its toggle button entirely */
+    .comment-card.neg { border-left-color: #e040fb; box-shadow: 0 0 8px rgba(224,64,251,0.15); }
+    .comment-card.pos { border-left-color: #00ff9f; box-shadow: 0 0 8px rgba(0,255,159,0.15); }
+    .comment-card.neu { border-left-color: #6272a4; }
+
+    /* ── Streamlit native elements ── */
+    .stMetric { background: #16213e; border-radius: 10px; padding: 12px; }
+    .stMetric label { color: #6272a4 !important; }
+    .stMetric [data-testid="stMetricValue"] { color: #cdd6f4 !important; }
+    .stMetric [data-testid="stMetricDelta"] { font-size: 12px !important; }
+
+    div[data-testid="stDataFrame"] { background: #16213e; border-radius: 10px; }
+    .stSelectbox label, .stSlider label, .stRadio label { color: #cdd6f4 !important; }
+    .stSelectbox > div > div { background: #16213e !important; color: #cdd6f4 !important; border-color: #0f3460 !important; }
+    p, li, span { color: #cdd6f4; }
+    h1, h2, h3 { color: #cdd6f4 !important; }
+    .stMarkdown p { color: #cdd6f4; }
+    hr { border-color: #0f3460 !important; }
+
+    /* ── Spinner & alerts ── */
+    .stAlert { background: #16213e !important; border-color: #0f3460 !important; color: #cdd6f4 !important; }
+    [data-testid="stInfo"]    { background: rgba(0,212,255,0.08) !important; border-color: #00d4ff !important; }
+    [data-testid="stWarning"] { background: rgba(255,165,0,0.08) !important; border-color: #ffa500 !important; }
+    [data-testid="stError"]   { background: rgba(224,64,251,0.08) !important; border-color: #e040fb !important; }
+    [data-testid="stSuccess"] { background: rgba(0,255,159,0.08) !important; border-color: #00ff9f !important; }
+
+    /* ── Hide sidebar ── */
     [data-testid="collapsedControl"] { display: none !important; }
     section[data-testid="stSidebar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
+
+# ─── MATPLOTLIB TOKYO NIGHT STYLE ───────────────────────────────────────────
+import matplotlib as _mpl
+_TN = {
+    "bg":      "#1a1b2e",
+    "surface": "#16213e",
+    "grid":    "#0f3460",
+    "text":    "#cdd6f4",
+    "subtext": "#6272a4",
+    "cyan":    "#00d4ff",
+    "magenta": "#e040fb",
+    "green":   "#00ff9f",
+    "amber":   "#ffa500",
+    "purple":  "#7c3aed",
+    "red":     "#ff5555",
+}
+def tn_fig(ax, fig, title="", xlabel="", ylabel=""):
+    """Apply Tokyo Night styling to a matplotlib figure."""
+    fig.patch.set_facecolor(_TN["bg"])
+    ax.set_facecolor(_TN["surface"])
+    ax.title.set_color(_TN["cyan"]); ax.title.set_fontsize(11); ax.title.set_fontweight("bold")
+    ax.xaxis.label.set_color(_TN["subtext"]); ax.yaxis.label.set_color(_TN["subtext"])
+    ax.tick_params(colors=_TN["subtext"])
+    for spine in ax.spines.values():
+        spine.set_edgecolor(_TN["grid"])
+    ax.grid(color=_TN["grid"], linestyle="--", alpha=0.5)
+    if title:   ax.set_title(title, color=_TN["cyan"], fontsize=11, fontweight="bold")
+    if xlabel:  ax.set_xlabel(xlabel, color=_TN["subtext"], fontsize=10)
+    if ylabel:  ax.set_ylabel(ylabel, color=_TN["subtext"], fontsize=10)
 
 # ─── HELPER FUNCTIONS ────────────────────────────────────────────────────────
 RATING_SCALE = {
@@ -439,13 +534,13 @@ with tab1:
     total_phys_r = sum(risk_vals)
     fig_risk, ax_risk = plt.subplots(figsize=(10, 4.5))
     risk_labels_r = ["Clear (0)", "Monitor (1–2)", "Priority (3–4)"]
-    risk_colors_r = ["#10b981", "#f59e0b", "#ef4444"]
+    risk_colors_r = ["#00ff9f", "#ffa500", "#e040fb"]
     bars_r = ax_risk.bar(risk_labels_r, risk_vals, color=risk_colors_r,
                          edgecolor="white", linewidth=2, width=0.45)
     for bar, val in zip(bars_r, risk_vals):
         pct = val / total_phys_r * 100 if total_phys_r > 0 else 0
         ax_risk.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
-                     str(val), ha="center", va="bottom", fontweight="900", fontsize=24, color="#1f2937")
+                     str(val), ha="center", va="bottom", fontweight="900", fontsize=24, color="#cdd6f4")
         if val > 0:
             ax_risk.text(bar.get_x() + bar.get_width()/2, bar.get_height()/2,
                          f"{pct:.1f}%", ha="center", va="center",
@@ -454,7 +549,7 @@ with tab1:
     ax_risk.set_title("Composite Risk Distribution — All Physicians", fontsize=14, fontweight="bold", pad=14)
     ax_risk.tick_params(axis="x", labelsize=14)
     ax_risk.grid(axis="y", alpha=0.3, linestyle="--")
-    ax_risk.set_facecolor("#fafafa"); fig_risk.patch.set_facecolor("white")
+    ax_risk.set_facecolor("#16213e"); fig_risk.patch.set_facecolor("white")
     ax_risk.spines["top"].set_visible(False); ax_risk.spines["right"].set_visible(False)
     plt.tight_layout(); st.pyplot(fig_risk, use_container_width=True); plt.close()
 
@@ -481,9 +576,9 @@ with tab1:
     x      = np.arange(len(dept_risk_df))
     width  = 0.25
     fig_dr, ax_dr = plt.subplots(figsize=(10, 4.5))
-    b1 = ax_dr.bar(x - width, dept_risk_df["Priority"], width, color="#ef4444", alpha=0.88, label="Priority", edgecolor="white")
-    b2 = ax_dr.bar(x,          dept_risk_df["Monitor"],  width, color="#f59e0b", alpha=0.88, label="Monitor",  edgecolor="white")
-    b3 = ax_dr.bar(x + width,  dept_risk_df["Clear"],    width, color="#10b981", alpha=0.88, label="Clear",    edgecolor="white")
+    b1 = ax_dr.bar(x - width, dept_risk_df["Priority"], width, color="#e040fb", alpha=0.88, label="Priority", edgecolor="white")
+    b2 = ax_dr.bar(x,          dept_risk_df["Monitor"],  width, color="#ffa500", alpha=0.88, label="Monitor",  edgecolor="white")
+    b3 = ax_dr.bar(x + width,  dept_risk_df["Clear"],    width, color="#00ff9f", alpha=0.88, label="Clear",    edgecolor="white")
     for bars in [b1, b2, b3]:
         for bar in bars:
             h = bar.get_height()
@@ -494,14 +589,14 @@ with tab1:
     for i, row in dept_risk_df.iterrows():
         ax_dr.text(i, dept_risk_df[["Priority","Monitor","Clear"]].iloc[i].max() + 2.5,
                    f"Avg: {row['avg']}", ha="center", fontsize=9,
-                   color="#6b7280", fontweight="600")
+                   color="#6272a4", fontweight="600")
     ax_dr.set_xticks(x)
     ax_dr.set_xticklabels(dept_risk_df["dept"], fontsize=12)
     ax_dr.set_ylabel("Number of Physicians", fontsize=10)
     ax_dr.set_title("Priority · Monitor · Clear by Department", fontsize=13, fontweight="bold", pad=12)
     ax_dr.legend(fontsize=10, loc="upper right")
     ax_dr.grid(axis="y", alpha=0.3, linestyle="--")
-    ax_dr.set_facecolor("#fafafa"); fig_dr.patch.set_facecolor("white")
+    ax_dr.set_facecolor("#16213e"); fig_dr.patch.set_facecolor("white")
     ax_dr.spines["top"].set_visible(False); ax_dr.spines["right"].set_visible(False)
     plt.tight_layout(); st.pyplot(fig_dr, use_container_width=True); plt.close()
 
@@ -523,7 +618,7 @@ with tab1:
             for _, fp in top_flagged.iterrows():
                 rs = int(fp["risk_score"])
                 bg     = "#fef2f2" if rs >= 3 else "#fffbeb"
-                border = "#ef4444" if rs >= 3 else "#f59e0b"
+                border = "#e040fb" if rs >= 3 else "#ffa500"
                 label  = "⚠ Priority" if rs >= 3 else "👁 Monitor"
                 flags  = []
                 if fp.get("low_iqr_outlier", False): flags.append("IQR")
@@ -575,10 +670,10 @@ with tab1:
 
             # Sentiment bar
             fig_sent, ax_sent = plt.subplots(figsize=(4, 1.8))
-            ax_sent.barh([""], [neg_pct], color="#ef4444", alpha=0.88, label=f"Negative {neg_pct:.1f}%")
-            ax_sent.barh([""], [neu_pct], left=[neg_pct], color="#9ca3af", alpha=0.75, label=f"Neutral {neu_pct:.1f}%")
-            ax_sent.barh([""], [pos_pct], left=[neg_pct+neu_pct], color="#10b981", alpha=0.88, label=f"Positive {pos_pct:.1f}%")
-            for val, left, col in [(neg_pct,0,"#ef4444"),(neu_pct,neg_pct,"#6b7280"),(pos_pct,neg_pct+neu_pct,"#10b981")]:
+            ax_sent.barh([""], [neg_pct], color="#e040fb", alpha=0.88, label=f"Negative {neg_pct:.1f}%")
+            ax_sent.barh([""], [neu_pct], left=[neg_pct], color="#6272a4", alpha=0.75, label=f"Neutral {neu_pct:.1f}%")
+            ax_sent.barh([""], [pos_pct], left=[neg_pct+neu_pct], color="#00ff9f", alpha=0.88, label=f"Positive {pos_pct:.1f}%")
+            for val, left, col in [(neg_pct,0,"#e040fb"),(neu_pct,neg_pct,"#6272a4"),(pos_pct,neg_pct+neu_pct,"#00ff9f")]:
                 if val > 4:
                     ax_sent.text(left + val/2, 0, f"{val:.1f}%", ha="center", va="center",
                                  fontsize=9, fontweight="700", color="white")
@@ -830,20 +925,20 @@ with tab3:
             normal    = phys_d[~phys_d["low_iqr_outlier"]] if "low_iqr_outlier" in phys_d.columns else phys_d
             outliers  = phys_d[phys_d["low_iqr_outlier"]]  if "low_iqr_outlier" in phys_d.columns else phys_d.iloc[0:0]
             ax.scatter(normal.index,  normal["avg_behavior_score"],
-                       alpha=0.6, color="#3b82f6", s=55, label="Within range", zorder=3)
+                       alpha=0.6, color="#00d4ff", s=55, label="Within range", zorder=3)
             ax.scatter(outliers.index, outliers["avg_behavior_score"],
-                       color="#ef4444", s=100, zorder=5, label=f"IQR Outliers (n={len(outliers)})")
-            ax.axhline(iqr_fence, color="#ef4444", linewidth=2, linestyle="--",
+                       color="#e040fb", s=100, zorder=5, label=f"IQR Outliers (n={len(outliers)})")
+            ax.axhline(iqr_fence, color="#e040fb", linewidth=2, linestyle="--",
                        label=f"IQR Lower Fence ({iqr_fence:.2f})")
-            ax.axhline(scores_d.mean(), color="#1d4ed8", linewidth=1.5, linestyle=":",
+            ax.axhline(scores_d.mean(), color="#00d4ff", linewidth=1.5, linestyle=":",
                        label=f"Mean ({scores_d.mean():.2f})")
             ax.set_xlabel("Physician Index", fontsize=10)
             ax.set_ylabel("Avg Behaviour Score", fontsize=10)
             ax.set_title(f"{dept_sel} — IQR Score Outliers", fontsize=11, fontweight="bold")
             ax.legend(fontsize=9)
             ax.grid(alpha=0.3, linestyle="--")
-            ax.set_facecolor("#fafafa")
-            fig.patch.set_facecolor("white")
+            ax.set_facecolor("#16213e")
+            fig.patch.set_facecolor(_TN["bg"])
             st.pyplot(fig, use_container_width=True)
             plt.close()
 
@@ -853,33 +948,33 @@ with tab3:
             fig2, ax2 = plt.subplots(figsize=(6, 4.5))
             scores = phys_d["avg_behavior_score"]
             n, bins, patches = ax2.hist(scores, bins=20, edgecolor="white",
-                                         linewidth=0.8, color="#3b82f6", alpha=0.75)
+                                         linewidth=0.8, color="#00d4ff", alpha=0.75)
 
             # Colour IQR outliers red in the histogram
             Q1h, Q3h   = scores.quantile(0.25), scores.quantile(0.75)
             iqr_thresh = Q1h - 1.5 * (Q3h - Q1h)
             for patch, left_edge in zip(patches, bins[:-1]):
                 if left_edge < iqr_thresh:
-                    patch.set_facecolor("#ef4444")
+                    patch.set_facecolor("#e040fb")
                     patch.set_alpha(0.8)
 
-            ax2.axvline(scores.mean(), color="#1d4ed8", linewidth=2,
+            ax2.axvline(scores.mean(), color="#00d4ff", linewidth=2,
                         linestyle="-", label=f"Mean ({scores.mean():.2f})")
-            ax2.axvline(scores.quantile(0.10), color="#f59e0b", linewidth=1.5,
+            ax2.axvline(scores.quantile(0.10), color="#ffa500", linewidth=1.5,
                         linestyle=":", label=f"10th pct ({scores.quantile(.1):.2f})")
 
-            red_patch   = mpatches.Patch(color="#ef4444", alpha=0.8, label="Below IQR fence")
-            blue_patch  = mpatches.Patch(color="#3b82f6", alpha=0.75, label="Within range")
+            red_patch   = mpatches.Patch(color="#e040fb", alpha=0.8, label="Below IQR fence")
+            blue_patch  = mpatches.Patch(color="#00d4ff", alpha=0.75, label="Within range")
             ax2.legend(handles=[red_patch, blue_patch] +
-                       [plt.Line2D([0],[0],color="#1d4ed8",linewidth=2,label=f"Mean ({scores.mean():.2f})"),
-                        plt.Line2D([0],[0],color="#f59e0b",linewidth=1.5,linestyle=":",label=f"10th pct")],
+                       [plt.Line2D([0],[0],color="#00d4ff",linewidth=2,label=f"Mean ({scores.mean():.2f})"),
+                        plt.Line2D([0],[0],color="#ffa500",linewidth=1.5,linestyle=":",label=f"10th pct")],
                        fontsize=8)
 
             ax2.set_xlabel("Avg Behaviour Score (0–4)", fontsize=10)
             ax2.set_ylabel("Number of Physicians", fontsize=10)
             ax2.set_title(f"{dept_sel} — Colleague Comparison", fontsize=11, fontweight="bold")
             ax2.grid(axis="y", alpha=0.3, linestyle="--")
-            ax2.set_facecolor("#fafafa")
+            ax2.set_facecolor("#16213e")
             fig2.patch.set_facecolor("white")
             st.pyplot(fig2, use_container_width=True)
             plt.close()
@@ -983,9 +1078,9 @@ with tab4:
 
         fig_sb, ax_sb = plt.subplots(figsize=(10, max(4, len(depts_order)*0.45)))
         y = range(len(depts_order))
-        b1 = ax_sb.barh(list(y), neg_pct.values, color="#ef4444", alpha=0.85, label="Negative")
-        b2 = ax_sb.barh(list(y), neu_pct.values, left=neg_pct.values, color="#9ca3af", alpha=0.75, label="Neutral")
-        b3 = ax_sb.barh(list(y), pos_pct.values, left=(neg_pct+neu_pct).values, color="#10b981", alpha=0.85, label="Positive")
+        b1 = ax_sb.barh(list(y), neg_pct.values, color="#e040fb", alpha=0.85, label="Negative")
+        b2 = ax_sb.barh(list(y), neu_pct.values, left=neg_pct.values, color="#6272a4", alpha=0.75, label="Neutral")
+        b3 = ax_sb.barh(list(y), pos_pct.values, left=(neg_pct+neu_pct).values, color="#00ff9f", alpha=0.85, label="Positive")
 
         # Annotate negative % on each bar
         for i, (np_, nc) in enumerate(zip(neg_pct.values, neg_cnt.values)):
@@ -997,11 +1092,11 @@ with tab4:
         ax_sb.set_yticklabels(depts_order, fontsize=9)
         ax_sb.set_xlabel("% of Comments", fontsize=10)
         ax_sb.set_title("Sentiment Breakdown by Department (% of comments)", fontsize=12, fontweight="bold")
-        ax_sb.axvline(100, color="#e5e7eb", linewidth=0.8)
+        ax_sb.axvline(100, color="#0f3460", linewidth=0.8)
         ax_sb.legend(fontsize=9, loc="lower right")
         ax_sb.set_xlim(0, 100)
         ax_sb.grid(axis="x", alpha=0.25, linestyle="--")
-        ax_sb.set_facecolor("#fafafa")
+        ax_sb.set_facecolor("#16213e")
         fig_sb.patch.set_facecolor("white")
         plt.tight_layout()
         st.pyplot(fig_sb, use_container_width=True)
@@ -1037,9 +1132,9 @@ with tab4:
             # Left: stacked bar by year
             w = 0.5
             x = range(len(years_s))
-            ax_yr1.bar(x, neg_yr.values, width=w, color="#ef4444", alpha=0.85, label="Negative")
-            ax_yr1.bar(x, neu_yr.values, width=w, bottom=neg_yr.values, color="#9ca3af", alpha=0.75, label="Neutral")
-            ax_yr1.bar(x, pos_yr.values, width=w, bottom=(neg_yr+neu_yr).values, color="#10b981", alpha=0.85, label="Positive")
+            ax_yr1.bar(x, neg_yr.values, width=w, color="#e040fb", alpha=0.85, label="Negative")
+            ax_yr1.bar(x, neu_yr.values, width=w, bottom=neg_yr.values, color="#6272a4", alpha=0.75, label="Neutral")
+            ax_yr1.bar(x, pos_yr.values, width=w, bottom=(neg_yr+neu_yr).values, color="#00ff9f", alpha=0.85, label="Positive")
             for xi, np_ in zip(x, neg_yr.values):
                 ax_yr1.text(xi, np_/2, f"{np_:.1f}%", ha="center", va="center",
                             fontsize=9, fontweight="700", color="white")
@@ -1050,25 +1145,25 @@ with tab4:
             ax_yr1.legend(fontsize=9)
             ax_yr1.set_ylim(0, 100)
             ax_yr1.grid(axis="y", alpha=0.3, linestyle="--")
-            ax_yr1.set_facecolor("#fafafa")
+            ax_yr1.set_facecolor("#16213e")
 
             # Right: negative % trend line
-            ax_yr2.plot(years_s, neg_yr.values, color="#ef4444", linewidth=2.5,
+            ax_yr2.plot(years_s, neg_yr.values, color="#e040fb", linewidth=2.5,
                         marker="o", markersize=8, label="Negative %")
-            ax_yr2.plot(years_s, pos_yr.values, color="#10b981", linewidth=2.5,
+            ax_yr2.plot(years_s, pos_yr.values, color="#00ff9f", linewidth=2.5,
                         marker="s", markersize=8, label="Positive %")
             for yr_v, nv, pv in zip(years_s, neg_yr.values, pos_yr.values):
                 ax_yr2.annotate(f"{nv:.1f}%", (yr_v, nv), textcoords="offset points",
-                                xytext=(0, 10), ha="center", fontsize=9, color="#ef4444", fontweight="700")
+                                xytext=(0, 10), ha="center", fontsize=9, color="#e040fb", fontweight="700")
                 ax_yr2.annotate(f"{pv:.1f}%", (yr_v, pv), textcoords="offset points",
-                                xytext=(0,-15), ha="center", fontsize=9, color="#10b981", fontweight="700")
+                                xytext=(0,-15), ha="center", fontsize=9, color="#00ff9f", fontweight="700")
             ax_yr2.set_xticks(years_s)
             ax_yr2.set_xticklabels([str(y) for y in years_s], fontsize=10)
             ax_yr2.set_ylabel("% of Comments", fontsize=10)
             ax_yr2.set_title("Negative vs Positive Trend", fontsize=11, fontweight="bold")
             ax_yr2.legend(fontsize=9)
             ax_yr2.grid(alpha=0.3, linestyle="--")
-            ax_yr2.set_facecolor("#fafafa")
+            ax_yr2.set_facecolor("#16213e")
 
             fig_yr.patch.set_facecolor("white")
             plt.tight_layout()
@@ -1159,15 +1254,15 @@ with tab5:
                 st.markdown("**Average Score Trend**")
                 fig, ax = plt.subplots(figsize=(6, 4))
                 ax.plot(trend_df["Year"], trend_df["Avg Score"], "o-",
-                        color="#3b82f6", linewidth=2.5, markersize=8, label="Mean")
+                        color="#00d4ff", linewidth=2.5, markersize=8, label="Mean")
                 ax.fill_between(
                     trend_df["Year"],
                     trend_df["Avg Score"] - trend_df["Score Std"],
                     trend_df["Avg Score"] + trend_df["Score Std"],
-                    alpha=0.15, color="#3b82f6", label="±1 SD"
+                    alpha=0.15, color="#00d4ff", label="±1 SD"
                 )
                 ax.plot(trend_df["Year"], trend_df["Median Score"], "s--",
-                        color="#8b5cf6", linewidth=1.5, markersize=6, label="Median")
+                        color="#7c3aed", linewidth=1.5, markersize=6, label="Median")
                 for _, row in trend_df.iterrows():
                     ax.annotate(f"{row['Avg Score']:.2f}",
                                  (row["Year"], row["Avg Score"]),
@@ -1179,15 +1274,15 @@ with tab5:
                 ax.set_title(f"{trend_dept} Score Trend", fontsize=11, fontweight="bold")
                 ax.legend(fontsize=9)
                 ax.grid(alpha=0.3, linestyle="--")
-                ax.set_facecolor("#fafafa")
-                fig.patch.set_facecolor("white")
+                ax.set_facecolor("#16213e")
+                fig.patch.set_facecolor(_TN["bg"])
                 st.pyplot(fig, use_container_width=True)
                 plt.close()
 
             with col_t2:
                 st.markdown("**% Physicians Flagged by IQR**")
                 fig2, ax2 = plt.subplots(figsize=(6, 4))
-                bar_cols = ["#10b981" if p < 10 else ("#f59e0b" if p < 20 else "#ef4444")
+                bar_cols = ["#00ff9f" if p < 10 else ("#ffa500" if p < 20 else "#e040fb")
                             for p in trend_df["% Flagged"]]
                 bars = ax2.bar(trend_df["Year"], trend_df["% Flagged"],
                                color=bar_cols, edgecolor="white", linewidth=1.5, width=0.5)
@@ -1200,7 +1295,7 @@ with tab5:
                 ax2.set_ylabel("% Physicians Below IQR Fence", fontsize=10)
                 ax2.set_title(f"{trend_dept} — IQR Flagged Rate Over Time", fontsize=11, fontweight="bold")
                 ax2.grid(axis="y", alpha=0.3, linestyle="--")
-                ax2.set_facecolor("#fafafa")
+                ax2.set_facecolor("#16213e")
                 fig2.patch.set_facecolor("white")
                 ax2.spines["top"].set_visible(False)
                 ax2.spines["right"].set_visible(False)
@@ -1280,19 +1375,19 @@ with tab5:
                         dept_yr_list   = [yr for yr in years_avail if yr in dept_avgs]
                         dept_avg_list  = [dept_avgs[yr] for yr in dept_yr_list]
                         ax.plot(dept_yr_list, dept_avg_list, "s--",
-                                color="#9ca3af", linewidth=1.5, markersize=5,
+                                color="#6272a4", linewidth=1.5, markersize=5,
                                 label=f"{trend_dept} Mean", alpha=0.8)
 
                         # Physician score line
                         ax.plot(phys_trend["Year"], phys_trend["Avg Score"], "o-",
-                                color="#3b82f6", linewidth=2.5, markersize=9,
+                                color="#00d4ff", linewidth=2.5, markersize=9,
                                 label=f"Physician {selected_phys}", zorder=5)
 
                         # Min-max shading for spread
                         if "Min Score" in phys_trend.columns and "Max Score" in phys_trend.columns:
                             ax.fill_between(phys_trend["Year"],
                                             phys_trend["Min Score"], phys_trend["Max Score"],
-                                            alpha=0.1, color="#3b82f6", label="Score range")
+                                            alpha=0.1, color="#00d4ff", label="Score range")
 
                         # Label each data point
                         for _, row in phys_trend.iterrows():
@@ -1300,7 +1395,7 @@ with tab5:
                                         (row["Year"], row["Avg Score"]),
                                         textcoords="offset points", xytext=(0, 10),
                                         ha="center", fontsize=9, fontweight="700",
-                                        color="#1d4ed8")
+                                        color="#00d4ff")
 
                         ax.set_xticks(years_avail)
                         ax.set_xlabel("Year", fontsize=10)
@@ -1309,8 +1404,8 @@ with tab5:
                                      fontsize=11, fontweight="bold")
                         ax.legend(fontsize=9)
                         ax.grid(alpha=0.3, linestyle="--")
-                        ax.set_facecolor("#fafafa")
-                        fig.patch.set_facecolor("white")
+                        ax.set_facecolor("#16213e")
+                        fig.patch.set_facecolor(_TN["bg"])
                         st.pyplot(fig, use_container_width=True)
                         plt.close()
 
@@ -1318,7 +1413,7 @@ with tab5:
                     with col_p2:
                         st.markdown("**Evaluations Received Per Year**")
                         fig2, ax2 = plt.subplots(figsize=(6, 4))
-                        bar_colors = ["#3b82f6"] * len(phys_trend)
+                        bar_colors = ["#00d4ff"] * len(phys_trend)
                         bars = ax2.bar(phys_trend["Year"], phys_trend["Forms"],
                                        color=bar_colors, edgecolor="white",
                                        linewidth=1.5, width=0.5, alpha=0.85)
@@ -1333,7 +1428,7 @@ with tab5:
                         ax2.set_title(f"Physician {selected_phys} — Evaluations Per Year",
                                       fontsize=11, fontweight="bold")
                         ax2.grid(axis="y", alpha=0.3, linestyle="--")
-                        ax2.set_facecolor("#fafafa")
+                        ax2.set_facecolor("#16213e")
                         fig2.patch.set_facecolor("white")
                         ax2.spines["top"].set_visible(False)
                         ax2.spines["right"].set_visible(False)
@@ -1366,15 +1461,15 @@ with tab5:
 
                     if not pct_df.empty:
                         fig3, ax3 = plt.subplots(figsize=(10, 3.5))
-                        colours_pct = ["#10b981" if p >= 50 else ("#f59e0b" if p >= 25 else "#ef4444")
+                        colours_pct = ["#00ff9f" if p >= 50 else ("#ffa500" if p >= 25 else "#e040fb")
                                        for p in pct_df["Percentile Rank"]]
                         bars3 = ax3.barh(pct_df["Year"].astype(str),
                                          pct_df["Percentile Rank"],
                                          color=colours_pct, edgecolor="white",
                                          linewidth=1, height=0.45, alpha=0.85)
-                        ax3.axvline(50, color="#6b7280", linestyle="--",
+                        ax3.axvline(50, color="#6272a4", linestyle="--",
                                     linewidth=1.2, label="50th percentile")
-                        ax3.axvline(25, color="#ef4444", linestyle=":",
+                        ax3.axvline(25, color="#e040fb", linestyle=":",
                                     linewidth=1.2, label="25th percentile (concern)")
                         for bar, val in zip(bars3, pct_df["Percentile Rank"]):
                             ax3.text(val + 0.5, bar.get_y() + bar.get_height()/2,
@@ -1386,7 +1481,7 @@ with tab5:
                         ax3.set_xlim(0, 110)
                         ax3.legend(fontsize=9)
                         ax3.grid(axis="x", alpha=0.3, linestyle="--")
-                        ax3.set_facecolor("#fafafa")
+                        ax3.set_facecolor("#16213e")
                         fig3.patch.set_facecolor("white")
                         st.pyplot(fig3, use_container_width=True)
                         plt.close()
@@ -1424,21 +1519,21 @@ with tab5:
 
                         bp = ax_bp.boxplot(
                             box_data, positions=positions, widths=0.5, patch_artist=True,
-                            boxprops=dict(facecolor="#dbeafe", color="#3b82f6", linewidth=1.5),
-                            medianprops=dict(color="#1d4ed8", linewidth=2.5),
-                            whiskerprops=dict(color="#6b7280", linewidth=1.2),
-                            capprops=dict(color="#6b7280", linewidth=1.5),
-                            flierprops=dict(marker="o", color="#9ca3af", alpha=0.4, markersize=4),
+                            boxprops=dict(facecolor="#0f3460", color="#00d4ff", linewidth=1.5),
+                            medianprops=dict(color="#00d4ff", linewidth=2.5),
+                            whiskerprops=dict(color="#6272a4", linewidth=1.2),
+                            capprops=dict(color="#6272a4", linewidth=1.5),
+                            flierprops=dict(marker="o", color="#6272a4", alpha=0.4, markersize=4),
                         )
 
                         # Selected physician dot per year
                         for pos, val in sel_dots:
                             if not np.isnan(val):
-                                ax_bp.scatter(pos, val, color="#ef4444", s=120, zorder=10,
+                                ax_bp.scatter(pos, val, color="#e040fb", s=120, zorder=10,
                                               marker="D", label=f"▶ {selected_phys}" if pos == positions[0] else "")
                                 ax_bp.annotate(f"{val:.2f}", (pos, val),
                                                textcoords="offset points", xytext=(10, 0),
-                                               fontsize=9, fontweight="700", color="#ef4444")
+                                               fontsize=9, fontweight="700", color="#e040fb")
 
                         ax_bp.set_xticks(positions)
                         ax_bp.set_xticklabels([str(yr) for yr in years_avail[:len(positions)]], fontsize=11)
@@ -1447,7 +1542,7 @@ with tab5:
                         ax_bp.set_title(f"{trend_dept} — Score Distribution per Year", fontsize=11, fontweight="bold")
                         ax_bp.legend(fontsize=9, loc="lower right")
                         ax_bp.grid(axis="y", alpha=0.3, linestyle="--")
-                        ax_bp.set_facecolor("#fafafa")
+                        ax_bp.set_facecolor("#16213e")
                         fig_bp.patch.set_facecolor("white")
                         plt.tight_layout()
                         st.pyplot(fig_bp, use_container_width=True)
@@ -1463,21 +1558,21 @@ with tab5:
 
                         ax_bp2.boxplot(
                             [all_dept_scores], positions=[0], widths=0.4, patch_artist=True,
-                            boxprops=dict(facecolor="#dbeafe", color="#3b82f6", linewidth=1.5),
-                            medianprops=dict(color="#1d4ed8", linewidth=2.5),
-                            whiskerprops=dict(color="#6b7280", linewidth=1.2),
-                            capprops=dict(color="#6b7280", linewidth=1.5),
-                            flierprops=dict(marker="o", color="#9ca3af", alpha=0.4, markersize=4),
+                            boxprops=dict(facecolor="#0f3460", color="#00d4ff", linewidth=1.5),
+                            medianprops=dict(color="#00d4ff", linewidth=2.5),
+                            whiskerprops=dict(color="#6272a4", linewidth=1.2),
+                            capprops=dict(color="#6272a4", linewidth=1.5),
+                            flierprops=dict(marker="o", color="#6272a4", alpha=0.4, markersize=4),
                         )
 
                         if not np.isnan(sel_mean):
-                            ax_bp2.scatter(0, sel_mean, color="#ef4444", s=180, zorder=10,
+                            ax_bp2.scatter(0, sel_mean, color="#e040fb", s=180, zorder=10,
                                            marker="D", label=f"▶ {selected_phys} ({sel_mean:.3f})")
-                            ax_bp2.axhline(sel_mean, color="#ef4444", linestyle=":", linewidth=1.5, alpha=0.6)
+                            ax_bp2.axhline(sel_mean, color="#e040fb", linestyle=":", linewidth=1.5, alpha=0.6)
 
                         dept_median = np.median(all_dept_scores)
                         dept_mean   = np.mean(all_dept_scores)
-                        ax_bp2.axhline(dept_mean, color="#1d4ed8", linestyle="--", linewidth=1.5,
+                        ax_bp2.axhline(dept_mean, color="#00d4ff", linestyle="--", linewidth=1.5,
                                        label=f"Dept mean ({dept_mean:.3f})", alpha=0.8)
 
                         # Percentile of selected physician
@@ -1485,7 +1580,7 @@ with tab5:
                             pct = (np.array(all_dept_scores) < sel_mean).mean() * 100
                             ax_bp2.text(0.3, sel_mean, f"{pct:.0f}th percentile",
                                         fontsize=10, fontweight="700",
-                                        color="#ef4444", va="center")
+                                        color="#e040fb", va="center")
 
                         ax_bp2.set_xticks([0])
                         ax_bp2.set_xticklabels([trend_dept], fontsize=10)
@@ -1494,7 +1589,7 @@ with tab5:
                         ax_bp2.set_title("Overall Score — Physician vs Department", fontsize=11, fontweight="bold")
                         ax_bp2.legend(fontsize=9, loc="lower right")
                         ax_bp2.grid(axis="y", alpha=0.3, linestyle="--")
-                        ax_bp2.set_facecolor("#fafafa")
+                        ax_bp2.set_facecolor("#16213e")
                         fig_bp2.patch.set_facecolor("white")
                         plt.tight_layout()
                         st.pyplot(fig_bp2, use_container_width=True)
@@ -1800,8 +1895,8 @@ with tab6:
             with dv1:
                 st.markdown("**Clinic Visits by Department**")
                 fig, ax = plt.subplots(figsize=(7, max(4, len(dept_summary) * 0.42)))
-                colours = ["#ef4444" if v == dept_summary["Total_Visits"].max()
-                           else "#3b82f6" for v in dept_summary["Total_Visits"]]
+                colours = ["#e040fb" if v == dept_summary["Total_Visits"].max()
+                           else "#00d4ff" for v in dept_summary["Total_Visits"]]
                 bars = ax.barh(dept_summary["Department"], dept_summary["Total_Visits"],
                                color=colours, edgecolor="white", linewidth=0.8, alpha=0.85)
                 mx = dept_summary["Total_Visits"].max()
@@ -1811,8 +1906,8 @@ with tab6:
                 ax.set_xlabel("Total Clinic Visits", fontsize=10)
                 ax.set_title("Clinic Visits by Department", fontsize=11, fontweight="bold")
                 ax.grid(axis="x", alpha=0.3, linestyle="--")
-                ax.set_facecolor("#fafafa")
-                fig.patch.set_facecolor("white")
+                ax.set_facecolor("#16213e")
+                fig.patch.set_facecolor(_TN["bg"])
                 plt.tight_layout()
                 st.pyplot(fig, use_container_width=True)
                 plt.close()
@@ -1824,8 +1919,8 @@ with tab6:
                     st.success("No complaints recorded for this cycle.")
                 else:
                     fig2, ax2 = plt.subplots(figsize=(7, max(4, len(dept_cmp) * 0.42)))
-                    c2 = ["#ef4444" if v == dept_cmp["Total_Complaints"].max()
-                          else "#f59e0b" for v in dept_cmp["Total_Complaints"]]
+                    c2 = ["#e040fb" if v == dept_cmp["Total_Complaints"].max()
+                          else "#ffa500" for v in dept_cmp["Total_Complaints"]]
                     bars2 = ax2.barh(dept_cmp["Department"], dept_cmp["Total_Complaints"],
                                      color=c2, edgecolor="white", linewidth=0.8, alpha=0.85)
                     for bar, val in zip(bars2, dept_cmp["Total_Complaints"]):
@@ -1834,7 +1929,7 @@ with tab6:
                     ax2.set_xlabel("Total Patient Complaints", fontsize=10)
                     ax2.set_title("Patient Complaints by Department", fontsize=11, fontweight="bold")
                     ax2.grid(axis="x", alpha=0.3, linestyle="--")
-                    ax2.set_facecolor("#fafafa")
+                    ax2.set_facecolor("#16213e")
                     fig2.patch.set_facecolor("white")
                     plt.tight_layout()
                     st.pyplot(fig2, use_container_width=True)
@@ -1907,11 +2002,11 @@ with tab6:
             # Colour by complaints presence (consistent cue regardless of metric)
             if "Total_Complaints" in div_plot.columns:
                 bar_colours_div = [
-                    "#ef4444" if c >= 3 else "#f59e0b" if c >= 1 else "#3b82f6"
+                    "#e040fb" if c >= 3 else "#ffa500" if c >= 1 else "#00d4ff"
                     for c in div_plot["Total_Complaints"]
                 ]
             else:
-                bar_colours_div = ["#3b82f6"] * len(div_plot)
+                bar_colours_div = ["#00d4ff"] * len(div_plot)
 
             fig3, ax3 = plt.subplots(figsize=(9, max(4, len(div_plot) * 0.42)))
             values = div_plot[sort_col_div]
@@ -1924,7 +2019,7 @@ with tab6:
                 warn = f"  ⚠ {int(cmp)}" if cmp > 0 and div_metric != "Patient Complaints" else ""
                 ax3.text(val + mx3 * 0.005, bar.get_y() + bar.get_height() / 2,
                          fmt + warn, va="center", fontsize=8,
-                         color="#ef4444" if cmp > 0 else "#374151", fontweight="600")
+                         color="#e040fb" if cmp > 0 else "#cdd6f4", fontweight="600")
 
             ax3.set_xlabel(div_metric, fontsize=10)
             ax3.set_title(
@@ -1933,12 +2028,12 @@ with tab6:
                 fontsize=11, fontweight="bold"
             )
             ax3.grid(axis="x", alpha=0.3, linestyle="--")
-            ax3.set_facecolor("#fafafa")
+            ax3.set_facecolor("#16213e")
             fig3.patch.set_facecolor("white")
             ax3.legend(handles=[
-                mpatches.Patch(color="#3b82f6", alpha=0.87, label="No complaints"),
-                mpatches.Patch(color="#f59e0b", alpha=0.87, label="1–2 complaints"),
-                mpatches.Patch(color="#ef4444", alpha=0.87, label="3+ complaints"),
+                mpatches.Patch(color="#00d4ff", alpha=0.87, label="No complaints"),
+                mpatches.Patch(color="#ffa500", alpha=0.87, label="1–2 complaints"),
+                mpatches.Patch(color="#e040fb", alpha=0.87, label="3+ complaints"),
             ], fontsize=8, loc="lower right")
             plt.tight_layout()
             st.pyplot(fig3, use_container_width=True)
