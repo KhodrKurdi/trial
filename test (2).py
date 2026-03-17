@@ -546,6 +546,12 @@ with tab1:
 
         if all_sent_frames:
             sent_all = pd.concat(all_sent_frames, ignore_index=True)
+            # Filter out noise comments from display counts (same as deep-dive display filter)
+            _skip_t1 = {"d/a","n/a","na","n.a","n.a.","-","--","---","none","nil",".","..","...","no comment","no comments","no interaction","no interactions","not applicable","not available","no opportunity"}
+            def _is_noise(t):
+                t2 = str(t).strip().lower().rstrip(".,;:!?/ ")
+                return t2 in _skip_t1 or any(t2.startswith(p) for p in ("no comment","no interaction","no opportunity","d/a","n/a","i have never","never had the chance","haven't had the chance","i have not"))
+            sent_all = sent_all[~sent_all["comments"].astype(str).apply(_is_noise)].copy()
             total_c  = len(sent_all)
             neg_c    = (sent_all["sentiment"] == "NEGATIVE").sum()
             pos_c    = (sent_all["sentiment"] == "POSITIVE").sum()
@@ -769,7 +775,7 @@ with tab2:
                 if not phys_comments.empty:
                     yr_suffix = f", {dd_year}" if dd_year != "All Years" else ""
                     # Filter out display-only noise comments (D/A, No comment, etc.)
-                    _skip = {"d/a","n/a","na","n.a","n.a.","-","--","---","none","nil",".","no comment","no comments","no interaction","no interactions","not applicable","not available","no opportunity"}
+                    _skip = {"d/a","n/a","na","n.a","n.a.","-","--","---","none","nil",".","..","...","no comment","no comments","no interaction","no interactions","not applicable","not available","no opportunity"}
                     def _is_display_skip(t):
                         t2 = str(t).strip().lower().rstrip(".,;:!?/ ")
                         return t2 in _skip or any(t2.startswith(p) for p in ("no comment","no interaction","no opportunity","d/a","n/a","i have never","never had the chance","haven't had the chance","i have not"))
@@ -944,6 +950,12 @@ with tab4:
         st.info("No comment data available. Upload behaviour survey CSVs to enable sentiment analysis.")
     else:
         all_sent = pd.concat(sent_frames, ignore_index=True)
+        # Filter noise comments from display
+        _skip_t4 = {"d/a","n/a","na","n.a","n.a.","-","--","---","none","nil",".","..","...","no comment","no comments","no interaction","no interactions","not applicable","not available","no opportunity"}
+        def _is_noise_t4(t):
+            t2 = str(t).strip().lower().rstrip(".,;:!?/ ")
+            return t2 in _skip_t4 or any(t2.startswith(p) for p in ("no comment","no interaction","no opportunity","d/a","n/a","i have never","never had the chance","haven't had the chance","i have not"))
+        all_sent = all_sent[~all_sent["comments"].astype(str).apply(_is_noise_t4)].copy()
 
         # ── KPI row ───────────────────────────────────────────────────────────
         sc1, sc2, sc3, sc4 = st.columns(4)
