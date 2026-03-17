@@ -150,7 +150,7 @@ _mpl.rcParams.update({
     "legend.edgecolor":  "#0f3460",
     "legend.labelcolor": "#cdd6f4",
 })
-def tn_apply(fig, *axes):
+def tn_apply(fig):
     """Apply Tokyo Night theme to a matplotlib figure and any number of axes."""
     fig.patch.set_facecolor(_TN["bg"])
     for ax in axes:
@@ -423,7 +423,6 @@ sent_thresh = -0.01
 # Raw URL format: https://raw.githubusercontent.com/<user>/<repo>/main/<path>.csv
 
 GITHUB_URLS = {
-    # ── Behaviour survey CSVs (3 departments × 3 years) ──────────────────────
     # ── Behaviour survey CSVs (3 departments × 3 years) ──────────────────────
     "aubmc_23": "AUBMC, Behavior survey responses, 2023.csv",
     "aubmc_24": "AUBMC, Behavior survey responses, 2024.csv",
@@ -1012,7 +1011,7 @@ with tab3:
             ax2.grid(axis="y", alpha=0.3, linestyle="--")
             ax2.set_facecolor("#16213e")
             fig2.patch.set_facecolor(_TN["bg"])
-            tn_apply(fig2, patch, ax2)
+            tn_apply(fig2, ax2)
             st.pyplot(fig2, use_container_width=True)
             plt.close()
 
