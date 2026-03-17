@@ -185,7 +185,9 @@ def run_sentiment(df, threshold=-0.05):
     # Also filter by prefix for longer "never had the chance..." variants
     def _is_skip(text):
         t = text.strip().lower()
-        if t in SKIP_COMMENTS:
+        # Strip trailing punctuation for matching (e.g. "No comment." → "no comment")
+        t_clean = t.rstrip(".,;:!? ")
+        if t_clean in SKIP_COMMENTS or t in SKIP_COMMENTS:
             return True
         skip_prefixes = (
             "i have never had the chance",
@@ -196,8 +198,9 @@ def run_sentiment(df, threshold=-0.05):
             "no opportunity",
             "haven't had the chance",
             "have not had the chance",
+            "no comment",
         )
-        return any(t.startswith(p) for p in skip_prefixes)
+        return any(t_clean.startswith(p) or t.startswith(p) for p in skip_prefixes)
     df_s = df[
         (df.get("raters_group", pd.Series(dtype=str)) != "Faculty Self-Evaluation") &
         (df["comments"].notna()) &
