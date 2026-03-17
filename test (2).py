@@ -29,7 +29,11 @@ st.markdown("""
     .stApp, .main, [data-testid="stAppViewContainer"] {
         background-color: #e8f4fd !important;
     }
-    [data-testid="stHeader"] { background-color: #2b7bc8 !important; }
+    [data-testid="stHeader"] { background-color: #e8f4fd !important; }
+    /* Hide Streamlit toolbar (Deploy, Share, etc.) */
+    [data-testid="stToolbar"] { display: none !important; }
+    [data-testid="stDecoration"] { display: none !important; }
+    header[data-testid="stHeader"] { height: 0 !important; min-height: 0 !important; }
     .block-container { padding-top: 1.5rem !important; }
 
     /* ── Metric cards ── */
@@ -106,7 +110,25 @@ st.markdown("""
     .stMetric [data-testid="stMetricValue"] { color: #1a365d !important; }
     .stMetric [data-testid="stMetricDelta"] { font-size: 12px !important; }
 
+    /* ── DataFrames / Tables ── */
     div[data-testid="stDataFrame"] { background: #ffffff; border-radius: 10px; }
+    div[data-testid="stDataFrame"] * { color: #1a365d !important; }
+    div[data-testid="stDataFrame"] canvas { filter: none !important; }
+    .dvn-scroller { background: #ffffff !important; }
+    /* Table header row */
+    div[data-testid="stDataFrame"] [role="columnheader"] {
+        background-color: #2b7bc8 !important;
+        color: #ffffff !important;
+    }
+    /* Table cells */
+    div[data-testid="stDataFrame"] [role="gridcell"] {
+        background-color: #ffffff !important;
+        color: #1a365d !important;
+    }
+    /* Alternating rows */
+    div[data-testid="stDataFrame"] [role="row"]:nth-child(even) [role="gridcell"] {
+        background-color: #f0f8ff !important;
+    }
     .stSelectbox label, .stSlider label, .stRadio label { color: #1a365d !important; }
     .stSelectbox > div > div { background: #ffffff !important; color: #1a365d !important; border-color: #bee3f8 !important; }
     p, li, span { color: #1a365d; }
