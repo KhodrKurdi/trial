@@ -150,25 +150,25 @@ _mpl.rcParams.update({
     "legend.edgecolor":  "#0f3460",
     "legend.labelcolor": "#cdd6f4",
 })
-def tn_apply(fig):
-    """Apply Tokyo Night theme to a matplotlib figure and any number of axes."""
-    fig.patch.set_facecolor(_TN["bg"])
+def tn_apply(fig, *axes):
+    """Apply Tokyo Night theme to a matplotlib figure and any axes passed in."""
+    try: fig.patch.set_facecolor(_TN["bg"])
+    except Exception: pass
     for ax in axes:
-        ax.set_facecolor(_TN["surface"])
-        ax.tick_params(colors=_TN["subtext"], labelsize=9)
-        for sp in ax.spines.values():
-            sp.set_edgecolor(_TN["grid"])
-        ax.xaxis.label.set_color(_TN["subtext"])
-        ax.yaxis.label.set_color(_TN["subtext"])
-        ax.title.set_color(_TN["cyan"])
-        ax.grid(color=_TN["grid"], linestyle="--", alpha=0.4)
-        # Make legend text white if legend exists
-        leg = ax.get_legend()
-        if leg:
-            leg.get_frame().set_facecolor(_TN["surface"])
-            leg.get_frame().set_edgecolor(_TN["grid"])
-            for txt in leg.get_texts():
-                txt.set_color(_TN["text"])
+        try:
+            if not hasattr(ax, "set_facecolor"): continue
+            ax.set_facecolor(_TN["surface"])
+            ax.tick_params(colors=_TN["subtext"], labelsize=9)
+            for sp in ax.spines.values(): sp.set_edgecolor(_TN["grid"])
+            ax.xaxis.label.set_color(_TN["subtext"])
+            ax.yaxis.label.set_color(_TN["subtext"])
+            ax.title.set_color(_TN["cyan"])
+            leg = ax.get_legend()
+            if leg:
+                leg.get_frame().set_facecolor(_TN["surface"])
+                leg.get_frame().set_edgecolor(_TN["grid"])
+                for txt in leg.get_texts(): txt.set_color(_TN["text"])
+        except Exception: pass
 
 _TN = {
     "bg":      "#1a1b2e",
