@@ -218,7 +218,7 @@ def risk_pill(score):
     if score >= 1:   return '<span class="pill-yellow">👁 Monitor</span>'
     return '<span class="pill-green">✓ Clear</span>'
 
-def process_dept(df_raw, dept_name, threshold=-0.05):
+def process_dept(df_raw, dept_name, threshold=-0.05, min_f=3):
     df = clean_headers(df_raw)
     df = map_ratings(df)
     df = compute_score(df)
@@ -226,6 +226,9 @@ def process_dept(df_raw, dept_name, threshold=-0.05):
     # Aggregate and flag on 2025 only — consistent with notebook methodology
     df_2025 = df[df["year"] == 2025] if ("year" in df.columns and not df[df["year"] == 2025].empty) else df
     phys = aggregate_physician(df_2025)
+    # Apply min_forms BEFORE outlier detection so thresholds are computed
+    # on the same population that will appear in results (matches notebook)
+    phys = phys[phys["n_forms"] >= min_f].copy().reset_index(drop=True)
     phys, mean, std = add_outlier_flags(phys)
     sent_raw = run_sentiment(df, threshold) if "comments" in df.columns else pd.DataFrame()
     if not sent_raw.empty:
@@ -282,16 +285,11 @@ def load_and_process(files_aubmc, files_ed, files_patho, min_f, threshold, _vers
         frames = [pd.read_csv(f) for f in file_list if f is not None]
         if not frames: return None, None, None
         raw = pd.concat(frames, ignore_index=True)
-        return process_dept(raw, name, threshold)
+        return process_dept(raw, name, threshold, min_f=min_f)
 
     aubmc_raw, aubmc_phys, aubmc_sent = load_dept(files_aubmc, "AUBMC")
     ed_raw,    ed_phys,    ed_sent    = load_dept(files_ed,    "ED")
     patho_raw, patho_phys, patho_sent = load_dept(files_patho, "Pathology")
-
-    # apply min_forms filter
-    for phys in [aubmc_phys, ed_phys, patho_phys]:
-        if phys is not None:
-            phys.drop(phys[phys["n_forms"] < min_f].index, inplace=True)
 
     return {
         "AUBMC":     (aubmc_raw, aubmc_phys, aubmc_sent),
