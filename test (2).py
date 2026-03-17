@@ -271,7 +271,6 @@ GITHUB_URLS = {
     # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
     "indicators": "Physicians indicators.csv",
 }
-
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def load_from_github(urls, min_f, threshold, _version="v5.0"):
