@@ -16,7 +16,7 @@ st.set_page_config(
     page_title="AUBMC Physician Performance Dashboard",
     page_icon="🏥",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # ─── CUSTOM CSS ──────────────────────────────────────────────────────────────
@@ -62,6 +62,9 @@ st.markdown("""
     .comment-card.neg { border-left-color: #ef4444; }
     .comment-card.pos { border-left-color: #10b981; }
     .comment-card.neu { border-left-color: #d1d5db; }
+    /* Hide sidebar and its toggle button entirely */
+    [data-testid="collapsedControl"] { display: none !important; }
+    section[data-testid="stSidebar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -245,9 +248,16 @@ def process_dept(df_raw, dept_name, threshold=-0.05, min_f=3):
     phys["department"] = dept_name
     return df, phys, sent_raw
 
+# ─── FIXED SETTINGS ──────────────────────────────────────────────────────────
+min_forms   = 1
+sent_thresh = -0.01
+
 # ─── GITHUB DATA SOURCES ─────────────────────────────────────────────────────
-# Replace these URLs with your raw GitHub CSV links
+# Replace each value below with your raw GitHub URL
+# Raw URL format: https://raw.githubusercontent.com/<user>/<repo>/main/<path>.csv
+
 GITHUB_URLS = {
+    # ── Behaviour survey CSVs (3 departments × 3 years) ──────────────────────
     "aubmc_23": "AUBMC, Behavior survey responses, 2023.csv",
     "aubmc_24": "AUBMC, Behavior survey responses, 2024.csv",
     "aubmc_25": "AUBMC, Behavior raw data 2025.csv",
@@ -257,19 +267,10 @@ GITHUB_URLS = {
     "patho_23": "Patho & Lab, Behavior survey responses, 2023.csv",
     "patho_24": "Patho,lab behavior survey responses, 2024.csv",
     "patho_25": "Patho,Lab, Behavior raw data 2025.csv",
-}
 
-# ─── SIDEBAR ─────────────────────────────────────────────────────────────────
-with st.sidebar:
-    st.markdown("## 🏥 AUBMC Dashboard")
-    st.markdown("**Physician Behaviour Performance**")
-    st.markdown("---")
-    st.markdown("### 🔧 Settings")
-    min_forms   = st.slider("Min. evaluations to include", 1, 20, 1)
-    sent_thresh = st.slider("VADER negative threshold", -0.5, 0.0, -0.01, 0.01,
-                            help="Compound score ≤ this value = NEGATIVE")
-    st.markdown("---")
-    st.markdown("**v5.0 · VADER Sentiment**  \n*All IDs anonymised*", unsafe_allow_html=True)
+    # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
+    "indicators": "Physicians indicators.csv",
+}
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
@@ -1569,20 +1570,31 @@ DIV_TO_DEPT = {
 with tab6:
     st.markdown('<div class="section-header">🏢 Departments & Divisions — Indicators Analysis</div>', unsafe_allow_html=True)
 
-    _ind_already_uploaded = st.session_state.get("ind_upload") is not None
-    with st.expander("📂 Upload Physicians Indicators CSV", expanded=not _ind_already_uploaded):
-        ind_file = st.file_uploader(
-            "Upload CSV", type="csv", key="ind_upload", label_visibility="collapsed",
-            help="Expected columns: Aubnetid, FiscalCycle, Division, ClinicVisits, ClinicWaitingTime, PatientComplaints"
-        )
+    @st.cache_data(show_spinner=False)
+    def load_indicators(url, _version="v5.0"):
+        if not url or url.startswith("REPLACE"):
+            return None
+        try:
+            df = pd.read_csv(url)
+        except Exception as e:
+            st.warning(f"Could not load indicators file: {e}")
+            return None
+        df.columns = df.columns.str.strip()
+        if "Division" in df.columns:
+            df["Division_norm"] = df["Division"].str.strip()
+        if "Department" in df.columns:
+            df["Department"] = df["Department"].str.strip()
+        for col in ["ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
+        return df
 
-    if ind_file is None:
-        col_land1, col_land2 = st.columns([1, 1])
-        with col_land1:
-            st.info("👆 Upload your indicators file to begin.")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.0")
+
+    if ind_df is None:
+        st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'] in the source file.")
         st.markdown("---")
         st.markdown('<div class="section-header">📋 AUBMC Organisational Structure</div>', unsafe_allow_html=True)
-        st.caption("This reference panel is hidden once you upload your indicators file.")
         org_cols = st.columns(2)
         dept_list = list(DEPT_DIVISION_MAP.keys())
         half = len(dept_list) // 2
@@ -1597,23 +1609,6 @@ with tab6:
                     else:
                         st.markdown(f"**{dept}**")
     else:
-
-        @st.cache_data
-        def load_indicators(file):
-            df = pd.read_csv(file)
-            df.columns = df.columns.str.strip()
-            # Department and Division columns come directly from the file
-            if "Division" in df.columns:
-                df["Division_norm"] = df["Division"].str.strip()
-            if "Department" in df.columns:
-                df["Department"] = df["Department"].str.strip()
-            for col in ["ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]:
-                if col in df.columns:
-                    df[col] = pd.to_numeric(df[col], errors="coerce")
-            return df
-
-
-        ind_df = load_indicators(ind_file)
 
         # ── Cycle filter ──────────────────────────────────────────────────────
         cycles = ["All"] + sorted(ind_df["FiscalCycle"].dropna().unique().tolist(), reverse=True) \
