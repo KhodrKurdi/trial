@@ -248,15 +248,15 @@ def process_dept(df_raw, dept_name, threshold=-0.05, min_f=3):
 # ─── GITHUB DATA SOURCES ─────────────────────────────────────────────────────
 # Replace these URLs with your raw GitHub CSV links
 GITHUB_URLS = {
-    "aubmc_23": "REPLACE_WITH_AUBMC_2023_URL",
-    "aubmc_24": "REPLACE_WITH_AUBMC_2024_URL",
-    "aubmc_25": "REPLACE_WITH_AUBMC_2025_URL",
-    "ed_23":    "REPLACE_WITH_ED_2023_URL",
-    "ed_24":    "REPLACE_WITH_ED_2024_URL",
-    "ed_25":    "REPLACE_WITH_ED_2025_URL",
-    "patho_23": "REPLACE_WITH_PATHO_2023_URL",
-    "patho_24": "REPLACE_WITH_PATHO_2024_URL",
-    "patho_25": "REPLACE_WITH_PATHO_2025_URL",
+    "aubmc_23": "AUBMC, Behavior survey responses, 2023.csv",
+    "aubmc_24": "AUBMC, Behavior survey responses, 2024.csv",
+    "aubmc_25": "AUBMC, Behavior raw data 2025.csv",
+    "ed_23":    "ED, Behavior survey responses, 2023.csv",
+    "ed_24":    "ED, Behavior survey responses, 2024.csv",
+    "ed_25":    "ED, Behavior raw data 2025.csv",
+    "patho_23": "ED, Behavior raw data 2025.csv",
+    "patho_24": "ED, Behavior raw data 2025.csv",
+    "patho_25": "ED, Behavior raw data 2025.csv",
 }
 
 # ─── SIDEBAR ─────────────────────────────────────────────────────────────────
