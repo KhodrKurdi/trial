@@ -806,7 +806,7 @@ with tab1:
             "Sentiment Flags": int(phys['negative_outlier'].sum()) if 'negative_outlier' in phys.columns else 0,
         }
         summary_rows.append(row)
-    st.dataframe(pd.DataFrame(summary_rows, use_container_width=True, hide_index=True))
+    st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -864,7 +864,7 @@ with tab2:
     if "Avg Compound" in show_df.columns:
         show_df["Avg Compound"] = show_df["Avg Compound"].apply(lambda x: f"{x:.3f}" if pd.notna(x) else "—")
 
-    st.dataframe(show_df.reset_index(drop=True, use_container_width=True, hide_index=True))
+    st.dataframe(show_df.reset_index(drop=True), use_container_width=True, hide_index=True)
 
     # CSV export
     csv_out = df_view.to_csv(index=False).encode("utf-8")
@@ -1099,7 +1099,7 @@ with tab3:
             "risk_score":         "Risk Score",
         }
         rank_df = rank_df.rename(columns={k:v for k,v in col_rename.items() if k in rank_df.columns})
-        st.dataframe(rank_df.reset_index(drop=True, use_container_width=True, hide_index=True))
+        st.dataframe(rank_df.reset_index(drop=True), use_container_width=True, hide_index=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
