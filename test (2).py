@@ -173,12 +173,36 @@ def score_vader(text, threshold=-0.05):
 
 def run_sentiment(df, threshold=-0.05):
     # Meaningless comment values to exclude
-    SKIP_COMMENTS = {"d/a", "n/a", "na", "n.a", "n.a.", "-", "--", "---", "none", "nil", ".", "no comment", "no comments"}
+    SKIP_COMMENTS = {
+        "d/a", "n/a", "na", "n.a", "n.a.", "-", "--", "---", "none", "nil", ".",
+        "no comment", "no comments", "no interaction", "no interactions",
+        "i have never had the chance to work with", "never had the chance to work with",
+        "i have not had the chance to work with", "not had the chance to work with",
+        "i have never worked with", "never worked with",
+        "i have not worked with", "no opportunity to work with",
+        "no opportunity", "not applicable", "not available",
+    }
+    # Also filter by prefix for longer "never had the chance..." variants
+    def _is_skip(text):
+        t = text.strip().lower()
+        if t in SKIP_COMMENTS:
+            return True
+        skip_prefixes = (
+            "i have never had the chance",
+            "i have not had the chance",
+            "never had the chance",
+            "i never had the chance",
+            "no interaction",
+            "no opportunity",
+            "haven't had the chance",
+            "have not had the chance",
+        )
+        return any(t.startswith(p) for p in skip_prefixes)
     df_s = df[
         (df.get("raters_group", pd.Series(dtype=str)) != "Faculty Self-Evaluation") &
         (df["comments"].notna()) &
         (df["comments"].astype(str).str.strip() != "") &
-        (~df["comments"].astype(str).str.strip().str.lower().isin(SKIP_COMMENTS))
+        (~df["comments"].astype(str).str.strip().apply(_is_skip))
     ].copy()
     df_s["comments"] = df_s["comments"].astype(str).str.strip()
     results = df_s["comments"].apply(lambda t: score_vader(t, threshold))
@@ -253,7 +277,7 @@ def process_dept(df_raw, dept_name, threshold=-0.05, min_f=3):
 
 # ─── FIXED SETTINGS ──────────────────────────────────────────────────────────
 min_forms   = 1
-sent_thresh = -0.01
+sent_thresh = -0.3
 
 # ─── GITHUB DATA SOURCES ─────────────────────────────────────────────────────
 # Replace each value below with your raw GitHub URL
@@ -273,9 +297,6 @@ GITHUB_URLS = {
 
     # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
     "indicators": "Physicians indicators.csv",
-
-    # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
-    "indicators": "REPLACE_WITH_INDICATORS_URL",
 }
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
