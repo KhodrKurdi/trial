@@ -768,8 +768,14 @@ with tab2:
                     phys_comments = phys_comments[phys_comments["year"] == int(dd_year)]
                 if not phys_comments.empty:
                     yr_suffix = f", {dd_year}" if dd_year != "All Years" else ""
-                    st.markdown(f"**Peer Comments** ({len(phys_comments)} total{yr_suffix}):")
-                    for _, crow in phys_comments.sort_values("compound").iterrows():
+                    # Filter out display-only noise comments (D/A, No comment, etc.)
+                    _skip = {"d/a","n/a","na","n.a","n.a.","-","--","---","none","nil",".","no comment","no comments","no interaction","no interactions","not applicable","not available","no opportunity"}
+                    def _is_display_skip(t):
+                        t2 = str(t).strip().lower().rstrip(".,;:!?/ ")
+                        return t2 in _skip or any(t2.startswith(p) for p in ("no comment","no interaction","no opportunity","d/a","n/a","i have never","never had the chance","haven't had the chance","i have not"))
+                    phys_comments_display = phys_comments[~phys_comments["comments"].astype(str).apply(_is_display_skip)]
+                    st.markdown(f"**Peer Comments** ({len(phys_comments_display)} total{yr_suffix}):")
+                    for _, crow in phys_comments_display.sort_values("compound").iterrows():
                         css_class = "neg" if crow["sentiment"]=="NEGATIVE" else ("pos" if crow["sentiment"]=="POSITIVE" else "neu")
                         emoji     = "🔴" if crow["sentiment"]=="NEGATIVE" else ("🟢" if crow["sentiment"]=="POSITIVE" else "⚪")
                         year_str  = str(int(crow["year"])) if "year" in crow and pd.notna(crow.get("year")) else "—"
