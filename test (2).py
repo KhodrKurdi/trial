@@ -245,51 +245,54 @@ def process_dept(df_raw, dept_name, threshold=-0.05, min_f=3):
     phys["department"] = dept_name
     return df, phys, sent_raw
 
+# ─── GITHUB DATA SOURCES ─────────────────────────────────────────────────────
+# Replace these URLs with your raw GitHub CSV links
+GITHUB_URLS = {
+    "aubmc_23": "REPLACE_WITH_AUBMC_2023_URL",
+    "aubmc_24": "REPLACE_WITH_AUBMC_2024_URL",
+    "aubmc_25": "REPLACE_WITH_AUBMC_2025_URL",
+    "ed_23":    "REPLACE_WITH_ED_2023_URL",
+    "ed_24":    "REPLACE_WITH_ED_2024_URL",
+    "ed_25":    "REPLACE_WITH_ED_2025_URL",
+    "patho_23": "REPLACE_WITH_PATHO_2023_URL",
+    "patho_24": "REPLACE_WITH_PATHO_2024_URL",
+    "patho_25": "REPLACE_WITH_PATHO_2025_URL",
+}
+
 # ─── SIDEBAR ─────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🏥 AUBMC Dashboard")
     st.markdown("**Physician Behaviour Performance**")
     st.markdown("---")
-    st.markdown("### 📁 Upload Data Files")
-    st.markdown("Upload CSV exports from BLUE Explorance for each department and year.")
-
-    with st.expander("AUBMC General", expanded=True):
-        f_aubmc_23 = st.file_uploader("AUBMC 2023", type="csv", key="a23")
-        f_aubmc_24 = st.file_uploader("AUBMC 2024", type="csv", key="a24")
-        f_aubmc_25 = st.file_uploader("AUBMC 2025", type="csv", key="a25")
-
-    with st.expander("Emergency Department", expanded=False):
-        f_ed_23 = st.file_uploader("ED 2023", type="csv", key="e23")
-        f_ed_24 = st.file_uploader("ED 2024", type="csv", key="e24")
-        f_ed_25 = st.file_uploader("ED 2025", type="csv", key="e25")
-
-    with st.expander("Pathology & Lab", expanded=False):
-        f_patho_23 = st.file_uploader("Patho 2023", type="csv", key="p23")
-        f_patho_24 = st.file_uploader("Patho 2024", type="csv", key="p24")
-        f_patho_25 = st.file_uploader("Patho 2025", type="csv", key="p25")
-
-    st.markdown("---")
     st.markdown("### 🔧 Settings")
-    min_forms   = st.slider("Min. evaluations to include", 1, 20, 3)
-    sent_thresh = st.slider("VADER negative threshold", -0.5, 0.0, -0.05, 0.01,
+    min_forms   = st.slider("Min. evaluations to include", 1, 20, 1)
+    sent_thresh = st.slider("VADER negative threshold", -0.5, 0.0, -0.01, 0.01,
                             help="Compound score ≤ this value = NEGATIVE")
     st.markdown("---")
     st.markdown("**v5.0 · VADER Sentiment**  \n*All IDs anonymised*", unsafe_allow_html=True)
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_and_process(files_aubmc, files_ed, files_patho, min_f, threshold, _version="v5.0"):
-    depts = {}
+def load_from_github(urls, min_f, threshold, _version="v5.0"):
+    def fetch(url):
+        if not url or url.startswith("REPLACE"):
+            return None
+        try:
+            return pd.read_csv(url)
+        except Exception as e:
+            st.warning(f"Could not load {url}: {e}")
+            return None
 
-    def load_dept(file_list, name):
-        frames = [pd.read_csv(f) for f in file_list if f is not None]
+    def load_dept(keys, name):
+        frames = [fetch(urls[k]) for k in keys]
+        frames = [f for f in frames if f is not None]
         if not frames: return None, None, None
         raw = pd.concat(frames, ignore_index=True)
         return process_dept(raw, name, threshold, min_f=min_f)
 
-    aubmc_raw, aubmc_phys, aubmc_sent = load_dept(files_aubmc, "AUBMC")
-    ed_raw,    ed_phys,    ed_sent    = load_dept(files_ed,    "ED")
-    patho_raw, patho_phys, patho_sent = load_dept(files_patho, "Pathology")
+    aubmc_raw, aubmc_phys, aubmc_sent = load_dept(["aubmc_23","aubmc_24","aubmc_25"], "AUBMC")
+    ed_raw,    ed_phys,    ed_sent    = load_dept(["ed_23","ed_24","ed_25"],           "ED")
+    patho_raw, patho_phys, patho_sent = load_dept(["patho_23","patho_24","patho_25"], "Pathology")
 
     return {
         "AUBMC":     (aubmc_raw, aubmc_phys, aubmc_sent),
@@ -297,63 +300,10 @@ def load_and_process(files_aubmc, files_ed, files_patho, min_f, threshold, _vers
         "Pathology": (patho_raw, patho_phys, patho_sent),
     }
 
-files_aubmc = [f_aubmc_23, f_aubmc_24, f_aubmc_25]
-files_ed    = [f_ed_23,    f_ed_24,    f_ed_25]
-files_patho = [f_patho_23, f_patho_24, f_patho_25]
-
-any_uploaded = any(f is not None for f in files_aubmc + files_ed + files_patho)
-
-if not any_uploaded:
-    # ── LANDING PAGE ─────────────────────────────────────────────────────────
-    st.markdown("# 🏥 AUBMC Physician Performance Dashboard")
-    st.markdown("### Multi-method outlier detection · VADER sentiment · 2023–2025")
-    st.markdown("---")
-
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.markdown("""
-        <div class="metric-card">
-            <div class="metric-label">Methodology</div>
-            <div style="margin-top:8px; font-size:14px; color:#374151; line-height:1.6">
-                📏 IQR Outlier Detection<br>
-                📉 Z-Score Analysis<br>
-                🔢 Bottom 10% Threshold<br>
-                🔗 Complaints × Sentiment
-            </div>
-        </div>""", unsafe_allow_html=True)
-    with c2:
-        st.markdown("""
-        <div class="metric-card warning">
-            <div class="metric-label">Sentiment Engine</div>
-            <div style="margin-top:8px; font-size:14px; color:#374151; line-height:1.6">
-                💬 VADER NLP (rule-based)<br>
-                📝 Free-text comment scoring<br>
-                🔄 −1.0 to +1.0 compound scale<br>
-                🚫 Self-evaluations excluded
-            </div>
-        </div>""", unsafe_allow_html=True)
-    with c3:
-        st.markdown("""
-        <div class="metric-card success">
-            <div class="metric-label">Coverage</div>
-            <div style="margin-top:8px; font-size:14px; color:#374151; line-height:1.6">
-                🏥 3 Departments<br>
-                📅 3 Years (2023–2025)<br>
-                🔒 Anonymised physician IDs<br>
-                📤 Export-ready outputs
-            </div>
-        </div>""", unsafe_allow_html=True)
-
-    st.markdown("---")
-    st.info("👈 Upload your CSV files in the sidebar to begin. You can upload one or all three departments.")
-    st.stop()
-
 # ── PROCESS DATA ─────────────────────────────────────────────────────────────
-with st.spinner("Processing data and running VADER sentiment analysis..."):
-    data = load_and_process(
-        tuple(f for f in files_aubmc),
-        tuple(f for f in files_ed),
-        tuple(f for f in files_patho),
+with st.spinner("Loading data from GitHub and running VADER sentiment analysis..."):
+    data = load_from_github(
+        GITHUB_URLS,
         min_forms,
         sent_thresh,
         _version="v5.0"
