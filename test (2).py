@@ -199,6 +199,8 @@ def run_sentiment(df, threshold=-0.05):
             "haven't had the chance",
             "have not had the chance",
             "no comment",
+            "d/a",
+            "n/a",
         )
         return any(t_clean.startswith(p) or t.startswith(p) for p in skip_prefixes)
     df_s = df[
