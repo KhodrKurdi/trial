@@ -271,6 +271,7 @@ GITHUB_URLS = {
     # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
     "indicators": "Physicians indicators.csv",
 }
+
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def load_from_github(urls, min_f, threshold, _version="v5.0"):
@@ -1574,7 +1575,15 @@ with tab6:
         if not url or url.startswith("REPLACE"):
             return None
         try:
-            df = pd.read_csv(url)
+            for enc in ["utf-8", "latin-1", "cp1252", "iso-8859-1"]:
+                try:
+                    df = pd.read_csv(url, encoding=enc)
+                    break
+                except (UnicodeDecodeError, Exception):
+                    continue
+            else:
+                st.warning("Could not decode indicators file with any known encoding.")
+                return None
         except Exception as e:
             st.warning(f"Could not load indicators file: {e}")
             return None
