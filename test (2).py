@@ -2176,7 +2176,7 @@ DATA CONTEXT:
                         gemini_contents.append({"role": role, "parts": [{"text": m["content"]}]})
                     gemini_contents.append({"role": "user", "parts": [{"text": user_input}]})
                     response = requests.post(
-                        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
+                        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}",
                         headers={"Content-Type": "application/json"},
                         json={"contents": gemini_contents,
                               "generationConfig": {"maxOutputTokens": 1024, "temperature": 0.2}},
