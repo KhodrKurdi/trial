@@ -19,52 +19,140 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ─── CUSTOM CSS ──────────────────────────────────────────────────────────────
+# ─── AUBMC BRAND THEME ───────────────────────────────────────────────────────
+# Palette: Navy #1a365d | AUBMC Blue #2b7bc8 | Sky #e8f4fd | White #ffffff
 st.markdown("""
 <style>
-    .main { background-color: #f8f9fb; }
+    /* ── Global ── */
+    .stApp, .main, [data-testid="stAppViewContainer"] {
+        background-color: #f0f6fc !important;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    [data-testid="stHeader"]  { background-color: #f0f6fc !important; }
+    [data-testid="stToolbar"] { display: none !important; }
+    [data-testid="stDecoration"] { display: none !important; }
+    header[data-testid="stHeader"] { height: 0 !important; min-height: 0 !important; }
+    .block-container { padding-top: 2rem !important; max-width: 1200px !important; }
+
+    /* ── Metric Cards ── */
     .metric-card {
         background: white;
         border-radius: 12px;
         padding: 20px 24px;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        border-left: 4px solid #2563eb;
+        box-shadow: 0 2px 12px rgba(43,123,200,0.10);
+        border-left: 4px solid #2b7bc8;
         margin-bottom: 8px;
+        transition: box-shadow 0.2s;
     }
-    .metric-card.warning { border-left-color: #f59e0b; }
-    .metric-card.danger  { border-left-color: #ef4444; }
-    .metric-card.success { border-left-color: #10b981; }
-    .metric-card.neutral { border-left-color: #6366f1; }
-    .metric-label { font-size: 12px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .metric-value { font-size: 32px; font-weight: 700; color: #111827; line-height: 1.2; }
-    .metric-sub   { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+    .metric-card:hover { box-shadow: 0 4px 20px rgba(43,123,200,0.18); }
+    .metric-card.warning { border-left-color: #f59e0b; box-shadow: 0 2px 12px rgba(245,158,11,0.10); }
+    .metric-card.danger  { border-left-color: #e53e3e; box-shadow: 0 2px 12px rgba(229,62,62,0.10); }
+    .metric-card.success { border-left-color: #38a169; box-shadow: 0 2px 12px rgba(56,161,105,0.10); }
+    .metric-card.neutral { border-left-color: #6b7280; }
+    .metric-label { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    .metric-value { font-size: 34px; font-weight: 800; color: #1a365d; line-height: 1.15; }
+    .metric-sub   { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+
+    /* ── Section Headers ── */
     .section-header {
-        font-size: 18px; font-weight: 700; color: #1f2937;
-        border-bottom: 2px solid #e5e7eb;
-        padding-bottom: 8px; margin-bottom: 16px;
+        font-size: 17px; font-weight: 700; color: #1a365d;
+        border-left: 4px solid #2b7bc8;
+        padding: 6px 0 6px 14px;
+        margin-bottom: 18px; margin-top: 4px;
+        background: linear-gradient(90deg, rgba(43,123,200,0.06) 0%, transparent 100%);
+        border-radius: 0 6px 6px 0;
     }
-    .pill-red    { background:#fef2f2; color:#dc2626; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; }
-    .pill-yellow { background:#fffbeb; color:#d97706; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; }
-    .pill-green  { background:#f0fdf4; color:#16a34a; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; }
-    .pill-grey   { background:#f3f4f6; color:#6b7280; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; }
+
+    /* ── Pills ── */
+    .pill-red    { background:#fff0f0; color:#c53030; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid #fed7d7; }
+    .pill-yellow { background:#fffbeb; color:#b7791f; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid #fef3c7; }
+    .pill-green  { background:#f0fff4; color:#276749; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid #c6f6d5; }
+    .pill-grey   { background:#f1f5f9; color:#475569; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid #e2e8f0; }
+
+    /* ── Tabs ── */
     div[data-testid="stSidebarNav"] { display: none; }
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
-    .stTabs [data-baseweb="tab"] {
-        background: white; border-radius: 8px 8px 0 0;
-        font-weight: 600; color: #374151;
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 4px;
+        background: white !important;
+        border-radius: 12px 12px 0 0;
+        padding: 6px 6px 0 6px;
+        border-bottom: 2px solid #2b7bc8;
+        box-shadow: 0 2px 8px rgba(43,123,200,0.08);
     }
-    .stTabs [aria-selected="true"] { background: #2563eb !important; color: white !important; }
+    .stTabs [data-baseweb="tab"] {
+        background: transparent !important;
+        border-radius: 8px 8px 0 0;
+        font-weight: 600; font-size: 13px;
+        color: #64748b !important;
+        padding: 8px 16px !important;
+        transition: all 0.15s;
+    }
+    .stTabs [data-baseweb="tab"]:hover {
+        background: #e8f4fd !important;
+        color: #2b7bc8 !important;
+    }
+    .stTabs [aria-selected="true"] {
+        background: #2b7bc8 !important;
+        color: white !important;
+        font-weight: 700 !important;
+    }
+
+    /* ── Comment Cards ── */
     .comment-card {
         background: white; border-radius: 10px; padding: 14px 18px;
-        margin-bottom: 10px; border-left: 3px solid #e5e7eb;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        margin-bottom: 10px; border-left: 3px solid #cbd5e0;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
-    .comment-card.neg { border-left-color: #ef4444; }
-    .comment-card.pos { border-left-color: #10b981; }
-    .comment-card.neu { border-left-color: #d1d5db; }
-    /* Hide sidebar and its toggle button entirely */
+    .comment-card.neg { border-left-color: #e53e3e; background: #fff8f8; }
+    .comment-card.pos { border-left-color: #38a169; background: #f8fff9; }
+    .comment-card.neu { border-left-color: #cbd5e0; }
+
+    /* ── Streamlit native ── */
+    .stMetric {
+        background: white; border-radius: 10px; padding: 14px 16px;
+        box-shadow: 0 1px 6px rgba(43,123,200,0.08);
+    }
+    .stMetric label { color: #64748b !important; font-size: 12px !important; font-weight: 600 !important; }
+    .stMetric [data-testid="stMetricValue"] { color: #1a365d !important; font-weight: 700 !important; }
+    div[data-testid="stDataFrame"] { background: white; border-radius: 10px; box-shadow: 0 1px 6px rgba(43,123,200,0.08); }
+    .stSelectbox label, .stSlider label, .stRadio label { color: #1a365d !important; font-weight: 600 !important; font-size: 13px !important; }
+    .stSelectbox > div > div { background: white !important; color: #1a365d !important; border-color: #bfdbfe !important; border-radius: 8px !important; }
+    h1 { color: #1a365d !important; font-weight: 800 !important; }
+    h2, h3 { color: #1a365d !important; font-weight: 700 !important; }
+    p, li { color: #374151; }
+    .stMarkdown p { color: #374151; }
+    hr { border-color: #e2e8f0 !important; }
+    .stAlert { background: white !important; border-radius: 10px !important; }
+    [data-testid="stInfo"]    { background: #eff6ff !important; border-color: #2b7bc8 !important; }
+    [data-testid="stWarning"] { background: #fffbeb !important; border-color: #f59e0b !important; }
+    [data-testid="stError"]   { background: #fff5f5 !important; border-color: #e53e3e !important; }
+    [data-testid="stSuccess"] { background: #f0fff4 !important; border-color: #38a169 !important; }
     [data-testid="collapsedControl"] { display: none !important; }
     section[data-testid="stSidebar"] { display: none !important; }
+
+    /* ── Division Cards (Tab 6) ── */
+    .div-card {
+        background: white; border-radius: 12px; padding: 16px 20px;
+        box-shadow: 0 2px 10px rgba(43,123,200,0.08);
+        border-top: 3px solid #2b7bc8; margin-bottom: 10px;
+        transition: box-shadow 0.2s;
+    }
+    .div-card:hover { box-shadow: 0 4px 18px rgba(43,123,200,0.15); }
+    .div-card.alert { border-top-color: #e53e3e; }
+    .div-card.warn  { border-top-color: #f59e0b; }
+    .div-name  { font-size: 14px; font-weight: 700; color: #1a365d; margin-bottom: 8px; }
+    .div-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+    .div-stat  { font-size: 12px; color: #64748b; }
+    .div-stat span { font-weight: 700; color: #1a365d; font-size: 15px; }
+
+    /* ── Dept Banner ── */
+    .dept-banner {
+        background: linear-gradient(135deg, #1a365d 0%, #2b7bc8 100%);
+        border-radius: 12px; padding: 18px 24px; margin-bottom: 16px;
+        color: white;
+    }
+    .dept-banner-name { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+    .dept-banner-stats { font-size: 13px; opacity: 0.85; margin-top: 4px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -428,7 +516,7 @@ with tab1:
     total_phys_r = sum(risk_vals)
     fig_risk, ax_risk = plt.subplots(figsize=(10, 4.5))
     risk_labels_r = ["Clear (0)", "Monitor (1–2)", "Priority (3–4)"]
-    risk_colors_r = ["#10b981", "#f59e0b", "#ef4444"]
+    risk_colors_r = ["#38a169", "#f59e0b", "#e53e3e"]
     bars_r = ax_risk.bar(risk_labels_r, risk_vals, color=risk_colors_r,
                          edgecolor="white", linewidth=2, width=0.45)
     for bar, val in zip(bars_r, risk_vals):
@@ -443,7 +531,7 @@ with tab1:
     ax_risk.set_title("Composite Risk Distribution — All Physicians", fontsize=14, fontweight="bold", pad=14)
     ax_risk.tick_params(axis="x", labelsize=14)
     ax_risk.grid(axis="y", alpha=0.3, linestyle="--")
-    ax_risk.set_facecolor("#fafafa"); fig_risk.patch.set_facecolor("white")
+    ax_risk.set_facecolor("white"); fig_risk.patch.set_facecolor("white")
     ax_risk.spines["top"].set_visible(False); ax_risk.spines["right"].set_visible(False)
     plt.tight_layout(); st.pyplot(fig_risk, use_container_width=True); plt.close()
 
@@ -470,9 +558,9 @@ with tab1:
     x      = np.arange(len(dept_risk_df))
     width  = 0.25
     fig_dr, ax_dr = plt.subplots(figsize=(10, 4.5))
-    b1 = ax_dr.bar(x - width, dept_risk_df["Priority"], width, color="#ef4444", alpha=0.88, label="Priority", edgecolor="white")
+    b1 = ax_dr.bar(x - width, dept_risk_df["Priority"], width, color="#e53e3e", alpha=0.88, label="Priority", edgecolor="white")
     b2 = ax_dr.bar(x,          dept_risk_df["Monitor"],  width, color="#f59e0b", alpha=0.88, label="Monitor",  edgecolor="white")
-    b3 = ax_dr.bar(x + width,  dept_risk_df["Clear"],    width, color="#10b981", alpha=0.88, label="Clear",    edgecolor="white")
+    b3 = ax_dr.bar(x + width,  dept_risk_df["Clear"],    width, color="#38a169", alpha=0.88, label="Clear",    edgecolor="white")
     for bars in [b1, b2, b3]:
         for bar in bars:
             h = bar.get_height()
@@ -483,14 +571,14 @@ with tab1:
     for i, row in dept_risk_df.iterrows():
         ax_dr.text(i, dept_risk_df[["Priority","Monitor","Clear"]].iloc[i].max() + 2.5,
                    f"Avg: {row['avg']}", ha="center", fontsize=9,
-                   color="#6b7280", fontweight="600")
+                   color="#64748b", fontweight="600")
     ax_dr.set_xticks(x)
     ax_dr.set_xticklabels(dept_risk_df["dept"], fontsize=12)
     ax_dr.set_ylabel("Number of Physicians", fontsize=10)
     ax_dr.set_title("Priority · Monitor · Clear by Department", fontsize=13, fontweight="bold", pad=12)
     ax_dr.legend(fontsize=10, loc="upper right")
     ax_dr.grid(axis="y", alpha=0.3, linestyle="--")
-    ax_dr.set_facecolor("#fafafa"); fig_dr.patch.set_facecolor("white")
+    ax_dr.set_facecolor("white"); fig_dr.patch.set_facecolor("white")
     ax_dr.spines["top"].set_visible(False); ax_dr.spines["right"].set_visible(False)
     plt.tight_layout(); st.pyplot(fig_dr, use_container_width=True); plt.close()
 
@@ -512,7 +600,7 @@ with tab1:
             for _, fp in top_flagged.iterrows():
                 rs = int(fp["risk_score"])
                 bg     = "#fef2f2" if rs >= 3 else "#fffbeb"
-                border = "#ef4444" if rs >= 3 else "#f59e0b"
+                border = "#e53e3e" if rs >= 3 else "#f59e0b"
                 label  = "⚠ Priority" if rs >= 3 else "👁 Monitor"
                 flags  = []
                 if fp.get("low_iqr_outlier", False): flags.append("IQR")
@@ -570,10 +658,10 @@ with tab1:
 
             # Sentiment bar
             fig_sent, ax_sent = plt.subplots(figsize=(4, 1.8))
-            ax_sent.barh([""], [neg_pct], color="#ef4444", alpha=0.88, label=f"Negative {neg_pct:.1f}%")
+            ax_sent.barh([""], [neg_pct], color="#e53e3e", alpha=0.88, label=f"Negative {neg_pct:.1f}%")
             ax_sent.barh([""], [neu_pct], left=[neg_pct], color="#9ca3af", alpha=0.75, label=f"Neutral {neu_pct:.1f}%")
-            ax_sent.barh([""], [pos_pct], left=[neg_pct+neu_pct], color="#10b981", alpha=0.88, label=f"Positive {pos_pct:.1f}%")
-            for val, left, col in [(neg_pct,0,"#ef4444"),(neu_pct,neg_pct,"#6b7280"),(pos_pct,neg_pct+neu_pct,"#10b981")]:
+            ax_sent.barh([""], [pos_pct], left=[neg_pct+neu_pct], color="#38a169", alpha=0.88, label=f"Positive {pos_pct:.1f}%")
+            for val, left, col in [(neg_pct,0,"#e53e3e"),(neu_pct,neg_pct,"#64748b"),(pos_pct,neg_pct+neu_pct,"#38a169")]:
                 if val > 4:
                     ax_sent.text(left + val/2, 0, f"{val:.1f}%", ha="center", va="center",
                                  fontsize=9, fontweight="700", color="white")
@@ -831,19 +919,19 @@ with tab3:
             normal    = phys_d[~phys_d["low_iqr_outlier"]] if "low_iqr_outlier" in phys_d.columns else phys_d
             outliers  = phys_d[phys_d["low_iqr_outlier"]]  if "low_iqr_outlier" in phys_d.columns else phys_d.iloc[0:0]
             ax.scatter(normal.index,  normal["avg_behavior_score"],
-                       alpha=0.6, color="#3b82f6", s=55, label="Within range", zorder=3)
+                       alpha=0.6, color="#2b7bc8", s=55, label="Within range", zorder=3)
             ax.scatter(outliers.index, outliers["avg_behavior_score"],
-                       color="#ef4444", s=100, zorder=5, label=f"IQR Outliers (n={len(outliers)})")
-            ax.axhline(iqr_fence, color="#ef4444", linewidth=2, linestyle="--",
+                       color="#e53e3e", s=100, zorder=5, label=f"IQR Outliers (n={len(outliers)})")
+            ax.axhline(iqr_fence, color="#e53e3e", linewidth=2, linestyle="--",
                        label=f"IQR Lower Fence ({iqr_fence:.2f})")
-            ax.axhline(scores_d.mean(), color="#1d4ed8", linewidth=1.5, linestyle=":",
+            ax.axhline(scores_d.mean(), color="#1a365d", linewidth=1.5, linestyle=":",
                        label=f"Mean ({scores_d.mean():.2f})")
             ax.set_xlabel("Physician Index", fontsize=10)
             ax.set_ylabel("Avg Behaviour Score", fontsize=10)
             ax.set_title(f"{dept_sel} — IQR Score Outliers", fontsize=11, fontweight="bold")
             ax.legend(fontsize=9)
             ax.grid(alpha=0.3, linestyle="--")
-            ax.set_facecolor("#fafafa")
+            ax.set_facecolor("white")
             fig.patch.set_facecolor("white")
             st.pyplot(fig, use_container_width=True)
             plt.close()
@@ -854,25 +942,25 @@ with tab3:
             fig2, ax2 = plt.subplots(figsize=(6, 4.5))
             scores = phys_d["avg_behavior_score"]
             n, bins, patches = ax2.hist(scores, bins=20, edgecolor="white",
-                                         linewidth=0.8, color="#3b82f6", alpha=0.75)
+                                         linewidth=0.8, color="#2b7bc8", alpha=0.75)
 
             # Colour IQR outliers red in the histogram
             Q1h, Q3h   = scores.quantile(0.25), scores.quantile(0.75)
             iqr_thresh = Q1h - 1.5 * (Q3h - Q1h)
             for patch, left_edge in zip(patches, bins[:-1]):
                 if left_edge < iqr_thresh:
-                    patch.set_facecolor("#ef4444")
+                    patch.set_facecolor("#e53e3e")
                     patch.set_alpha(0.8)
 
-            ax2.axvline(scores.mean(), color="#1d4ed8", linewidth=2,
+            ax2.axvline(scores.mean(), color="#1a365d", linewidth=2,
                         linestyle="-", label=f"Mean ({scores.mean():.2f})")
             ax2.axvline(scores.quantile(0.10), color="#f59e0b", linewidth=1.5,
                         linestyle=":", label=f"10th pct ({scores.quantile(.1):.2f})")
 
-            red_patch   = mpatches.Patch(color="#ef4444", alpha=0.8, label="Below IQR fence")
-            blue_patch  = mpatches.Patch(color="#3b82f6", alpha=0.75, label="Within range")
+            red_patch   = mpatches.Patch(color="#e53e3e", alpha=0.8, label="Below IQR fence")
+            blue_patch  = mpatches.Patch(color="#2b7bc8", alpha=0.75, label="Within range")
             ax2.legend(handles=[red_patch, blue_patch] +
-                       [plt.Line2D([0],[0],color="#1d4ed8",linewidth=2,label=f"Mean ({scores.mean():.2f})"),
+                       [plt.Line2D([0],[0],color="#1a365d",linewidth=2,label=f"Mean ({scores.mean():.2f})"),
                         plt.Line2D([0],[0],color="#f59e0b",linewidth=1.5,linestyle=":",label=f"10th pct")],
                        fontsize=8)
 
@@ -880,7 +968,7 @@ with tab3:
             ax2.set_ylabel("Number of Physicians", fontsize=10)
             ax2.set_title(f"{dept_sel} — Colleague Comparison", fontsize=11, fontweight="bold")
             ax2.grid(axis="y", alpha=0.3, linestyle="--")
-            ax2.set_facecolor("#fafafa")
+            ax2.set_facecolor("white")
             fig2.patch.set_facecolor("white")
             st.pyplot(fig2, use_container_width=True)
             plt.close()
@@ -990,9 +1078,9 @@ with tab4:
 
         fig_sb, ax_sb = plt.subplots(figsize=(10, max(4, len(depts_order)*0.45)))
         y = range(len(depts_order))
-        b1 = ax_sb.barh(list(y), neg_pct.values, color="#ef4444", alpha=0.85, label="Negative")
+        b1 = ax_sb.barh(list(y), neg_pct.values, color="#e53e3e", alpha=0.85, label="Negative")
         b2 = ax_sb.barh(list(y), neu_pct.values, left=neg_pct.values, color="#9ca3af", alpha=0.75, label="Neutral")
-        b3 = ax_sb.barh(list(y), pos_pct.values, left=(neg_pct+neu_pct).values, color="#10b981", alpha=0.85, label="Positive")
+        b3 = ax_sb.barh(list(y), pos_pct.values, left=(neg_pct+neu_pct).values, color="#38a169", alpha=0.85, label="Positive")
 
         # Annotate negative % on each bar
         for i, (np_, nc) in enumerate(zip(neg_pct.values, neg_cnt.values)):
@@ -1008,7 +1096,7 @@ with tab4:
         ax_sb.legend(fontsize=9, loc="lower right")
         ax_sb.set_xlim(0, 100)
         ax_sb.grid(axis="x", alpha=0.25, linestyle="--")
-        ax_sb.set_facecolor("#fafafa")
+        ax_sb.set_facecolor("white")
         fig_sb.patch.set_facecolor("white")
         plt.tight_layout()
         st.pyplot(fig_sb, use_container_width=True)
@@ -1044,9 +1132,9 @@ with tab4:
             # Left: stacked bar by year
             w = 0.5
             x = range(len(years_s))
-            ax_yr1.bar(x, neg_yr.values, width=w, color="#ef4444", alpha=0.85, label="Negative")
+            ax_yr1.bar(x, neg_yr.values, width=w, color="#e53e3e", alpha=0.85, label="Negative")
             ax_yr1.bar(x, neu_yr.values, width=w, bottom=neg_yr.values, color="#9ca3af", alpha=0.75, label="Neutral")
-            ax_yr1.bar(x, pos_yr.values, width=w, bottom=(neg_yr+neu_yr).values, color="#10b981", alpha=0.85, label="Positive")
+            ax_yr1.bar(x, pos_yr.values, width=w, bottom=(neg_yr+neu_yr).values, color="#38a169", alpha=0.85, label="Positive")
             for xi, np_ in zip(x, neg_yr.values):
                 ax_yr1.text(xi, np_/2, f"{np_:.1f}%", ha="center", va="center",
                             fontsize=9, fontweight="700", color="white")
@@ -1057,25 +1145,25 @@ with tab4:
             ax_yr1.legend(fontsize=9)
             ax_yr1.set_ylim(0, 100)
             ax_yr1.grid(axis="y", alpha=0.3, linestyle="--")
-            ax_yr1.set_facecolor("#fafafa")
+            ax_yr1.set_facecolor("white")
 
             # Right: negative % trend line
-            ax_yr2.plot(years_s, neg_yr.values, color="#ef4444", linewidth=2.5,
+            ax_yr2.plot(years_s, neg_yr.values, color="#e53e3e", linewidth=2.5,
                         marker="o", markersize=8, label="Negative %")
-            ax_yr2.plot(years_s, pos_yr.values, color="#10b981", linewidth=2.5,
+            ax_yr2.plot(years_s, pos_yr.values, color="#38a169", linewidth=2.5,
                         marker="s", markersize=8, label="Positive %")
             for yr_v, nv, pv in zip(years_s, neg_yr.values, pos_yr.values):
                 ax_yr2.annotate(f"{nv:.1f}%", (yr_v, nv), textcoords="offset points",
-                                xytext=(0, 10), ha="center", fontsize=9, color="#ef4444", fontweight="700")
+                                xytext=(0, 10), ha="center", fontsize=9, color="#e53e3e", fontweight="700")
                 ax_yr2.annotate(f"{pv:.1f}%", (yr_v, pv), textcoords="offset points",
-                                xytext=(0,-15), ha="center", fontsize=9, color="#10b981", fontweight="700")
+                                xytext=(0,-15), ha="center", fontsize=9, color="#38a169", fontweight="700")
             ax_yr2.set_xticks(years_s)
             ax_yr2.set_xticklabels([str(y) for y in years_s], fontsize=10)
             ax_yr2.set_ylabel("% of Comments", fontsize=10)
             ax_yr2.set_title("Negative vs Positive Trend", fontsize=11, fontweight="bold")
             ax_yr2.legend(fontsize=9)
             ax_yr2.grid(alpha=0.3, linestyle="--")
-            ax_yr2.set_facecolor("#fafafa")
+            ax_yr2.set_facecolor("white")
 
             fig_yr.patch.set_facecolor("white")
             plt.tight_layout()
@@ -1166,15 +1254,15 @@ with tab5:
                 st.markdown("**Average Score Trend**")
                 fig, ax = plt.subplots(figsize=(6, 4))
                 ax.plot(trend_df["Year"], trend_df["Avg Score"], "o-",
-                        color="#3b82f6", linewidth=2.5, markersize=8, label="Mean")
+                        color="#2b7bc8", linewidth=2.5, markersize=8, label="Mean")
                 ax.fill_between(
                     trend_df["Year"],
                     trend_df["Avg Score"] - trend_df["Score Std"],
                     trend_df["Avg Score"] + trend_df["Score Std"],
-                    alpha=0.15, color="#3b82f6", label="±1 SD"
+                    alpha=0.15, color="#2b7bc8", label="±1 SD"
                 )
                 ax.plot(trend_df["Year"], trend_df["Median Score"], "s--",
-                        color="#8b5cf6", linewidth=1.5, markersize=6, label="Median")
+                        color="#6366f1", linewidth=1.5, markersize=6, label="Median")
                 for _, row in trend_df.iterrows():
                     ax.annotate(f"{row['Avg Score']:.2f}",
                                  (row["Year"], row["Avg Score"]),
@@ -1186,7 +1274,7 @@ with tab5:
                 ax.set_title(f"{trend_dept} Score Trend", fontsize=11, fontweight="bold")
                 ax.legend(fontsize=9)
                 ax.grid(alpha=0.3, linestyle="--")
-                ax.set_facecolor("#fafafa")
+                ax.set_facecolor("white")
                 fig.patch.set_facecolor("white")
                 st.pyplot(fig, use_container_width=True)
                 plt.close()
@@ -1194,7 +1282,7 @@ with tab5:
             with col_t2:
                 st.markdown("**% Physicians Flagged by IQR**")
                 fig2, ax2 = plt.subplots(figsize=(6, 4))
-                bar_cols = ["#10b981" if p < 10 else ("#f59e0b" if p < 20 else "#ef4444")
+                bar_cols = ["#38a169" if p < 10 else ("#f59e0b" if p < 20 else "#e53e3e")
                             for p in trend_df["% Flagged"]]
                 bars = ax2.bar(trend_df["Year"], trend_df["% Flagged"],
                                color=bar_cols, edgecolor="white", linewidth=1.5, width=0.5)
@@ -1207,7 +1295,7 @@ with tab5:
                 ax2.set_ylabel("% Physicians Below IQR Fence", fontsize=10)
                 ax2.set_title(f"{trend_dept} — IQR Flagged Rate Over Time", fontsize=11, fontweight="bold")
                 ax2.grid(axis="y", alpha=0.3, linestyle="--")
-                ax2.set_facecolor("#fafafa")
+                ax2.set_facecolor("white")
                 fig2.patch.set_facecolor("white")
                 ax2.spines["top"].set_visible(False)
                 ax2.spines["right"].set_visible(False)
@@ -1292,14 +1380,14 @@ with tab5:
 
                         # Physician score line
                         ax.plot(phys_trend["Year"], phys_trend["Avg Score"], "o-",
-                                color="#3b82f6", linewidth=2.5, markersize=9,
+                                color="#2b7bc8", linewidth=2.5, markersize=9,
                                 label=f"Physician {selected_phys}", zorder=5)
 
                         # Min-max shading for spread
                         if "Min Score" in phys_trend.columns and "Max Score" in phys_trend.columns:
                             ax.fill_between(phys_trend["Year"],
                                             phys_trend["Min Score"], phys_trend["Max Score"],
-                                            alpha=0.1, color="#3b82f6", label="Score range")
+                                            alpha=0.1, color="#2b7bc8", label="Score range")
 
                         # Label each data point
                         for _, row in phys_trend.iterrows():
@@ -1307,7 +1395,7 @@ with tab5:
                                         (row["Year"], row["Avg Score"]),
                                         textcoords="offset points", xytext=(0, 10),
                                         ha="center", fontsize=9, fontweight="700",
-                                        color="#1d4ed8")
+                                        color="#1a365d")
 
                         ax.set_xticks(years_avail)
                         ax.set_xlabel("Year", fontsize=10)
@@ -1316,7 +1404,7 @@ with tab5:
                                      fontsize=11, fontweight="bold")
                         ax.legend(fontsize=9)
                         ax.grid(alpha=0.3, linestyle="--")
-                        ax.set_facecolor("#fafafa")
+                        ax.set_facecolor("white")
                         fig.patch.set_facecolor("white")
                         st.pyplot(fig, use_container_width=True)
                         plt.close()
@@ -1325,7 +1413,7 @@ with tab5:
                     with col_p2:
                         st.markdown("**Evaluations Received Per Year**")
                         fig2, ax2 = plt.subplots(figsize=(6, 4))
-                        bar_colors = ["#3b82f6"] * len(phys_trend)
+                        bar_colors = ["#2b7bc8"] * len(phys_trend)
                         bars = ax2.bar(phys_trend["Year"], phys_trend["Forms"],
                                        color=bar_colors, edgecolor="white",
                                        linewidth=1.5, width=0.5, alpha=0.85)
@@ -1340,7 +1428,7 @@ with tab5:
                         ax2.set_title(f"Physician {selected_phys} — Evaluations Per Year",
                                       fontsize=11, fontweight="bold")
                         ax2.grid(axis="y", alpha=0.3, linestyle="--")
-                        ax2.set_facecolor("#fafafa")
+                        ax2.set_facecolor("white")
                         fig2.patch.set_facecolor("white")
                         ax2.spines["top"].set_visible(False)
                         ax2.spines["right"].set_visible(False)
@@ -1373,15 +1461,15 @@ with tab5:
 
                     if not pct_df.empty:
                         fig3, ax3 = plt.subplots(figsize=(10, 3.5))
-                        colours_pct = ["#10b981" if p >= 50 else ("#f59e0b" if p >= 25 else "#ef4444")
+                        colours_pct = ["#38a169" if p >= 50 else ("#f59e0b" if p >= 25 else "#e53e3e")
                                        for p in pct_df["Percentile Rank"]]
                         bars3 = ax3.barh(pct_df["Year"].astype(str),
                                          pct_df["Percentile Rank"],
                                          color=colours_pct, edgecolor="white",
                                          linewidth=1, height=0.45, alpha=0.85)
-                        ax3.axvline(50, color="#6b7280", linestyle="--",
+                        ax3.axvline(50, color="#64748b", linestyle="--",
                                     linewidth=1.2, label="50th percentile")
-                        ax3.axvline(25, color="#ef4444", linestyle=":",
+                        ax3.axvline(25, color="#e53e3e", linestyle=":",
                                     linewidth=1.2, label="25th percentile (concern)")
                         for bar, val in zip(bars3, pct_df["Percentile Rank"]):
                             ax3.text(val + 0.5, bar.get_y() + bar.get_height()/2,
@@ -1393,7 +1481,7 @@ with tab5:
                         ax3.set_xlim(0, 110)
                         ax3.legend(fontsize=9)
                         ax3.grid(axis="x", alpha=0.3, linestyle="--")
-                        ax3.set_facecolor("#fafafa")
+                        ax3.set_facecolor("white")
                         fig3.patch.set_facecolor("white")
                         st.pyplot(fig3, use_container_width=True)
                         plt.close()
@@ -1431,21 +1519,21 @@ with tab5:
 
                         bp = ax_bp.boxplot(
                             box_data, positions=positions, widths=0.5, patch_artist=True,
-                            boxprops=dict(facecolor="#dbeafe", color="#3b82f6", linewidth=1.5),
-                            medianprops=dict(color="#1d4ed8", linewidth=2.5),
-                            whiskerprops=dict(color="#6b7280", linewidth=1.2),
-                            capprops=dict(color="#6b7280", linewidth=1.5),
+                            boxprops=dict(facecolor="#dbeafe", color="#2b7bc8", linewidth=1.5),
+                            medianprops=dict(color="#1a365d", linewidth=2.5),
+                            whiskerprops=dict(color="#64748b", linewidth=1.2),
+                            capprops=dict(color="#64748b", linewidth=1.5),
                             flierprops=dict(marker="o", color="#9ca3af", alpha=0.4, markersize=4),
                         )
 
                         # Selected physician dot per year
                         for pos, val in sel_dots:
                             if not np.isnan(val):
-                                ax_bp.scatter(pos, val, color="#ef4444", s=120, zorder=10,
+                                ax_bp.scatter(pos, val, color="#e53e3e", s=120, zorder=10,
                                               marker="D", label=f"▶ {selected_phys}" if pos == positions[0] else "")
                                 ax_bp.annotate(f"{val:.2f}", (pos, val),
                                                textcoords="offset points", xytext=(10, 0),
-                                               fontsize=9, fontweight="700", color="#ef4444")
+                                               fontsize=9, fontweight="700", color="#e53e3e")
 
                         ax_bp.set_xticks(positions)
                         ax_bp.set_xticklabels([str(yr) for yr in years_avail[:len(positions)]], fontsize=11)
@@ -1454,7 +1542,7 @@ with tab5:
                         ax_bp.set_title(f"{trend_dept} — Score Distribution per Year", fontsize=11, fontweight="bold")
                         ax_bp.legend(fontsize=9, loc="lower right")
                         ax_bp.grid(axis="y", alpha=0.3, linestyle="--")
-                        ax_bp.set_facecolor("#fafafa")
+                        ax_bp.set_facecolor("white")
                         fig_bp.patch.set_facecolor("white")
                         plt.tight_layout()
                         st.pyplot(fig_bp, use_container_width=True)
@@ -1470,21 +1558,21 @@ with tab5:
 
                         ax_bp2.boxplot(
                             [all_dept_scores], positions=[0], widths=0.4, patch_artist=True,
-                            boxprops=dict(facecolor="#dbeafe", color="#3b82f6", linewidth=1.5),
-                            medianprops=dict(color="#1d4ed8", linewidth=2.5),
-                            whiskerprops=dict(color="#6b7280", linewidth=1.2),
-                            capprops=dict(color="#6b7280", linewidth=1.5),
+                            boxprops=dict(facecolor="#dbeafe", color="#2b7bc8", linewidth=1.5),
+                            medianprops=dict(color="#1a365d", linewidth=2.5),
+                            whiskerprops=dict(color="#64748b", linewidth=1.2),
+                            capprops=dict(color="#64748b", linewidth=1.5),
                             flierprops=dict(marker="o", color="#9ca3af", alpha=0.4, markersize=4),
                         )
 
                         if not np.isnan(sel_mean):
-                            ax_bp2.scatter(0, sel_mean, color="#ef4444", s=180, zorder=10,
+                            ax_bp2.scatter(0, sel_mean, color="#e53e3e", s=180, zorder=10,
                                            marker="D", label=f"▶ {selected_phys} ({sel_mean:.3f})")
-                            ax_bp2.axhline(sel_mean, color="#ef4444", linestyle=":", linewidth=1.5, alpha=0.6)
+                            ax_bp2.axhline(sel_mean, color="#e53e3e", linestyle=":", linewidth=1.5, alpha=0.6)
 
                         dept_median = np.median(all_dept_scores)
                         dept_mean   = np.mean(all_dept_scores)
-                        ax_bp2.axhline(dept_mean, color="#1d4ed8", linestyle="--", linewidth=1.5,
+                        ax_bp2.axhline(dept_mean, color="#1a365d", linestyle="--", linewidth=1.5,
                                        label=f"Dept mean ({dept_mean:.3f})", alpha=0.8)
 
                         # Percentile of selected physician
@@ -1492,7 +1580,7 @@ with tab5:
                             pct = (np.array(all_dept_scores) < sel_mean).mean() * 100
                             ax_bp2.text(0.3, sel_mean, f"{pct:.0f}th percentile",
                                         fontsize=10, fontweight="700",
-                                        color="#ef4444", va="center")
+                                        color="#e53e3e", va="center")
 
                         ax_bp2.set_xticks([0])
                         ax_bp2.set_xticklabels([trend_dept], fontsize=10)
@@ -1501,7 +1589,7 @@ with tab5:
                         ax_bp2.set_title("Overall Score — Physician vs Department", fontsize=11, fontweight="bold")
                         ax_bp2.legend(fontsize=9, loc="lower right")
                         ax_bp2.grid(axis="y", alpha=0.3, linestyle="--")
-                        ax_bp2.set_facecolor("#fafafa")
+                        ax_bp2.set_facecolor("white")
                         fig_bp2.patch.set_facecolor("white")
                         plt.tight_layout()
                         st.pyplot(fig_bp2, use_container_width=True)
@@ -1686,7 +1774,7 @@ DIV_TO_DEPT = {
 
 
 with tab6:
-    st.markdown('<div class="section-header">🏢 Departments & Divisions — Indicators Analysis</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">🏢 Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
     def load_indicators(url, _version="v5.1"):
@@ -1695,76 +1783,81 @@ with tab6:
         try:
             for enc in ["utf-8", "latin-1", "cp1252", "iso-8859-1"]:
                 try:
-                    df = pd.read_csv(url, encoding=enc)
-                    break
+                    df = pd.read_csv(url, encoding=enc); break
                 except (UnicodeDecodeError, Exception):
                     continue
             else:
-                st.warning("Could not decode indicators file with any known encoding.")
-                return None
+                st.warning("Could not decode indicators file."); return None
         except Exception as e:
-            st.warning(f"Could not load indicators file: {e}")
-            return None
+            st.warning(f"Could not load indicators file: {e}"); return None
         df.columns = df.columns.str.strip()
-        if "Division" in df.columns:
-            df["Division_norm"] = df["Division"].str.strip()
-        if "Department" in df.columns:
-            df["Department"] = df["Department"].str.strip()
+        if "Division"   in df.columns: df["Division_norm"] = df["Division"].str.strip()
+        if "Department" in df.columns: df["Department"]    = df["Department"].str.strip()
         for col in ["ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors="coerce")
+            if col in df.columns: df[col] = pd.to_numeric(df[col], errors="coerce")
         return df
 
     ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.1")
 
     if ind_df is None:
-        st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'] in the source file.")
+        st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
         st.markdown("---")
         st.markdown('<div class="section-header">📋 AUBMC Organisational Structure</div>', unsafe_allow_html=True)
         org_cols = st.columns(2)
-        dept_list = list(DEPT_DIVISION_MAP.keys())
-        half = len(dept_list) // 2
+        dept_list = list(DEPT_DIVISION_MAP.keys()); half = len(dept_list) // 2
         for col, depts in zip(org_cols, [dept_list[:half], dept_list[half:]]):
             with col:
                 for dept in depts:
                     divs = DEPT_DIVISION_MAP[dept]
                     if divs:
                         with st.expander(f"**{dept}** — {len(divs)} divisions"):
-                            for d in divs:
-                                st.markdown(f"&nbsp;&nbsp;&nbsp;• {d}")
+                            for d in divs: st.markdown(f"&nbsp;&nbsp;&nbsp;• {d}")
                     else:
                         st.markdown(f"**{dept}**")
     else:
-
-        # ── Cycle filter ──────────────────────────────────────────────────────
-        cycles = ["All"] + sorted(ind_df["FiscalCycle"].dropna().unique().tolist(), reverse=True) \
-                 if "FiscalCycle" in ind_df.columns else ["All"]
-        sel_cycle = st.selectbox("Fiscal Cycle", cycles, key="ind_cycle")
+        # ── Cycle filter ───────────────────────────────────────────────────────
+        f1c, f2c = st.columns([1, 3])
+        with f1c:
+            cycles = ["All"] + sorted(ind_df["FiscalCycle"].dropna().unique().tolist(), reverse=True)                      if "FiscalCycle" in ind_df.columns else ["All"]
+            sel_cycle = st.selectbox("📅 Fiscal Cycle", cycles, key="ind_cycle")
         df_filt = ind_df if sel_cycle == "All" else ind_df[ind_df["FiscalCycle"] == sel_cycle]
 
-        st.markdown("---")
-
-        # ── KPI cards ─────────────────────────────────────────────────────────
-        k1, k2, k3 = st.columns(3)
+        # ── Top KPI Banner ─────────────────────────────────────────────────────
         total_visits     = int(df_filt["ClinicVisits"].sum())       if "ClinicVisits"      in df_filt.columns else 0
         total_complaints = int(df_filt["PatientComplaints"].sum())  if "PatientComplaints" in df_filt.columns else 0
         avg_wait         = df_filt["ClinicWaitingTime"].mean()      if "ClinicWaitingTime" in df_filt.columns else np.nan
+        n_depts          = df_filt["Department"].nunique()           if "Department"        in df_filt.columns else 0
+        n_divs           = df_filt["Division_norm"].nunique()        if "Division_norm"     in df_filt.columns else 0
+        n_phys           = df_filt["Aubnetid"].nunique()             if "Aubnetid"          in df_filt.columns else 0
 
+        k1, k2, k3, k4, k5 = st.columns(5)
         with k1:
+            st.markdown(f'''<div class="metric-card neutral">
+                <div class="metric-label">Departments</div>
+                <div class="metric-value">{n_depts}</div>
+                <div class="metric-sub">{n_divs} divisions</div>
+            </div>''', unsafe_allow_html=True)
+        with k2:
+            st.markdown(f'''<div class="metric-card">
+                <div class="metric-label">Physicians</div>
+                <div class="metric-value">{n_phys:,}</div>
+                <div class="metric-sub">across all divisions</div>
+            </div>''', unsafe_allow_html=True)
+        with k3:
             st.markdown(f'''<div class="metric-card success">
                 <div class="metric-label">Total Clinic Visits</div>
                 <div class="metric-value">{total_visits:,}</div>
                 <div class="metric-sub">all departments</div>
             </div>''', unsafe_allow_html=True)
-        with k2:
+        with k4:
             wt_class = "success" if pd.isna(avg_wait) or avg_wait < 20 else ("warning" if avg_wait < 40 else "danger")
             wt_val   = f"{avg_wait:.1f} min" if pd.notna(avg_wait) else "—"
             st.markdown(f'''<div class="metric-card {wt_class}">
-                <div class="metric-label">Avg Waiting Time</div>
+                <div class="metric-label">Avg Wait Time</div>
                 <div class="metric-value">{wt_val}</div>
                 <div class="metric-sub">clinic waiting time</div>
             </div>''', unsafe_allow_html=True)
-        with k3:
+        with k5:
             cmp_class = "success" if total_complaints == 0 else ("warning" if total_complaints < 20 else "danger")
             st.markdown(f'''<div class="metric-card {cmp_class}">
                 <div class="metric-label">Patient Complaints</div>
@@ -1774,108 +1867,103 @@ with tab6:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── Department overview ───────────────────────────────────────────────
+        # ══════════════════════════════════════════════════════════════════════
+        # SECTION 1 — DEPARTMENT OVERVIEW
+        # ══════════════════════════════════════════════════════════════════════
         st.markdown('<div class="section-header">📊 Department Overview</div>', unsafe_allow_html=True)
 
         if "Department" in df_filt.columns:
-            # Build agg spec only from columns that actually exist in the file
             agg_spec = {}
-            id_col = "Aubnetid" if "Aubnetid" in df_filt.columns else (df_filt.columns[0])
+            id_col = "Aubnetid" if "Aubnetid" in df_filt.columns else df_filt.columns[0]
             agg_spec["Physicians"] = (id_col, "nunique")
-            if "Division_norm"    in df_filt.columns: agg_spec["Divisions"]        = ("Division_norm",    "nunique")
-            if "ClinicVisits"     in df_filt.columns: agg_spec["Total_Visits"]     = ("ClinicVisits",     "sum")
-            if "ClinicWaitingTime"in df_filt.columns: agg_spec["Avg_Wait"]         = ("ClinicWaitingTime","mean")
-            if "PatientComplaints"in df_filt.columns: agg_spec["Total_Complaints"] = ("PatientComplaints","sum")
-            if "PatientComplaints"in df_filt.columns: agg_spec["Avg_Complaints"]   = ("PatientComplaints","mean")
+            if "Division_norm"     in df_filt.columns: agg_spec["Divisions"]        = ("Division_norm",    "nunique")
+            if "ClinicVisits"      in df_filt.columns: agg_spec["Total_Visits"]     = ("ClinicVisits",     "sum")
+            if "ClinicWaitingTime" in df_filt.columns: agg_spec["Avg_Wait"]         = ("ClinicWaitingTime","mean")
+            if "PatientComplaints" in df_filt.columns: agg_spec["Total_Complaints"] = ("PatientComplaints","sum")
+            if "PatientComplaints" in df_filt.columns: agg_spec["Avg_Complaints"]   = ("PatientComplaints","mean")
 
-            dept_summary = (
-                df_filt.groupby("Department", as_index=False)
-                .agg(**agg_spec)
-                .reset_index(drop=True)
-            )
-            # Add missing columns as zeros so downstream code doesn't break
-            for c in ["Total_Visits", "Total_Complaints", "Divisions", "Avg_Wait", "Avg_Complaints"]:
-                if c not in dept_summary.columns:
-                    dept_summary[c] = 0
-            for c in ["Total_Visits", "Total_Complaints"]:
+            dept_summary = df_filt.groupby("Department", as_index=False).agg(**agg_spec).reset_index(drop=True)
+            for c in ["Total_Visits","Total_Complaints","Divisions","Avg_Wait","Avg_Complaints"]:
+                if c not in dept_summary.columns: dept_summary[c] = 0
+            for c in ["Total_Visits","Total_Complaints"]:
                 dept_summary[c] = dept_summary[c].fillna(0).astype(int)
             dept_summary["Avg_Wait"]       = dept_summary["Avg_Wait"].round(1)
             dept_summary["Avg_Complaints"] = dept_summary["Avg_Complaints"].round(2)
             dept_summary = dept_summary.sort_values("Total_Visits", ascending=False).reset_index(drop=True)
 
-            dv1, dv2 = st.columns(2)
-            with dv1:
+            # ── Chart row: Visits bar + Complaints vs Visits scatter ──────────
+            ch1, ch2 = st.columns([1.4, 1])
+
+            with ch1:
                 st.markdown("**Clinic Visits by Department**")
-                fig, ax = plt.subplots(figsize=(7, max(4, len(dept_summary) * 0.42)))
-                colours = ["#ef4444" if v == dept_summary["Total_Visits"].max()
-                           else "#3b82f6" for v in dept_summary["Total_Visits"]]
+                fig, ax = plt.subplots(figsize=(7, max(4, len(dept_summary) * 0.48)))
+                # Gradient blue bars — darker for higher volume
+                max_v = dept_summary["Total_Visits"].max()
+                colours = [plt.cm.Blues(0.4 + 0.55 * (v / max_v if max_v > 0 else 0)) for v in dept_summary["Total_Visits"]]
                 bars = ax.barh(dept_summary["Department"], dept_summary["Total_Visits"],
-                               color=colours, edgecolor="white", linewidth=0.8, alpha=0.85)
-                mx = dept_summary["Total_Visits"].max()
+                               color=colours, edgecolor="white", linewidth=0.6, height=0.65)
                 for bar, val in zip(bars, dept_summary["Total_Visits"]):
-                    ax.text(val + mx * 0.01, bar.get_y() + bar.get_height() / 2,
-                            f"{val:,}", va="center", fontsize=8, fontweight="600")
-                ax.set_xlabel("Total Clinic Visits", fontsize=10)
-                ax.set_title("Clinic Visits by Department", fontsize=11, fontweight="bold")
-                ax.grid(axis="x", alpha=0.3, linestyle="--")
-                ax.set_facecolor("#fafafa")
-                fig.patch.set_facecolor("white")
-                plt.tight_layout()
-                st.pyplot(fig, use_container_width=True)
-                plt.close()
+                    ax.text(val + max_v * 0.012, bar.get_y() + bar.get_height()/2,
+                            f"{val:,}", va="center", fontsize=9, fontweight="700", color="#1a365d")
+                ax.set_xlabel("Total Clinic Visits", fontsize=10, color="#64748b")
+                ax.set_title("Clinic Visits by Department", fontsize=12, fontweight="800", color="#1a365d", pad=10)
+                ax.tick_params(colors="#64748b", labelsize=9)
+                for sp in ax.spines.values(): sp.set_edgecolor("#e2e8f0")
+                ax.grid(axis="x", alpha=0.3, linestyle="--", color="#bfdbfe")
+                ax.set_facecolor("white"); fig.patch.set_facecolor("white")
+                plt.tight_layout(); st.pyplot(fig, use_container_width=True); plt.close()
 
-            with dv2:
-                st.markdown("**Patient Complaints by Department**")
-                dept_cmp = dept_summary[dept_summary["Total_Complaints"] > 0].sort_values("Total_Complaints", ascending=False)
-                if dept_cmp.empty:
-                    st.success("No complaints recorded for this cycle.")
-                else:
-                    fig2, ax2 = plt.subplots(figsize=(7, max(4, len(dept_cmp) * 0.42)))
-                    c2 = ["#ef4444" if v == dept_cmp["Total_Complaints"].max()
-                          else "#f59e0b" for v in dept_cmp["Total_Complaints"]]
-                    bars2 = ax2.barh(dept_cmp["Department"], dept_cmp["Total_Complaints"],
-                                     color=c2, edgecolor="white", linewidth=0.8, alpha=0.85)
-                    for bar, val in zip(bars2, dept_cmp["Total_Complaints"]):
-                        ax2.text(val + 0.1, bar.get_y() + bar.get_height() / 2,
-                                 str(int(val)), va="center", fontsize=8, fontweight="600")
-                    ax2.set_xlabel("Total Patient Complaints", fontsize=10)
-                    ax2.set_title("Patient Complaints by Department", fontsize=11, fontweight="bold")
-                    ax2.grid(axis="x", alpha=0.3, linestyle="--")
-                    ax2.set_facecolor("#fafafa")
-                    fig2.patch.set_facecolor("white")
-                    plt.tight_layout()
-                    st.pyplot(fig2, use_container_width=True)
-                    plt.close()
+            with ch2:
+                st.markdown("**Complaints vs. Visit Volume**")
+                fig2, ax2 = plt.subplots(figsize=(5, max(4, len(dept_summary) * 0.48)))
+                dept_plot = dept_summary[dept_summary["Total_Visits"] > 0].copy()
+                dept_plot["complaints_per_100"] = (dept_plot["Total_Complaints"] / dept_plot["Total_Visits"] * 100).round(2)
+                colours2 = ["#e53e3e" if r > dept_plot["complaints_per_100"].quantile(0.75)
+                            else "#f59e0b" if r > 0
+                            else "#38a169" for r in dept_plot["complaints_per_100"]]
+                bars2 = ax2.barh(dept_plot["Department"], dept_plot["complaints_per_100"],
+                                 color=colours2, edgecolor="white", linewidth=0.6, height=0.65, alpha=0.88)
+                for bar, val in zip(bars2, dept_plot["complaints_per_100"]):
+                    ax2.text(val + 0.005, bar.get_y() + bar.get_height()/2,
+                             f"{val:.2f}%", va="center", fontsize=9, fontweight="600", color="#1a365d")
+                ax2.set_xlabel("Complaints per 100 Visits", fontsize=10, color="#64748b")
+                ax2.set_title("Complaint Rate by Department", fontsize=12, fontweight="800", color="#1a365d", pad=10)
+                ax2.tick_params(colors="#64748b", labelsize=9)
+                for sp in ax2.spines.values(): sp.set_edgecolor("#e2e8f0")
+                ax2.grid(axis="x", alpha=0.3, linestyle="--", color="#bfdbfe")
+                ax2.set_facecolor("white"); fig2.patch.set_facecolor("white")
+                ax2.legend(handles=[
+                    mpatches.Patch(color="#38a169", alpha=0.88, label="No complaints"),
+                    mpatches.Patch(color="#f59e0b", alpha=0.88, label="Some complaints"),
+                    mpatches.Patch(color="#e53e3e", alpha=0.88, label="High complaint rate"),
+                ], fontsize=8, loc="lower right", framealpha=0.9)
+                plt.tight_layout(); st.pyplot(fig2, use_container_width=True); plt.close()
 
+            # ── Department summary table ───────────────────────────────────────
+            st.markdown("<br>", unsafe_allow_html=True)
             st.markdown("**Department Summary Table**")
             dept_display = dept_summary.copy()
-            dept_display.columns = ["Department", "Physicians", "Divisions", "Total Visits",
-                                     "Avg Wait (min)", "Total Complaints", "Avg Complaints/Physician"]
+            dept_display.columns = ["Department","Physicians","Divisions","Total Visits","Avg Wait (min)","Total Complaints","Avg Complaints/Physician"]
             st.dataframe(dept_display, use_container_width=True, hide_index=True,
                          column_config={
-                             "Total Visits": st.column_config.ProgressColumn(
-                                 min_value=0, max_value=int(dept_display["Total Visits"].max()), format="%d"),
-                             "Total Complaints": st.column_config.ProgressColumn(
-                                 min_value=0, max_value=max(1, int(dept_display["Total Complaints"].max())), format="%d"),
+                             "Total Visits":     st.column_config.ProgressColumn(min_value=0, max_value=int(dept_display["Total Visits"].max()), format="%d"),
+                             "Total Complaints": st.column_config.ProgressColumn(min_value=0, max_value=max(1,int(dept_display["Total Complaints"].max())), format="%d"),
                          })
 
-        st.markdown("---")
+        st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── Division drill-down ───────────────────────────────────────────────
+        # ══════════════════════════════════════════════════════════════════════
+        # SECTION 2 — DIVISION DRILL-DOWN
+        # ══════════════════════════════════════════════════════════════════════
         st.markdown('<div class="section-header">🔬 Division Drill-Down</div>', unsafe_allow_html=True)
 
-        # ── Filter + controls row ─────────────────────────────────────────────
         ddf1, ddf2, ddf3 = st.columns([1.5, 1.2, 1])
         with ddf1:
-            dept_opts = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist()) \
-                        if "Department" in df_filt.columns else ["All Departments"]
+            dept_opts = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist())                         if "Department" in df_filt.columns else ["All Departments"]
             sel_dept = st.selectbox("Filter by Department", dept_opts, key="div_dept")
         with ddf2:
-            div_metric = st.selectbox(
-                "Chart metric",
-                ["Clinic Visits", "Avg Wait Time (min)", "Patient Complaints"],
-                key="div_metric"
-            )
+            div_metric = st.selectbox("Chart metric",
+                ["Clinic Visits", "Avg Wait Time (min)", "Patient Complaints"], key="div_metric")
         with ddf3:
             top_n = st.slider("Top N divisions", min_value=5, max_value=30, value=10, step=5, key="div_topn")
 
@@ -1885,143 +1973,125 @@ with tab6:
             div_agg = {}
             id_col2 = "Aubnetid" if "Aubnetid" in df_div.columns else df_div.columns[0]
             div_agg["Physicians"] = (id_col2, "nunique")
-            if "ClinicVisits"      in df_div.columns: div_agg["Total_Visits"]     = ("ClinicVisits",      "sum")
-            if "ClinicWaitingTime" in df_div.columns: div_agg["Avg_Wait"]         = ("ClinicWaitingTime", "mean")
-            if "PatientComplaints" in df_div.columns: div_agg["Total_Complaints"] = ("PatientComplaints", "sum")
+            if "ClinicVisits"      in df_div.columns: div_agg["Total_Visits"]     = ("ClinicVisits",     "sum")
+            if "ClinicWaitingTime" in df_div.columns: div_agg["Avg_Wait"]         = ("ClinicWaitingTime","mean")
+            if "PatientComplaints" in df_div.columns: div_agg["Total_Complaints"] = ("PatientComplaints","sum")
 
-            div_summary = (
-                df_div.groupby("Division_norm", as_index=False)
-                .agg(**div_agg)
-                .reset_index(drop=True)
-            )
-            for c in ["Total_Visits", "Total_Complaints", "Avg_Wait"]:
-                if c not in div_summary.columns:
-                    div_summary[c] = 0
-            for c in ["Total_Visits", "Total_Complaints"]:
+            div_summary = df_div.groupby("Division_norm", as_index=False).agg(**div_agg).reset_index(drop=True)
+            for c in ["Total_Visits","Total_Complaints","Avg_Wait"]:
+                if c not in div_summary.columns: div_summary[c] = 0
+            for c in ["Total_Visits","Total_Complaints"]:
                 div_summary[c] = div_summary[c].fillna(0).astype(int)
             div_summary["Avg_Wait"] = div_summary["Avg_Wait"].round(1)
+            div_summary["complaints_per_100"] = (div_summary["Total_Complaints"] /
+                div_summary["Total_Visits"].replace(0, np.nan) * 100).round(2).fillna(0)
 
-            # Map UI label → column + colour logic
             metric_col_map = {
-                "Clinic Visits":          "Total_Visits",
-                "Avg Wait Time (min)":    "Avg_Wait",
-                "Patient Complaints":     "Total_Complaints",
+                "Clinic Visits":       "Total_Visits",
+                "Avg Wait Time (min)": "Avg_Wait",
+                "Patient Complaints":  "Total_Complaints",
             }
-            metric_col   = metric_col_map[div_metric]
-            sort_col_div = metric_col if metric_col in div_summary.columns else "Total_Visits"
+            sort_col_div = metric_col_map.get(div_metric, "Total_Visits")
             div_plot = div_summary.sort_values(sort_col_div, ascending=False).head(top_n).sort_values(sort_col_div, ascending=True)
 
-            # Colour by complaints presence (consistent cue regardless of metric)
-            if "Total_Complaints" in div_plot.columns:
-                bar_colours_div = [
-                    "#ef4444" if c >= 3 else "#f59e0b" if c >= 1 else "#3b82f6"
-                    for c in div_plot["Total_Complaints"]
-                ]
-            else:
-                bar_colours_div = ["#3b82f6"] * len(div_plot)
+            # ── Division bar chart ─────────────────────────────────────────────
+            bar_colours_div = ["#e53e3e" if c >= 3 else "#f59e0b" if c >= 1 else "#2b7bc8"
+                               for c in div_plot["Total_Complaints"]]
 
-            fig3, ax3 = plt.subplots(figsize=(9, max(4, len(div_plot) * 0.42)))
+            fig3, ax3 = plt.subplots(figsize=(9, max(4.5, len(div_plot) * 0.48)))
             values = div_plot[sort_col_div]
             bars3 = ax3.barh(div_plot["Division_norm"], values,
-                             color=bar_colours_div, edgecolor="white", linewidth=0.8, alpha=0.87)
+                             color=bar_colours_div, edgecolor="white", linewidth=0.6, height=0.65, alpha=0.9)
             mx3 = values.max() if values.max() > 0 else 1
-            for bar, val, cmp in zip(bars3, values, div_plot.get("Total_Complaints", [0]*len(div_plot))):
+            for bar, val, cmp in zip(bars3, values, div_plot["Total_Complaints"]):
                 fmt = f"{val:,}" if div_metric == "Clinic Visits" else (
                       f"{val:.1f}" if div_metric == "Avg Wait Time (min)" else str(int(val)))
                 warn = f"  ⚠ {int(cmp)}" if cmp > 0 and div_metric != "Patient Complaints" else ""
-                ax3.text(val + mx3 * 0.005, bar.get_y() + bar.get_height() / 2,
-                         fmt + warn, va="center", fontsize=8,
-                         color="#ef4444" if cmp > 0 else "#374151", fontweight="600")
-
-            ax3.set_xlabel(div_metric, fontsize=10)
+                ax3.text(val + mx3 * 0.008, bar.get_y() + bar.get_height()/2,
+                         fmt + warn, va="center", fontsize=9,
+                         color="#e53e3e" if cmp > 0 else "#1a365d", fontweight="700")
+            ax3.set_xlabel(div_metric, fontsize=10, color="#64748b")
             ax3.set_title(
                 f"Top {min(top_n, len(div_plot))} Divisions — {div_metric}"
-                + (f"  [{sel_dept}]" if sel_dept != "All Departments" else ""),
-                fontsize=11, fontweight="bold"
+                + (f"  ·  {sel_dept}" if sel_dept != "All Departments" else ""),
+                fontsize=12, fontweight="800", color="#1a365d", pad=10
             )
-            ax3.grid(axis="x", alpha=0.3, linestyle="--")
-            ax3.set_facecolor("#fafafa")
-            fig3.patch.set_facecolor("white")
+            ax3.tick_params(colors="#64748b", labelsize=9)
+            for sp in ax3.spines.values(): sp.set_edgecolor("#e2e8f0")
+            ax3.grid(axis="x", alpha=0.3, linestyle="--", color="#bfdbfe")
+            ax3.set_facecolor("white"); fig3.patch.set_facecolor("white")
             ax3.legend(handles=[
-                mpatches.Patch(color="#3b82f6", alpha=0.87, label="No complaints"),
-                mpatches.Patch(color="#f59e0b", alpha=0.87, label="1–2 complaints"),
-                mpatches.Patch(color="#ef4444", alpha=0.87, label="3+ complaints"),
-            ], fontsize=8, loc="lower right")
-            plt.tight_layout()
-            st.pyplot(fig3, use_container_width=True)
-            plt.close()
+                mpatches.Patch(color="#2b7bc8", alpha=0.9,  label="No complaints"),
+                mpatches.Patch(color="#f59e0b", alpha=0.9,  label="1–2 complaints"),
+                mpatches.Patch(color="#e53e3e", alpha=0.9,  label="3+ complaints"),
+            ], fontsize=9, loc="lower right", framealpha=0.9)
+            plt.tight_layout(); st.pyplot(fig3, use_container_width=True); plt.close()
 
-            st.caption(f"Showing top {min(top_n, len(div_plot))} of {len(div_summary)} divisions · coloured by complaint level")
+            st.caption(f"Showing top {min(top_n, len(div_plot))} of {len(div_summary)} divisions · bar colour indicates complaint level")
 
-            st.markdown("**Division Detail Table**")
-            div_display = div_summary.sort_values(sort_col_div, ascending=False).copy()
-            div_display = div_display.drop(columns=["Physicians"], errors="ignore")
-            div_display.columns = [
-                c.replace("Division_norm", "Division")
-                 .replace("Total_Visits", "Total Visits")
-                 .replace("Avg_Wait", "Avg Wait (min)")
-                 .replace("Total_Complaints", "Total Complaints")
-                for c in div_display.columns
-            ]
-            st.dataframe(div_display, use_container_width=True, hide_index=True,
-                         column_config={
-                             "Total Visits": st.column_config.ProgressColumn(
-                                 min_value=0, max_value=int(div_display["Total Visits"].max()) if "Total Visits" in div_display.columns else 100, format="%d"),
-                             "Total Complaints": st.column_config.ProgressColumn(
-                                 min_value=0, max_value=max(1, int(div_display["Total Complaints"].max())) if "Total Complaints" in div_display.columns else 1, format="%d"),
-                         })
+            # ── Division cards ─────────────────────────────────────────────────
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("**Division Detail Cards**")
+            div_cards = div_summary.sort_values("Total_Visits", ascending=False)
+            cols_per_row = 3
+            rows = [div_cards.iloc[i:i+cols_per_row] for i in range(0, len(div_cards), cols_per_row)]
+            for row_df in rows:
+                cols = st.columns(cols_per_row)
+                for col, (_, div_row) in zip(cols, row_df.iterrows()):
+                    cmp = int(div_row["Total_Complaints"])
+                    card_class = "div-card alert" if cmp >= 3 else ("div-card warn" if cmp >= 1 else "div-card")
+                    wait_str = f"{div_row['Avg_Wait']:.1f} min" if div_row.get("Avg_Wait",0) > 0 else "—"
+                    cpr = f"{div_row['complaints_per_100']:.2f}%" if div_row.get("complaints_per_100",0) > 0 else "0%"
+                    with col:
+                        st.markdown(f'''
+                        <div class="{card_class}">
+                            <div class="div-name">{div_row["Division_norm"]}</div>
+                            <div class="div-stats">
+                                <div class="div-stat">👤 <span>{int(div_row.get("Physicians",0))}</span><br>physicians</div>
+                                <div class="div-stat">🏥 <span>{int(div_row["Total_Visits"]):,}</span><br>visits</div>
+                                <div class="div-stat">⏱ <span>{wait_str}</span><br>avg wait</div>
+                                <div class="div-stat">{"⚠️" if cmp > 0 else "✅"} <span style="color:{"#e53e3e" if cmp>=3 else "#f59e0b" if cmp>0 else "#38a169"}">{cmp}</span><br>complaints</div>
+                            </div>
+                        </div>''', unsafe_allow_html=True)
 
-        st.markdown("---")
+        st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── Physician-level explorer ──────────────────────────────────────────
+        # ══════════════════════════════════════════════════════════════════════
+        # SECTION 3 — PHYSICIAN-LEVEL EXPLORER
+        # ══════════════════════════════════════════════════════════════════════
         st.markdown('<div class="section-header">👤 Physician-Level Explorer</div>', unsafe_allow_html=True)
 
         pe1, pe2, pe3 = st.columns(3)
         with pe1:
-            dept_opts2 = ["All"] + sorted(df_filt["Department"].dropna().unique().tolist()) \
-                         if "Department" in df_filt.columns else ["All"]
+            dept_opts2 = ["All"] + sorted(df_filt["Department"].dropna().unique().tolist())                          if "Department" in df_filt.columns else ["All"]
             sel_dept2 = st.selectbox("Department", dept_opts2, key="pe_dept")
         df_pe = df_filt if sel_dept2 == "All" else df_filt[df_filt["Department"] == sel_dept2]
         with pe2:
-            div_opts = ["All"] + sorted(df_pe["Division_norm"].dropna().unique().tolist()) \
-                       if "Division_norm" in df_pe.columns else ["All"]
+            div_opts = ["All"] + sorted(df_pe["Division_norm"].dropna().unique().tolist())                        if "Division_norm" in df_pe.columns else ["All"]
             sel_div = st.selectbox("Division", div_opts, key="pe_div")
         df_pe = df_pe if sel_div == "All" else df_pe[df_pe["Division_norm"] == sel_div]
         with pe3:
-            sort_opts = ["Clinic Visits ↓", "Patient Complaints ↓", "Waiting Time ↓"]
-            sel_sort  = st.selectbox("Sort by", sort_opts, key="pe_sort")
+            sel_sort = st.selectbox("Sort by",
+                ["Clinic Visits ↓","Patient Complaints ↓","Waiting Time ↓"], key="pe_sort")
 
-        sort_col_map = {
-            "Clinic Visits ↓":      "ClinicVisits",
-            "Patient Complaints ↓": "PatientComplaints",
-            "Waiting Time ↓":       "ClinicWaitingTime",
-        }
+        sort_col_map = {"Clinic Visits ↓":"ClinicVisits","Patient Complaints ↓":"PatientComplaints","Waiting Time ↓":"ClinicWaitingTime"}
         sort_col = sort_col_map[sel_sort]
-        if sort_col in df_pe.columns:
-            df_pe = df_pe.sort_values(sort_col, ascending=False)
+        if sort_col in df_pe.columns: df_pe = df_pe.sort_values(sort_col, ascending=False)
 
-        show_cols  = ["Aubnetid", "Division_norm", "Department", "FiscalCycle",
-                      "ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]
+        show_cols  = ["Aubnetid","Division_norm","Department","FiscalCycle","ClinicVisits","ClinicWaitingTime","PatientComplaints"]
         avail_show = [c for c in show_cols if c in df_pe.columns]
         show_renamed = df_pe[avail_show].rename(columns={
-            "Aubnetid":          "Physician ID",
-            "Division_norm":     "Division",
-            "FiscalCycle":       "Cycle",
-            "ClinicVisits":      "Clinic Visits",
-            "ClinicWaitingTime": "Wait Time (min)",
-            "PatientComplaints": "Complaints",
+            "Aubnetid":"Physician ID","Division_norm":"Division","FiscalCycle":"Cycle",
+            "ClinicVisits":"Clinic Visits","ClinicWaitingTime":"Wait Time (min)","PatientComplaints":"Complaints",
         }).reset_index(drop=True)
 
-        max_visits = int(df_filt["ClinicVisits"].max())     if "ClinicVisits"      in df_filt.columns else 100
-        max_cmp    = int(df_filt["PatientComplaints"].max())if "PatientComplaints" in df_filt.columns else 10
+        max_visits = int(df_filt["ClinicVisits"].max())      if "ClinicVisits"      in df_filt.columns else 100
+        max_cmp    = int(df_filt["PatientComplaints"].max()) if "PatientComplaints" in df_filt.columns else 10
         st.dataframe(show_renamed, use_container_width=True, hide_index=True,
                      column_config={
-                         "Clinic Visits": st.column_config.ProgressColumn(
-                             min_value=0, max_value=max_visits, format="%d"),
-                         "Complaints":    st.column_config.ProgressColumn(
-                             min_value=0, max_value=max(1, max_cmp), format="%d"),
+                         "Clinic Visits": st.column_config.ProgressColumn(min_value=0, max_value=max_visits, format="%d"),
+                         "Complaints":    st.column_config.ProgressColumn(min_value=0, max_value=max(1,max_cmp), format="%d"),
                      })
 
         csv_ind = show_renamed.to_csv(index=False).encode("utf-8")
-        st.download_button("⬇️ Export filtered table as CSV", csv_ind,
-                           "division_physicians.csv", "text/csv")
+        st.download_button("⬇️ Export as CSV", csv_ind, "division_physicians.csv", "text/csv")
