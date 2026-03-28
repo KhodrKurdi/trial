@@ -1777,7 +1777,7 @@ with tab6:
     st.markdown('<div class="section-header">🏢 Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.2"):
+    def load_indicators(url, _version="v5.3"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -1792,13 +1792,19 @@ with tab6:
             st.warning(f"Could not load indicators file: {e}"); return None
         df.columns = df.columns.str.strip()
         if "Division"    in df.columns: df["Division_norm"] = df["Division"].str.strip()
-        if "Department"  in df.columns: df["Department"]    = df["Department"].str.strip()
         if "FiscalCycle" in df.columns: df["FiscalCycle"]   = df["FiscalCycle"].astype(str).str.strip()
         for col in ["ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]:
             if col in df.columns: df[col] = pd.to_numeric(df[col], errors="coerce")
+        # Derive true parent Department from Division using DIV_TO_DEPT mapping
+        if "Division_norm" in df.columns:
+            mapped = df["Division_norm"].map(DIV_TO_DEPT)
+            if "Department" in df.columns:
+                df["Department"] = mapped.fillna(df["Department"].str.strip())
+            else:
+                df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.2")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.3")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -1821,9 +1827,8 @@ with tab6:
         avg_wait         = df_view["ClinicWaitingTime"].mean()      if "ClinicWaitingTime" in df_view.columns else np.nan
         n_depts          = df_view["Department"].nunique()           if "Department"        in df_view.columns else 0
         n_divs           = df_view["Division_norm"].nunique()        if "Division_norm"     in df_view.columns else 0
-        n_phys           = df_view["Aubnetid"].nunique()             if "Aubnetid"          in df_view.columns else 0
 
-        k1,k2,k3,k4,k5 = st.columns(5)
+        k1,k3,k4,k5 = st.columns(4)
         def kpi(col, label, val, sub, cls=""):
             col.markdown(f'''<div class="metric-card {cls}">
                 <div class="metric-label">{label}</div>
@@ -1831,7 +1836,7 @@ with tab6:
                 <div class="metric-sub">{sub}</div>
             </div>''', unsafe_allow_html=True)
         kpi(k1, "Departments",     n_depts,          f"{n_divs} divisions",   "neutral")
-        kpi(k2, "Physicians",      f"{n_phys:,}",    "in selection",          "")
+        # Physicians card removed per request
         kpi(k3, "Clinic Visits",   f"{total_visits:,}", "total",              "success")
         kpi(k4, "Avg Wait Time",   f"{avg_wait:.1f} min" if pd.notna(avg_wait) else "—",
             "per visit", "success" if pd.isna(avg_wait) or avg_wait<20 else "warning" if avg_wait<40 else "danger")
