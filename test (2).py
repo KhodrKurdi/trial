@@ -2162,30 +2162,34 @@ DATA CONTEXT:
             with st.spinner("Thinking..."):
                 try:
                     import requests
-                    api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
+                    api_key = st.secrets.get("OPENAI_API_KEY", "")
                     if not api_key:
-                        answer = "⚠️ API key not configured. Add ANTHROPIC_API_KEY to your Streamlit secrets."
+                        answer = "⚠️ API key not configured. Add OPENAI_API_KEY to your Streamlit secrets."
                         st.markdown(answer)
                         st.session_state.chat_history.append({"role": "assistant", "content": answer})
                         st.stop()
+                    # Build OpenAI messages with system prompt
+                    openai_messages = [{"role": "system", "content": system_prompt}]
+                    for m in messages[:-1]:
+                        openai_messages.append({"role": m["role"], "content": m["content"]})
+                    openai_messages.append({"role": "user", "content": user_input})
                     response = requests.post(
-                        "https://api.anthropic.com/v1/messages",
+                        "https://api.openai.com/v1/chat/completions",
                         headers={
                             "Content-Type": "application/json",
-                            "x-api-key": api_key,
-                            "anthropic-version": "2023-06-01",
+                            "Authorization": f"Bearer {api_key}",
                         },
                         json={
-                            "model": "claude-haiku-4-5-20251001",
+                            "model": "gpt-4o-mini",
                             "max_tokens": 1024,
-                            "system": system_prompt,
-                            "messages": messages,
+                            "temperature": 0.2,
+                            "messages": openai_messages,
                         },
                         timeout=30
                     )
                     result = response.json()
-                    if "content" in result and result["content"]:
-                        answer = result["content"][0]["text"]
+                    if "choices" in result and result["choices"]:
+                        answer = result["choices"][0]["message"]["content"]
                     else:
                         err = result.get("error", {}).get("message", "Unknown error")
                         answer = f"Sorry, I couldn't get a response. ({err})"
