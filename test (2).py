@@ -443,13 +443,14 @@ st.markdown(f"**Departments active:** {'  ·  '.join(available_depts)}  &nbsp;&n
 st.markdown("---")
 
 # ─── TABS ────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📋 Executive Summary",
     "🎯 Flagged Physicians",
     "📊 Project View",
     "💬 Sentiment Explorer",
     "📈 Trends (2023–2025)",
-    "🏢 Departments & Divisions"
+    "🏢 Departments & Divisions",
+    "🤖 AI Assistant"
 ])
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2075,3 +2076,126 @@ with tab6:
             })
         csv_out = shown.to_csv(index=False).encode("utf-8")
         st.download_button("⬇️ Export as CSV", csv_out, "physicians_indicators.csv", "text/csv")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# TAB 7 — AI ASSISTANT
+# ═══════════════════════════════════════════════════════════════════════════════
+with tab7:
+    st.markdown('<div class="section-header">🤖 AI Assistant — Ask About Your Physicians</div>', unsafe_allow_html=True)
+    st.markdown("Ask anything about the data — priority physicians, department scores, sentiment trends, comparisons, and more.")
+
+    # ── Build context summary from loaded data ────────────────────────────────
+    @st.cache_data(show_spinner=False)
+    def build_context(_all_phys, _data, _available_depts):
+        lines = []
+        lines.append(f"AUBMC Physician Performance Dashboard — Data Summary")
+        lines.append(f"Total physicians: {len(_all_phys)}")
+        lines.append(f"Departments: {', '.join(_available_depts)}")
+        lines.append(f"Years covered: 2023, 2024, 2025")
+        lines.append(f"Overall avg behavior score: {_all_phys['avg_behavior_score'].mean():.3f} / 4.0")
+        lines.append(f"Priority physicians (risk 3-4): {(_all_phys['risk_score']>=3).sum()}")
+        lines.append(f"Monitor physicians (risk 1-2): {(_all_phys['risk_score'].between(1,2)).sum()}")
+        lines.append(f"Clear physicians (risk 0): {(_all_phys['risk_score']==0).sum()}")
+        lines.append(f"Negative sentiment flags: {_all_phys['negative_outlier'].sum()}")
+        lines.append("")
+
+        for dept in _available_depts:
+            _, phys, sent = _data[dept]
+            if phys is None or phys.empty:
+                continue
+            lines.append(f"--- {dept} ---")
+            lines.append(f"  Physicians: {len(phys)}")
+            lines.append(f"  Avg score: {phys['avg_behavior_score'].mean():.3f}")
+            lines.append(f"  Priority: {(phys['risk_score']>=3).sum()}, Monitor: {phys['risk_score'].between(1,2).sum()}, Clear: {(phys['risk_score']==0).sum()}")
+            lines.append(f"  Negative sentiment flags: {phys['negative_outlier'].sum()}")
+            # Priority physicians list
+            priority = phys[phys['risk_score']>=3][['physician_id','avg_behavior_score','risk_score']].sort_values('avg_behavior_score')
+            if not priority.empty:
+                lines.append(f"  Priority physician IDs: {', '.join(priority['physician_id'].tolist())}")
+            # Bottom 5 by score
+            bottom5 = phys.nsmallest(5, 'avg_behavior_score')[['physician_id','avg_behavior_score','risk_score']]
+            lines.append(f"  Lowest 5 scores:")
+            for _, r in bottom5.iterrows():
+                lines.append(f"    {r['physician_id']}: score={r['avg_behavior_score']:.3f}, risk={int(r['risk_score'])}")
+            lines.append("")
+
+        return "\n".join(lines)
+
+    context = build_context(all_phys, data, available_depts)
+
+    # ── Chat UI ───────────────────────────────────────────────────────────────
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+
+    # Display chat history
+    for msg in st.session_state.chat_history:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    # Input
+    user_input = st.chat_input("Ask about physicians, departments, scores, sentiment...")
+
+    if user_input:
+        # Show user message
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        # Build messages for API
+        system_prompt = f"""You are an AI assistant for the AUBMC Physician Performance Dashboard.
+You help medical administrators and stakeholders understand physician performance data.
+Answer questions clearly, concisely, and accurately using ONLY the data provided below.
+If asked about a specific physician ID, look it up in the data. Be direct and professional.
+Do not invent or estimate numbers not present in the data.
+
+DATA CONTEXT:
+{context}
+"""
+        messages = []
+        for h in st.session_state.chat_history[:-1]:  # exclude last user msg
+            messages.append({"role": h["role"], "content": h["content"]})
+        messages.append({"role": "user", "content": user_input})
+
+        # Call Claude API
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                try:
+                    import requests
+                    api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
+                    if not api_key:
+                        answer = "⚠️ API key not configured. Add ANTHROPIC_API_KEY to your Streamlit secrets."
+                        st.markdown(answer)
+                        st.session_state.chat_history.append({"role": "assistant", "content": answer})
+                        st.stop()
+                    response = requests.post(
+                        "https://api.anthropic.com/v1/messages",
+                        headers={
+                            "Content-Type": "application/json",
+                            "x-api-key": api_key,
+                            "anthropic-version": "2023-06-01",
+                        },
+                        json={
+                            "model": "claude-sonnet-4-20250514",
+                            "max_tokens": 1024,
+                            "system": system_prompt,
+                            "messages": messages,
+                        },
+                        timeout=30
+                    )
+                    result = response.json()
+                    if "content" in result and result["content"]:
+                        answer = result["content"][0]["text"]
+                    else:
+                        answer = f"Sorry, I couldn't get a response. ({result.get('error', {}).get('message', 'Unknown error')})"
+                except Exception as e:
+                    answer = f"Connection error: {str(e)}"
+
+            st.markdown(answer)
+            st.session_state.chat_history.append({"role": "assistant", "content": answer})
+
+    # Clear chat button
+    if st.session_state.chat_history:
+        if st.button("🗑️ Clear conversation", key="clear_chat"):
+            st.session_state.chat_history = []
+            st.rerun()
