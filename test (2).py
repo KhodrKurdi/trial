@@ -2034,7 +2034,7 @@ with tab6:
         # ══════════════════════════════════════════════════════════════════════
         st.markdown('<div class="section-header">👤 Physician Explorer</div>', unsafe_allow_html=True)
 
-        pe1, pe2, pe3 = st.columns(3)
+        pe1, pe2, pe3, pe4 = st.columns(4)
         with pe1:
             dept_pe = ["All"] + sorted(df_filt["Department"].dropna().unique().tolist())                       if "Department" in df_filt.columns else ["All"]
             sel_dept_pe = st.selectbox("Department", dept_pe, key="pe_dept")
@@ -2044,6 +2044,11 @@ with tab6:
             sel_div_pe = st.selectbox("Division", div_pe, key="pe_div")
         df_pe = df_pe if sel_div_pe=="All" else df_pe[df_pe["Division_norm"]==sel_div_pe]
         with pe3:
+            # Physician filter — based on filtered df
+            phys_opts = ["All"] + sorted(df_pe["Physician Name"].dropna().unique().tolist())                         if "Physician Name" in df_pe.columns else ["All"]
+            sel_phys_pe = st.selectbox("Physician", phys_opts, key="pe_phys")
+        df_pe = df_pe if sel_phys_pe=="All" else df_pe[df_pe["Physician Name"]==sel_phys_pe]
+        with pe4:
             sel_sort_pe = st.selectbox("Sort by",
                 ["Clinic Visits ↓","Patient Complaints ↓","Waiting Time ↓"], key="pe_sort")
 
@@ -2051,11 +2056,12 @@ with tab6:
         sc = sort_map[sel_sort_pe]
         if sc in df_pe.columns: df_pe = df_pe.sort_values(sc, ascending=False)
 
-        show_c = ["Aubnetid","Physician Name","Division_norm","Department","FiscalCycle",
+        # Exclude Aubnetid from display
+        show_c = ["Physician Name","Division_norm","Department","FiscalCycle",
                   "ClinicVisits","ClinicWaitingTime","PatientComplaints"]
         avail  = [c for c in show_c if c in df_pe.columns]
         shown  = df_pe[avail].rename(columns={
-            "Aubnetid":"ID","Physician Name":"Name",
+            "Physician Name":"Name",
             "Division_norm":"Division","FiscalCycle":"Cycle",
             "ClinicVisits":"Visits","ClinicWaitingTime":"Wait (min)","PatientComplaints":"Complaints",
         }).reset_index(drop=True)
