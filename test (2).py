@@ -2162,29 +2162,30 @@ DATA CONTEXT:
             with st.spinner("Thinking..."):
                 try:
                     import requests
-                    api_key = st.secrets.get("GEMINI_API_KEY", "")
+                    api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
                     if not api_key:
-                        answer = "⚠️ API key not configured. Add GEMINI_API_KEY to your Streamlit secrets."
+                        answer = "⚠️ API key not configured. Add ANTHROPIC_API_KEY to your Streamlit secrets."
                         st.markdown(answer)
                         st.session_state.chat_history.append({"role": "assistant", "content": answer})
                         st.stop()
-                    # Build Gemini contents — prepend system as first user turn
-                    gemini_contents = [{"role": "user", "parts": [{"text": system_prompt}]},
-                                       {"role": "model", "parts": [{"text": "Understood. I am ready to answer questions about the AUBMC physician performance data."}]}]
-                    for m in messages[:-1]:
-                        role = "model" if m["role"] == "assistant" else "user"
-                        gemini_contents.append({"role": role, "parts": [{"text": m["content"]}]})
-                    gemini_contents.append({"role": "user", "parts": [{"text": user_input}]})
                     response = requests.post(
-                        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}",
-                        headers={"Content-Type": "application/json"},
-                        json={"contents": gemini_contents,
-                              "generationConfig": {"maxOutputTokens": 1024, "temperature": 0.2}},
+                        "https://api.anthropic.com/v1/messages",
+                        headers={
+                            "Content-Type": "application/json",
+                            "x-api-key": api_key,
+                            "anthropic-version": "2023-06-01",
+                        },
+                        json={
+                            "model": "claude-haiku-4-5-20251001",
+                            "max_tokens": 1024,
+                            "system": system_prompt,
+                            "messages": messages,
+                        },
                         timeout=30
                     )
                     result = response.json()
-                    if "candidates" in result and result["candidates"]:
-                        answer = result["candidates"][0]["content"]["parts"][0]["text"]
+                    if "content" in result and result["content"]:
+                        answer = result["content"][0]["text"]
                     else:
                         err = result.get("error", {}).get("message", "Unknown error")
                         answer = f"Sorry, I couldn't get a response. ({err})"
