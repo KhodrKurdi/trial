@@ -1046,15 +1046,35 @@ with tab4:
         all_sent = all_sent[~all_sent["comments"].astype(str).apply(_is_noise_t4)].copy()
 
         # ── KPI row ───────────────────────────────────────────────────────────
-        sc1, sc2, sc3, sc4 = st.columns(4)
         total_c = len(all_sent)
         neg_c   = (all_sent["sentiment"] == "NEGATIVE").sum()
         pos_c   = (all_sent["sentiment"] == "POSITIVE").sum()
         neu_c   = (all_sent["sentiment"] == "NEUTRAL").sum()
-        with sc1: st.metric("Total Comments", f"{total_c:,}")
-        with sc2: st.metric("🔴 Negative", f"{neg_c:,} ({neg_c/total_c*100:.1f}%)")
-        with sc3: st.metric("🟢 Positive", f"{pos_c:,} ({pos_c/total_c*100:.1f}%)")
-        with sc4: st.metric("⚪ Neutral",  f"{neu_c:,} ({neu_c/total_c*100:.1f}%)")
+        sc1, sc2, sc3, sc4 = st.columns(4)
+        with sc1:
+            st.markdown(f'''<div class="metric-card neutral">
+                <div class="metric-label">Total Comments</div>
+                <div class="metric-value">{total_c:,}</div>
+                <div class="metric-sub">scored by VADER</div>
+            </div>''', unsafe_allow_html=True)
+        with sc2:
+            st.markdown(f'''<div class="metric-card danger">
+                <div class="metric-label">🔴 Negative</div>
+                <div class="metric-value">{neg_c:,}</div>
+                <div class="metric-sub">{neg_c/total_c*100:.1f}% of comments</div>
+            </div>''', unsafe_allow_html=True)
+        with sc3:
+            st.markdown(f'''<div class="metric-card success">
+                <div class="metric-label">🟢 Positive</div>
+                <div class="metric-value">{pos_c:,}</div>
+                <div class="metric-sub">{pos_c/total_c*100:.1f}% of comments</div>
+            </div>''', unsafe_allow_html=True)
+        with sc4:
+            st.markdown(f'''<div class="metric-card">
+                <div class="metric-label">⚪ Neutral</div>
+                <div class="metric-value">{neu_c:,}</div>
+                <div class="metric-sub">{neu_c/total_c*100:.1f}% of comments</div>
+            </div>''', unsafe_allow_html=True)
 
         st.markdown("---")
 
