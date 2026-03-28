@@ -132,18 +132,18 @@ st.markdown("""
 
     /* ── Division Cards (Tab 6) ── */
     .div-card {
-        background: white; border-radius: 12px; padding: 16px 20px;
-        box-shadow: 0 2px 10px rgba(43,123,200,0.08);
-        border-top: 3px solid #2b7bc8; margin-bottom: 10px;
-        transition: box-shadow 0.2s;
+        background: white; border-radius: 14px; padding: 20px 24px;
+        box-shadow: 0 2px 12px rgba(43,123,200,0.09);
+        border-top: 4px solid #2b7bc8; margin-bottom: 14px;
+        transition: box-shadow 0.2s, transform 0.15s;
     }
-    .div-card:hover { box-shadow: 0 4px 18px rgba(43,123,200,0.15); }
+    .div-card:hover { box-shadow: 0 6px 22px rgba(43,123,200,0.16); transform: translateY(-1px); }
     .div-card.alert { border-top-color: #e53e3e; }
     .div-card.warn  { border-top-color: #f59e0b; }
-    .div-name  { font-size: 14px; font-weight: 700; color: #1a365d; margin-bottom: 8px; }
-    .div-stats { display: flex; gap: 16px; flex-wrap: wrap; }
-    .div-stat  { font-size: 12px; color: #64748b; }
-    .div-stat span { font-weight: 700; color: #1a365d; font-size: 15px; }
+    .div-name  { font-size: 15px; font-weight: 700; color: #1a365d; margin-bottom: 14px; line-height: 1.3; }
+    .div-stats { display: flex; gap: 20px; flex-wrap: wrap; }
+    .div-stat  { font-size: 12px; color: #64748b; line-height: 1.8; }
+    .div-stat span { font-weight: 800; color: #1a365d; font-size: 16px; display: block; }
 
     /* ── Dept Banner ── */
     .dept-banner {
@@ -1791,6 +1791,7 @@ with tab6:
         except Exception as e:
             st.warning(f"Could not load indicators file: {e}"); return None
         df.columns = df.columns.str.strip()
+        # CSV structure: Division = granular unit, Department = parent grouping
         if "Division"   in df.columns: df["Division_norm"] = df["Division"].str.strip()
         if "Department" in df.columns: df["Department"]    = df["Department"].str.strip()
         for col in ["ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]:
@@ -2033,7 +2034,7 @@ with tab6:
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown("**Division Detail Cards**")
             div_cards = div_summary.sort_values("Total_Visits", ascending=False)
-            cols_per_row = 3
+            cols_per_row = 2
             rows = [div_cards.iloc[i:i+cols_per_row] for i in range(0, len(div_cards), cols_per_row)]
             for row_df in rows:
                 cols = st.columns(cols_per_row)
@@ -2042,17 +2043,19 @@ with tab6:
                     card_class = "div-card alert" if cmp >= 3 else ("div-card warn" if cmp >= 1 else "div-card")
                     wait_str = f"{div_row['Avg_Wait']:.1f} min" if div_row.get("Avg_Wait",0) > 0 else "—"
                     cpr = f"{div_row['complaints_per_100']:.2f}%" if div_row.get("complaints_per_100",0) > 0 else "0%"
+                    cmp_color = "#e53e3e" if cmp>=3 else "#f59e0b" if cmp>0 else "#38a169"
+                    cmp_icon  = "⚠️" if cmp > 0 else "✅"
                     with col:
-                        st.markdown(f'''
+                        st.markdown(f"""
                         <div class="{card_class}">
                             <div class="div-name">{div_row["Division_norm"]}</div>
                             <div class="div-stats">
                                 <div class="div-stat">👤 <span>{int(div_row.get("Physicians",0))}</span><br>physicians</div>
                                 <div class="div-stat">🏥 <span>{int(div_row["Total_Visits"]):,}</span><br>visits</div>
                                 <div class="div-stat">⏱ <span>{wait_str}</span><br>avg wait</div>
-                                <div class="div-stat">{"⚠️" if cmp > 0 else "✅"} <span style="color:{"#e53e3e" if cmp>=3 else "#f59e0b" if cmp>0 else "#38a169"}">{cmp}</span><br>complaints</div>
+                                <div class="div-stat">{cmp_icon} <span style="color:{cmp_color}">{cmp}</span><br>complaints ({cpr})</div>
                             </div>
-                        </div>''', unsafe_allow_html=True)
+                        </div>""", unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
