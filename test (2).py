@@ -1777,7 +1777,7 @@ with tab6:
     st.markdown('<div class="section-header">🏢 Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.1"):
+    def load_indicators(url, _version="v5.2"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -1791,165 +1791,133 @@ with tab6:
         except Exception as e:
             st.warning(f"Could not load indicators file: {e}"); return None
         df.columns = df.columns.str.strip()
-        # CSV structure: Division = granular unit, Department = parent grouping
-        if "Division"   in df.columns: df["Division_norm"] = df["Division"].str.strip()
-        if "Department" in df.columns: df["Department"]    = df["Department"].str.strip()
+        if "Division"    in df.columns: df["Division_norm"] = df["Division"].str.strip()
+        if "Department"  in df.columns: df["Department"]    = df["Department"].str.strip()
+        if "FiscalCycle" in df.columns: df["FiscalCycle"]   = df["FiscalCycle"].astype(str).str.strip()
         for col in ["ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]:
             if col in df.columns: df[col] = pd.to_numeric(df[col], errors="coerce")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.1")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.2")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
-        st.markdown("---")
-        st.markdown('<div class="section-header">📋 AUBMC Organisational Structure</div>', unsafe_allow_html=True)
-        org_cols = st.columns(2)
-        dept_list = list(DEPT_DIVISION_MAP.keys()); half = len(dept_list) // 2
-        for col, depts in zip(org_cols, [dept_list[:half], dept_list[half:]]):
-            with col:
-                for dept in depts:
-                    divs = DEPT_DIVISION_MAP[dept]
-                    if divs:
-                        with st.expander(f"**{dept}** — {len(divs)} divisions"):
-                            for d in divs: st.markdown(f"&nbsp;&nbsp;&nbsp;• {d}")
-                    else:
-                        st.markdown(f"**{dept}**")
     else:
-        # ── Cycle filter ───────────────────────────────────────────────────────
-        f1c, f2c = st.columns([1, 3])
-        with f1c:
+        # ── Filters ───────────────────────────────────────────────────────────
+        fc1, fc2, fc3 = st.columns([1, 1, 2])
+        with fc1:
             cycles = ["All"] + sorted(ind_df["FiscalCycle"].dropna().unique().tolist(), reverse=True)                      if "FiscalCycle" in ind_df.columns else ["All"]
             sel_cycle = st.selectbox("📅 Fiscal Cycle", cycles, key="ind_cycle")
         df_filt = ind_df if sel_cycle == "All" else ind_df[ind_df["FiscalCycle"] == sel_cycle]
+        with fc2:
+            dept_list_f = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist())                           if "Department" in df_filt.columns else ["All Departments"]
+            sel_dept_f = st.selectbox("🏥 Department", dept_list_f, key="ind_dept_filter")
+        df_view = df_filt if sel_dept_f == "All Departments" else df_filt[df_filt["Department"] == sel_dept_f]
 
-        # ── Top KPI Banner ─────────────────────────────────────────────────────
-        total_visits     = int(df_filt["ClinicVisits"].sum())       if "ClinicVisits"      in df_filt.columns else 0
-        total_complaints = int(df_filt["PatientComplaints"].sum())  if "PatientComplaints" in df_filt.columns else 0
-        avg_wait         = df_filt["ClinicWaitingTime"].mean()      if "ClinicWaitingTime" in df_filt.columns else np.nan
-        n_depts          = df_filt["Department"].nunique()           if "Department"        in df_filt.columns else 0
-        n_divs           = df_filt["Division_norm"].nunique()        if "Division_norm"     in df_filt.columns else 0
-        n_phys           = df_filt["Aubnetid"].nunique()             if "Aubnetid"          in df_filt.columns else 0
+        # ── Top KPIs ──────────────────────────────────────────────────────────
+        st.markdown("<br>", unsafe_allow_html=True)
+        total_visits     = int(df_view["ClinicVisits"].sum())       if "ClinicVisits"      in df_view.columns else 0
+        total_complaints = int(df_view["PatientComplaints"].sum())  if "PatientComplaints" in df_view.columns else 0
+        avg_wait         = df_view["ClinicWaitingTime"].mean()      if "ClinicWaitingTime" in df_view.columns else np.nan
+        n_depts          = df_view["Department"].nunique()           if "Department"        in df_view.columns else 0
+        n_divs           = df_view["Division_norm"].nunique()        if "Division_norm"     in df_view.columns else 0
+        n_phys           = df_view["Aubnetid"].nunique()             if "Aubnetid"          in df_view.columns else 0
 
-        k1, k2, k3, k4, k5 = st.columns(5)
-        with k1:
-            st.markdown(f'''<div class="metric-card neutral">
-                <div class="metric-label">Departments</div>
-                <div class="metric-value">{n_depts}</div>
-                <div class="metric-sub">{n_divs} divisions</div>
+        k1,k2,k3,k4,k5 = st.columns(5)
+        def kpi(col, label, val, sub, cls=""):
+            col.markdown(f'''<div class="metric-card {cls}">
+                <div class="metric-label">{label}</div>
+                <div class="metric-value">{val}</div>
+                <div class="metric-sub">{sub}</div>
             </div>''', unsafe_allow_html=True)
-        with k2:
-            st.markdown(f'''<div class="metric-card">
-                <div class="metric-label">Physicians</div>
-                <div class="metric-value">{n_phys:,}</div>
-                <div class="metric-sub">across all divisions</div>
-            </div>''', unsafe_allow_html=True)
-        with k3:
-            st.markdown(f'''<div class="metric-card success">
-                <div class="metric-label">Total Clinic Visits</div>
-                <div class="metric-value">{total_visits:,}</div>
-                <div class="metric-sub">all departments</div>
-            </div>''', unsafe_allow_html=True)
-        with k4:
-            wt_class = "success" if pd.isna(avg_wait) or avg_wait < 20 else ("warning" if avg_wait < 40 else "danger")
-            wt_val   = f"{avg_wait:.1f} min" if pd.notna(avg_wait) else "—"
-            st.markdown(f'''<div class="metric-card {wt_class}">
-                <div class="metric-label">Avg Wait Time</div>
-                <div class="metric-value">{wt_val}</div>
-                <div class="metric-sub">clinic waiting time</div>
-            </div>''', unsafe_allow_html=True)
-        with k5:
-            cmp_class = "success" if total_complaints == 0 else ("warning" if total_complaints < 20 else "danger")
-            st.markdown(f'''<div class="metric-card {cmp_class}">
-                <div class="metric-label">Patient Complaints</div>
-                <div class="metric-value">{total_complaints:,}</div>
-                <div class="metric-sub">total reported</div>
-            </div>''', unsafe_allow_html=True)
+        kpi(k1, "Departments",     n_depts,          f"{n_divs} divisions",   "neutral")
+        kpi(k2, "Physicians",      f"{n_phys:,}",    "in selection",          "")
+        kpi(k3, "Clinic Visits",   f"{total_visits:,}", "total",              "success")
+        kpi(k4, "Avg Wait Time",   f"{avg_wait:.1f} min" if pd.notna(avg_wait) else "—",
+            "per visit", "success" if pd.isna(avg_wait) or avg_wait<20 else "warning" if avg_wait<40 else "danger")
+        kpi(k5, "Complaints",      f"{total_complaints:,}", "total reported",
+            "success" if total_complaints==0 else "warning" if total_complaints<20 else "danger")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
         # ══════════════════════════════════════════════════════════════════════
-        # SECTION 1 — DEPARTMENT OVERVIEW
+        # SECTION 1 — DEPARTMENT VIEW
         # ══════════════════════════════════════════════════════════════════════
-        st.markdown('<div class="section-header">📊 Department Overview</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">🏥 Department Overview</div>', unsafe_allow_html=True)
 
         if "Department" in df_filt.columns:
-            agg_spec = {}
             id_col = "Aubnetid" if "Aubnetid" in df_filt.columns else df_filt.columns[0]
-            agg_spec["Physicians"] = (id_col, "nunique")
-            if "Division_norm"     in df_filt.columns: agg_spec["Divisions"]        = ("Division_norm",    "nunique")
-            if "ClinicVisits"      in df_filt.columns: agg_spec["Total_Visits"]     = ("ClinicVisits",     "sum")
-            if "ClinicWaitingTime" in df_filt.columns: agg_spec["Avg_Wait"]         = ("ClinicWaitingTime","mean")
-            if "PatientComplaints" in df_filt.columns: agg_spec["Total_Complaints"] = ("PatientComplaints","sum")
-            if "PatientComplaints" in df_filt.columns: agg_spec["Avg_Complaints"]   = ("PatientComplaints","mean")
+            dept_agg = {
+                "Physicians":        (id_col,           "nunique"),
+                "Divisions":         ("Division_norm",   "nunique") if "Division_norm" in df_filt.columns else None,
+                "Total_Visits":      ("ClinicVisits",    "sum")     if "ClinicVisits"  in df_filt.columns else None,
+                "Avg_Wait":          ("ClinicWaitingTime","mean")   if "ClinicWaitingTime" in df_filt.columns else None,
+                "Total_Complaints":  ("PatientComplaints","sum")    if "PatientComplaints" in df_filt.columns else None,
+            }
+            dept_agg = {k: v for k, v in dept_agg.items() if v is not None}
+            dept_sum = df_filt.groupby("Department", as_index=False).agg(**dept_agg)
+            for c in ["Total_Visits","Total_Complaints","Divisions"]:
+                if c not in dept_sum.columns: dept_sum[c] = 0
+            dept_sum["Total_Visits"]     = dept_sum["Total_Visits"].fillna(0).astype(int)
+            dept_sum["Total_Complaints"] = dept_sum["Total_Complaints"].fillna(0).astype(int)
+            dept_sum["Avg_Wait"]         = dept_sum["Avg_Wait"].round(1) if "Avg_Wait" in dept_sum.columns else 0
+            dept_sum["Rate"]             = (dept_sum["Total_Complaints"] /
+                                            dept_sum["Total_Visits"].replace(0, np.nan) * 100).round(2).fillna(0)
+            dept_sum = dept_sum.sort_values("Total_Visits", ascending=False).reset_index(drop=True)
 
-            dept_summary = df_filt.groupby("Department", as_index=False).agg(**agg_spec).reset_index(drop=True)
-            for c in ["Total_Visits","Total_Complaints","Divisions","Avg_Wait","Avg_Complaints"]:
-                if c not in dept_summary.columns: dept_summary[c] = 0
-            for c in ["Total_Visits","Total_Complaints"]:
-                dept_summary[c] = dept_summary[c].fillna(0).astype(int)
-            dept_summary["Avg_Wait"]       = dept_summary["Avg_Wait"].round(1)
-            dept_summary["Avg_Complaints"] = dept_summary["Avg_Complaints"].round(2)
-            dept_summary = dept_summary.sort_values("Total_Visits", ascending=False).reset_index(drop=True)
-
-            # ── Chart row: Visits bar + Complaints vs Visits scatter ──────────
-            ch1, ch2 = st.columns([1.4, 1])
-
-            with ch1:
-                st.markdown("**Clinic Visits by Department**")
-                fig, ax = plt.subplots(figsize=(7, max(4, len(dept_summary) * 0.48)))
-                # Gradient blue bars — darker for higher volume
-                max_v = dept_summary["Total_Visits"].max()
-                colours = [plt.cm.Blues(0.4 + 0.55 * (v / max_v if max_v > 0 else 0)) for v in dept_summary["Total_Visits"]]
-                bars = ax.barh(dept_summary["Department"], dept_summary["Total_Visits"],
-                               color=colours, edgecolor="white", linewidth=0.6, height=0.65)
-                for bar, val in zip(bars, dept_summary["Total_Visits"]):
-                    ax.text(val + max_v * 0.012, bar.get_y() + bar.get_height()/2,
+            # Dept chart + complaint rate side by side
+            dc1, dc2 = st.columns(2)
+            with dc1:
+                fig, ax = plt.subplots(figsize=(7, max(3.5, len(dept_sum)*0.5)))
+                max_v = dept_sum["Total_Visits"].max() or 1
+                colours = [plt.cm.Blues(0.35 + 0.6*(v/max_v)) for v in dept_sum["Total_Visits"]]
+                bars = ax.barh(dept_sum["Department"], dept_sum["Total_Visits"],
+                               color=colours, edgecolor="white", linewidth=0.5, height=0.6)
+                for bar, val in zip(bars, dept_sum["Total_Visits"]):
+                    ax.text(val + max_v*0.015, bar.get_y()+bar.get_height()/2,
                             f"{val:,}", va="center", fontsize=9, fontweight="700", color="#1a365d")
                 ax.set_xlabel("Total Clinic Visits", fontsize=10, color="#64748b")
-                ax.set_title("Clinic Visits by Department", fontsize=12, fontweight="800", color="#1a365d", pad=10)
+                ax.set_title("Visits by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
                 ax.tick_params(colors="#64748b", labelsize=9)
                 for sp in ax.spines.values(): sp.set_edgecolor("#e2e8f0")
-                ax.grid(axis="x", alpha=0.3, linestyle="--", color="#bfdbfe")
+                ax.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
                 ax.set_facecolor("white"); fig.patch.set_facecolor("white")
                 plt.tight_layout(); st.pyplot(fig, use_container_width=True); plt.close()
 
-            with ch2:
-                st.markdown("**Complaints vs. Visit Volume**")
-                fig2, ax2 = plt.subplots(figsize=(5, max(4, len(dept_summary) * 0.48)))
-                dept_plot = dept_summary[dept_summary["Total_Visits"] > 0].copy()
-                dept_plot["complaints_per_100"] = (dept_plot["Total_Complaints"] / dept_plot["Total_Visits"] * 100).round(2)
-                colours2 = ["#e53e3e" if r > dept_plot["complaints_per_100"].quantile(0.75)
-                            else "#f59e0b" if r > 0
-                            else "#38a169" for r in dept_plot["complaints_per_100"]]
-                bars2 = ax2.barh(dept_plot["Department"], dept_plot["complaints_per_100"],
-                                 color=colours2, edgecolor="white", linewidth=0.6, height=0.65, alpha=0.88)
-                for bar, val in zip(bars2, dept_plot["complaints_per_100"]):
-                    ax2.text(val + 0.005, bar.get_y() + bar.get_height()/2,
-                             f"{val:.2f}%", va="center", fontsize=9, fontweight="600", color="#1a365d")
+            with dc2:
+                fig2, ax2 = plt.subplots(figsize=(7, max(3.5, len(dept_sum)*0.5)))
+                c2 = ["#e53e3e" if r > dept_sum["Rate"].quantile(0.75) and r > 0
+                      else "#f59e0b" if r > 0 else "#38a169"
+                      for r in dept_sum["Rate"]]
+                bars2 = ax2.barh(dept_sum["Department"], dept_sum["Rate"],
+                                 color=c2, edgecolor="white", linewidth=0.5, height=0.6, alpha=0.88)
+                for bar, val in zip(bars2, dept_sum["Rate"]):
+                    ax2.text(val + 0.003, bar.get_y()+bar.get_height()/2,
+                             f"{val:.2f}%", va="center", fontsize=9, fontweight="700", color="#1a365d")
                 ax2.set_xlabel("Complaints per 100 Visits", fontsize=10, color="#64748b")
-                ax2.set_title("Complaint Rate by Department", fontsize=12, fontweight="800", color="#1a365d", pad=10)
+                ax2.set_title("Complaint Rate by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
                 ax2.tick_params(colors="#64748b", labelsize=9)
                 for sp in ax2.spines.values(): sp.set_edgecolor("#e2e8f0")
-                ax2.grid(axis="x", alpha=0.3, linestyle="--", color="#bfdbfe")
+                ax2.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
                 ax2.set_facecolor("white"); fig2.patch.set_facecolor("white")
                 ax2.legend(handles=[
                     mpatches.Patch(color="#38a169", alpha=0.88, label="No complaints"),
-                    mpatches.Patch(color="#f59e0b", alpha=0.88, label="Some complaints"),
-                    mpatches.Patch(color="#e53e3e", alpha=0.88, label="High complaint rate"),
+                    mpatches.Patch(color="#f59e0b", alpha=0.88, label="Low rate"),
+                    mpatches.Patch(color="#e53e3e", alpha=0.88, label="High rate"),
                 ], fontsize=8, loc="lower right", framealpha=0.9)
                 plt.tight_layout(); st.pyplot(fig2, use_container_width=True); plt.close()
 
-            # ── Department summary table ───────────────────────────────────────
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown("**Department Summary Table**")
-            dept_display = dept_summary.copy()
-            dept_display.columns = ["Department","Physicians","Divisions","Total Visits","Avg Wait (min)","Total Complaints","Avg Complaints/Physician"]
+            # Dept summary table
+            dept_display = dept_sum.rename(columns={
+                "Physicians":"Physicians","Divisions":"Divisions",
+                "Total_Visits":"Visits","Avg_Wait":"Avg Wait (min)",
+                "Total_Complaints":"Complaints","Rate":"Complaint Rate %"
+            })
             st.dataframe(dept_display, use_container_width=True, hide_index=True,
-                         column_config={
-                             "Total Visits":     st.column_config.ProgressColumn(min_value=0, max_value=int(dept_display["Total Visits"].max()), format="%d"),
-                             "Total Complaints": st.column_config.ProgressColumn(min_value=0, max_value=max(1,int(dept_display["Total Complaints"].max())), format="%d"),
-                         })
+                column_config={
+                    "Visits":      st.column_config.ProgressColumn(min_value=0, max_value=int(dept_display["Visits"].max()), format="%d"),
+                    "Complaints":  st.column_config.ProgressColumn(min_value=0, max_value=max(1,int(dept_display["Complaints"].max())), format="%d"),
+                })
 
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -1958,143 +1926,121 @@ with tab6:
         # ══════════════════════════════════════════════════════════════════════
         st.markdown('<div class="section-header">🔬 Division Drill-Down</div>', unsafe_allow_html=True)
 
-        ddf1, ddf2, ddf3 = st.columns([1.5, 1.2, 1])
-        with ddf1:
-            dept_opts = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist())                         if "Department" in df_filt.columns else ["All Departments"]
-            sel_dept = st.selectbox("Filter by Department", dept_opts, key="div_dept")
-        with ddf2:
-            div_metric = st.selectbox("Chart metric",
+        dd1, dd2, dd3 = st.columns([1.5, 1.2, 1])
+        with dd1:
+            dept_opts_dd = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist())                            if "Department" in df_filt.columns else ["All Departments"]
+            sel_dept_dd = st.selectbox("Department", dept_opts_dd, key="div_dept")
+        with dd2:
+            div_metric = st.selectbox("Metric",
                 ["Clinic Visits", "Avg Wait Time (min)", "Patient Complaints"], key="div_metric")
-        with ddf3:
-            top_n = st.slider("Top N divisions", min_value=5, max_value=30, value=10, step=5, key="div_topn")
+        with dd3:
+            top_n = st.slider("Top N", min_value=5, max_value=30, value=10, step=5, key="div_topn")
 
-        df_div = df_filt if sel_dept == "All Departments" else df_filt[df_filt["Department"] == sel_dept]
+        df_div = df_filt if sel_dept_dd == "All Departments" else df_filt[df_filt["Department"] == sel_dept_dd]
 
         if "Division_norm" in df_div.columns:
-            div_agg = {}
             id_col2 = "Aubnetid" if "Aubnetid" in df_div.columns else df_div.columns[0]
-            div_agg["Physicians"] = (id_col2, "nunique")
-            if "ClinicVisits"      in df_div.columns: div_agg["Total_Visits"]     = ("ClinicVisits",     "sum")
-            if "ClinicWaitingTime" in df_div.columns: div_agg["Avg_Wait"]         = ("ClinicWaitingTime","mean")
-            if "PatientComplaints" in df_div.columns: div_agg["Total_Complaints"] = ("PatientComplaints","sum")
+            div_agg_spec = {"Physicians": (id_col2, "nunique")}
+            if "ClinicVisits"      in df_div.columns: div_agg_spec["Total_Visits"]    = ("ClinicVisits",     "sum")
+            if "ClinicWaitingTime" in df_div.columns: div_agg_spec["Avg_Wait"]        = ("ClinicWaitingTime","mean")
+            if "PatientComplaints" in df_div.columns: div_agg_spec["Total_Complaints"]= ("PatientComplaints","sum")
 
-            div_summary = df_div.groupby("Division_norm", as_index=False).agg(**div_agg).reset_index(drop=True)
+            div_sum = df_div.groupby("Division_norm", as_index=False).agg(**div_agg_spec)
             for c in ["Total_Visits","Total_Complaints","Avg_Wait"]:
-                if c not in div_summary.columns: div_summary[c] = 0
-            for c in ["Total_Visits","Total_Complaints"]:
-                div_summary[c] = div_summary[c].fillna(0).astype(int)
-            div_summary["Avg_Wait"] = div_summary["Avg_Wait"].round(1)
-            div_summary["complaints_per_100"] = (div_summary["Total_Complaints"] /
-                div_summary["Total_Visits"].replace(0, np.nan) * 100).round(2).fillna(0)
+                if c not in div_sum.columns: div_sum[c] = 0
+            div_sum["Total_Visits"]     = div_sum["Total_Visits"].fillna(0).astype(int)
+            div_sum["Total_Complaints"] = div_sum["Total_Complaints"].fillna(0).astype(int)
+            div_sum["Avg_Wait"]         = div_sum["Avg_Wait"].round(1)
+            div_sum["Rate"]             = (div_sum["Total_Complaints"] /
+                                           div_sum["Total_Visits"].replace(0,np.nan)*100).round(2).fillna(0)
 
-            metric_col_map = {
-                "Clinic Visits":       "Total_Visits",
-                "Avg Wait Time (min)": "Avg_Wait",
-                "Patient Complaints":  "Total_Complaints",
-            }
-            sort_col_div = metric_col_map.get(div_metric, "Total_Visits")
-            div_plot = div_summary.sort_values(sort_col_div, ascending=False).head(top_n).sort_values(sort_col_div, ascending=True)
+            metric_map = {"Clinic Visits":"Total_Visits","Avg Wait Time (min)":"Avg_Wait","Patient Complaints":"Total_Complaints"}
+            sort_col_d = metric_map.get(div_metric, "Total_Visits")
+            div_plot = div_sum.sort_values(sort_col_d, ascending=False).head(top_n).sort_values(sort_col_d, ascending=True)
 
-            # ── Division bar chart ─────────────────────────────────────────────
-            bar_colours_div = ["#e53e3e" if c >= 3 else "#f59e0b" if c >= 1 else "#2b7bc8"
-                               for c in div_plot["Total_Complaints"]]
-
-            fig3, ax3 = plt.subplots(figsize=(9, max(4.5, len(div_plot) * 0.48)))
-            values = div_plot[sort_col_div]
-            bars3 = ax3.barh(div_plot["Division_norm"], values,
-                             color=bar_colours_div, edgecolor="white", linewidth=0.6, height=0.65, alpha=0.9)
-            mx3 = values.max() if values.max() > 0 else 1
-            for bar, val, cmp in zip(bars3, values, div_plot["Total_Complaints"]):
-                fmt = f"{val:,}" if div_metric == "Clinic Visits" else (
-                      f"{val:.1f}" if div_metric == "Avg Wait Time (min)" else str(int(val)))
-                warn = f"  ⚠ {int(cmp)}" if cmp > 0 and div_metric != "Patient Complaints" else ""
-                ax3.text(val + mx3 * 0.008, bar.get_y() + bar.get_height()/2,
-                         fmt + warn, va="center", fontsize=9,
-                         color="#e53e3e" if cmp > 0 else "#1a365d", fontweight="700")
+            # Division bar chart
+            bar_c = ["#e53e3e" if c>=3 else "#f59e0b" if c>=1 else "#2b7bc8"
+                     for c in div_plot["Total_Complaints"]]
+            fig3, ax3 = plt.subplots(figsize=(9, max(4, len(div_plot)*0.5)))
+            vals = div_plot[sort_col_d]
+            mx3 = vals.max() or 1
+            ax3.barh(div_plot["Division_norm"], vals, color=bar_c,
+                     edgecolor="white", linewidth=0.5, height=0.6, alpha=0.9)
+            for val, cmp, bar in zip(vals, div_plot["Total_Complaints"],
+                                     ax3.patches):
+                fmt = f"{val:,}" if div_metric=="Clinic Visits" else (
+                      f"{val:.1f}" if div_metric=="Avg Wait Time (min)" else str(int(val)))
+                warn = f"  ⚠ {int(cmp)}" if cmp>0 and div_metric!="Patient Complaints" else ""
+                ax3.text(val+mx3*0.01, bar.get_y()+bar.get_height()/2,
+                         fmt+warn, va="center", fontsize=9, fontweight="700",
+                         color="#e53e3e" if cmp>0 else "#1a365d")
             ax3.set_xlabel(div_metric, fontsize=10, color="#64748b")
             ax3.set_title(
-                f"Top {min(top_n, len(div_plot))} Divisions — {div_metric}"
-                + (f"  ·  {sel_dept}" if sel_dept != "All Departments" else ""),
-                fontsize=12, fontweight="800", color="#1a365d", pad=10
-            )
+                f"Top {min(top_n,len(div_plot))} Divisions — {div_metric}"
+                + (f"  ·  {sel_dept_dd}" if sel_dept_dd!="All Departments" else ""),
+                fontsize=12, fontweight="800", color="#1a365d", pad=8)
             ax3.tick_params(colors="#64748b", labelsize=9)
             for sp in ax3.spines.values(): sp.set_edgecolor("#e2e8f0")
-            ax3.grid(axis="x", alpha=0.3, linestyle="--", color="#bfdbfe")
+            ax3.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
             ax3.set_facecolor("white"); fig3.patch.set_facecolor("white")
             ax3.legend(handles=[
-                mpatches.Patch(color="#2b7bc8", alpha=0.9,  label="No complaints"),
-                mpatches.Patch(color="#f59e0b", alpha=0.9,  label="1–2 complaints"),
-                mpatches.Patch(color="#e53e3e", alpha=0.9,  label="3+ complaints"),
-            ], fontsize=9, loc="lower right", framealpha=0.9)
+                mpatches.Patch(color="#2b7bc8",alpha=0.9,label="No complaints"),
+                mpatches.Patch(color="#f59e0b",alpha=0.9,label="1–2 complaints"),
+                mpatches.Patch(color="#e53e3e",alpha=0.9,label="3+ complaints"),
+            ], fontsize=8, loc="lower right", framealpha=0.9)
             plt.tight_layout(); st.pyplot(fig3, use_container_width=True); plt.close()
 
-            st.caption(f"Showing top {min(top_n, len(div_plot))} of {len(div_summary)} divisions · bar colour indicates complaint level")
-
-            # ── Division cards ─────────────────────────────────────────────────
+            # Division detail table
             st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown("**Division Detail Cards**")
-            div_cards = div_summary.sort_values("Total_Visits", ascending=False)
-            cols_per_row = 2
-            rows = [div_cards.iloc[i:i+cols_per_row] for i in range(0, len(div_cards), cols_per_row)]
-            for row_df in rows:
-                cols = st.columns(cols_per_row)
-                for col, (_, div_row) in zip(cols, row_df.iterrows()):
-                    cmp = int(div_row["Total_Complaints"])
-                    card_class = "div-card alert" if cmp >= 3 else ("div-card warn" if cmp >= 1 else "div-card")
-                    wait_str = f"{div_row['Avg_Wait']:.1f} min" if div_row.get("Avg_Wait",0) > 0 else "—"
-                    cpr = f"{div_row['complaints_per_100']:.2f}%" if div_row.get("complaints_per_100",0) > 0 else "0%"
-                    cmp_color = "#e53e3e" if cmp>=3 else "#f59e0b" if cmp>0 else "#38a169"
-                    cmp_icon  = "⚠️" if cmp > 0 else "✅"
-                    with col:
-                        st.markdown(f"""
-                        <div class="{card_class}">
-                            <div class="div-name">{div_row["Division_norm"]}</div>
-                            <div class="div-stats">
-                                <div class="div-stat">👤 <span>{int(div_row.get("Physicians",0))}</span><br>physicians</div>
-                                <div class="div-stat">🏥 <span>{int(div_row["Total_Visits"]):,}</span><br>visits</div>
-                                <div class="div-stat">⏱ <span>{wait_str}</span><br>avg wait</div>
-                                <div class="div-stat">{cmp_icon} <span style="color:{cmp_color}">{cmp}</span><br>complaints ({cpr})</div>
-                            </div>
-                        </div>""", unsafe_allow_html=True)
+            div_display = div_sum.sort_values("Total_Visits", ascending=False).rename(columns={
+                "Division_norm":"Division","Total_Visits":"Visits",
+                "Avg_Wait":"Avg Wait (min)","Total_Complaints":"Complaints","Rate":"Rate %"
+            })
+            st.dataframe(div_display, use_container_width=True, hide_index=True,
+                column_config={
+                    "Visits":     st.column_config.ProgressColumn(min_value=0, max_value=int(div_display["Visits"].max()) if "Visits" in div_display.columns else 100, format="%d"),
+                    "Complaints": st.column_config.ProgressColumn(min_value=0, max_value=max(1,int(div_display["Complaints"].max())) if "Complaints" in div_display.columns else 1, format="%d"),
+                })
 
         st.markdown("<br>", unsafe_allow_html=True)
 
         # ══════════════════════════════════════════════════════════════════════
-        # SECTION 3 — PHYSICIAN-LEVEL EXPLORER
+        # SECTION 3 — PHYSICIAN EXPLORER
         # ══════════════════════════════════════════════════════════════════════
-        st.markdown('<div class="section-header">👤 Physician-Level Explorer</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">👤 Physician Explorer</div>', unsafe_allow_html=True)
 
         pe1, pe2, pe3 = st.columns(3)
         with pe1:
-            dept_opts2 = ["All"] + sorted(df_filt["Department"].dropna().unique().tolist())                          if "Department" in df_filt.columns else ["All"]
-            sel_dept2 = st.selectbox("Department", dept_opts2, key="pe_dept")
-        df_pe = df_filt if sel_dept2 == "All" else df_filt[df_filt["Department"] == sel_dept2]
+            dept_pe = ["All"] + sorted(df_filt["Department"].dropna().unique().tolist())                       if "Department" in df_filt.columns else ["All"]
+            sel_dept_pe = st.selectbox("Department", dept_pe, key="pe_dept")
+        df_pe = df_filt if sel_dept_pe=="All" else df_filt[df_filt["Department"]==sel_dept_pe]
         with pe2:
-            div_opts = ["All"] + sorted(df_pe["Division_norm"].dropna().unique().tolist())                        if "Division_norm" in df_pe.columns else ["All"]
-            sel_div = st.selectbox("Division", div_opts, key="pe_div")
-        df_pe = df_pe if sel_div == "All" else df_pe[df_pe["Division_norm"] == sel_div]
+            div_pe = ["All"] + sorted(df_pe["Division_norm"].dropna().unique().tolist())                      if "Division_norm" in df_pe.columns else ["All"]
+            sel_div_pe = st.selectbox("Division", div_pe, key="pe_div")
+        df_pe = df_pe if sel_div_pe=="All" else df_pe[df_pe["Division_norm"]==sel_div_pe]
         with pe3:
-            sel_sort = st.selectbox("Sort by",
+            sel_sort_pe = st.selectbox("Sort by",
                 ["Clinic Visits ↓","Patient Complaints ↓","Waiting Time ↓"], key="pe_sort")
 
-        sort_col_map = {"Clinic Visits ↓":"ClinicVisits","Patient Complaints ↓":"PatientComplaints","Waiting Time ↓":"ClinicWaitingTime"}
-        sort_col = sort_col_map[sel_sort]
-        if sort_col in df_pe.columns: df_pe = df_pe.sort_values(sort_col, ascending=False)
+        sort_map = {"Clinic Visits ↓":"ClinicVisits","Patient Complaints ↓":"PatientComplaints","Waiting Time ↓":"ClinicWaitingTime"}
+        sc = sort_map[sel_sort_pe]
+        if sc in df_pe.columns: df_pe = df_pe.sort_values(sc, ascending=False)
 
-        show_cols  = ["Aubnetid","Division_norm","Department","FiscalCycle","ClinicVisits","ClinicWaitingTime","PatientComplaints"]
-        avail_show = [c for c in show_cols if c in df_pe.columns]
-        show_renamed = df_pe[avail_show].rename(columns={
-            "Aubnetid":"Physician ID","Division_norm":"Division","FiscalCycle":"Cycle",
-            "ClinicVisits":"Clinic Visits","ClinicWaitingTime":"Wait Time (min)","PatientComplaints":"Complaints",
+        show_c = ["Aubnetid","Physician Name","Division_norm","Department","FiscalCycle",
+                  "ClinicVisits","ClinicWaitingTime","PatientComplaints"]
+        avail  = [c for c in show_c if c in df_pe.columns]
+        shown  = df_pe[avail].rename(columns={
+            "Aubnetid":"ID","Physician Name":"Name",
+            "Division_norm":"Division","FiscalCycle":"Cycle",
+            "ClinicVisits":"Visits","ClinicWaitingTime":"Wait (min)","PatientComplaints":"Complaints",
         }).reset_index(drop=True)
 
-        max_visits = int(df_filt["ClinicVisits"].max())      if "ClinicVisits"      in df_filt.columns else 100
-        max_cmp    = int(df_filt["PatientComplaints"].max()) if "PatientComplaints" in df_filt.columns else 10
-        st.dataframe(show_renamed, use_container_width=True, hide_index=True,
-                     column_config={
-                         "Clinic Visits": st.column_config.ProgressColumn(min_value=0, max_value=max_visits, format="%d"),
-                         "Complaints":    st.column_config.ProgressColumn(min_value=0, max_value=max(1,max_cmp), format="%d"),
-                     })
-
-        csv_ind = show_renamed.to_csv(index=False).encode("utf-8")
-        st.download_button("⬇️ Export as CSV", csv_ind, "division_physicians.csv", "text/csv")
+        mv = int(df_filt["ClinicVisits"].max())      if "ClinicVisits"      in df_filt.columns else 100
+        mc = int(df_filt["PatientComplaints"].max()) if "PatientComplaints" in df_filt.columns else 10
+        st.dataframe(shown, use_container_width=True, hide_index=True,
+            column_config={
+                "Visits":     st.column_config.ProgressColumn(min_value=0, max_value=mv, format="%d"),
+                "Complaints": st.column_config.ProgressColumn(min_value=0, max_value=max(1,mc), format="%d"),
+            })
+        csv_out = shown.to_csv(index=False).encode("utf-8")
+        st.download_button("⬇️ Export as CSV", csv_out, "physicians_indicators.csv", "text/csv")
