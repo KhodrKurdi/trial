@@ -2162,28 +2162,27 @@ DATA CONTEXT:
             with st.spinner("Thinking..."):
                 try:
                     import requests
-                    api_key = st.secrets.get("OPENAI_API_KEY", "")
+                    api_key = st.secrets.get("GROQ_API_KEY", "")
                     if not api_key:
-                        answer = "⚠️ API key not configured. Add OPENAI_API_KEY to your Streamlit secrets."
+                        answer = "⚠️ API key not configured. Add GROQ_API_KEY to your Streamlit secrets."
                         st.markdown(answer)
                         st.session_state.chat_history.append({"role": "assistant", "content": answer})
                         st.stop()
-                    # Build OpenAI messages with system prompt
-                    openai_messages = [{"role": "system", "content": system_prompt}]
+                    groq_messages = [{"role": "system", "content": system_prompt}]
                     for m in messages[:-1]:
-                        openai_messages.append({"role": m["role"], "content": m["content"]})
-                    openai_messages.append({"role": "user", "content": user_input})
+                        groq_messages.append({"role": m["role"], "content": m["content"]})
+                    groq_messages.append({"role": "user", "content": user_input})
                     response = requests.post(
-                        "https://api.openai.com/v1/chat/completions",
+                        "https://api.groq.com/openai/v1/chat/completions",
                         headers={
                             "Content-Type": "application/json",
                             "Authorization": f"Bearer {api_key}",
                         },
                         json={
-                            "model": "gpt-4o-mini",
+                            "model": "llama-3.3-70b-versatile",
                             "max_tokens": 1024,
                             "temperature": 0.2,
-                            "messages": openai_messages,
+                            "messages": groq_messages,
                         },
                         timeout=30
                     )
