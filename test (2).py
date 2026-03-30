@@ -2138,6 +2138,8 @@ with tab7:
                 lines.append(f"  Priority physician IDs: {', '.join(priority['physician_id'].tolist())}")
             bottom5 = phys.nsmallest(5, 'avg_behavior_score')[['physician_id','avg_behavior_score','risk_score']]
             lines.append(f"  Lowest 5 scores: " + ", ".join([f"{r['physician_id']} ({r['avg_behavior_score']:.3f})" for _, r in bottom5.iterrows()]))
+            top5 = phys.nlargest(5, 'avg_behavior_score')[['physician_id','avg_behavior_score','risk_score']]
+            lines.append(f"  Highest 5 scores: " + ", ".join([f"{r['physician_id']} ({r['avg_behavior_score']:.3f})" for _, r in top5.iterrows()]))
             lines.append("")
 
         # ── CLINICAL INDICATORS (DEPARTMENTS & DIVISIONS) ─────────────────
