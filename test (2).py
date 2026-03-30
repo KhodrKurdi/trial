@@ -444,13 +444,13 @@ st.markdown("---")
 
 # ─── TABS ────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "📋 Executive Summary",
-    "🎯 Flagged Physicians",
-    "📊 Project View",
-    "💬 Sentiment Explorer",
-    "📈 Trends (2023–2025)",
-    "🏢 Departments & Divisions",
-    "🤖 AI Assistant"
+    "📋 Summary",
+    "🎯 Flagged",
+    "📊 Scores",
+    "💬 Sentiment",
+    "📈 Trends",
+    "🏢 Dept & Div",
+    "🤖 Ask MC"
 ])
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -2082,8 +2082,8 @@ with tab6:
 # TAB 7 — AI ASSISTANT
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab7:
-    st.markdown('<div class="section-header">🤖 AI Assistant — Ask About Your Physicians</div>', unsafe_allow_html=True)
-    st.markdown("Ask anything about the data — priority physicians, department scores, sentiment trends, comparisons, and more.")
+    st.markdown('<div class="section-header">🤖 Ask MC — Your AUBMC Data Assistant</div>', unsafe_allow_html=True)
+    st.markdown("Ask MC anything about the physician performance data — risk flags, scores, sentiment, trends, and department comparisons.")
 
     # ── Build context summary from loaded data ────────────────────────────────
     @st.cache_data(show_spinner=False)
@@ -2128,78 +2128,76 @@ with tab7:
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # Display chat history
+    # Clear button at top right
+    col_title, col_clear = st.columns([5, 1])
+    with col_clear:
+        if st.session_state.chat_history:
+            if st.button("🗑️ Clear", key="clear_chat"):
+                st.session_state.chat_history = []
+                st.rerun()
+
+    # Chat container — display full history
     for msg in st.session_state.chat_history:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # Input
-    user_input = st.chat_input("Ask about physicians, departments, scores, sentiment...")
+    # Input at bottom
+    user_input = st.chat_input("Ask MC about physicians, scores, sentiment, flags...")
 
     if user_input:
-        # Show user message
+        # Add user message to history and display it
         st.session_state.chat_history.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Build messages for API
-        system_prompt = f"""You are an AI assistant for the AUBMC Physician Performance Dashboard.
+        # Build system prompt with live data context
+        system_prompt = f"""You are MC, an AI data assistant for the AUBMC Physician Performance Dashboard.
 You help medical administrators and stakeholders understand physician performance data.
 Answer questions clearly, concisely, and accurately using ONLY the data provided below.
-If asked about a specific physician ID, look it up in the data. Be direct and professional.
-Do not invent or estimate numbers not present in the data.
+Be direct, professional, and helpful. Do not invent numbers not in the data.
+If a physician ID is mentioned, look it up in the data.
 
 DATA CONTEXT:
 {context}
 """
+        # Build message history for API (all turns)
         messages = []
-        for h in st.session_state.chat_history[:-1]:  # exclude last user msg
+        for h in st.session_state.chat_history:
             messages.append({"role": h["role"], "content": h["content"]})
-        messages.append({"role": "user", "content": user_input})
 
-        # Call Claude API
+        # Call Anthropic API and display response
         with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
+            with st.spinner("MC is thinking..."):
                 try:
                     import requests
-                    api_key = st.secrets.get("GROQ_API_KEY", "")
+                    api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
                     if not api_key:
-                        answer = "⚠️ API key not configured. Add GROQ_API_KEY to your Streamlit secrets."
-                        st.markdown(answer)
-                        st.session_state.chat_history.append({"role": "assistant", "content": answer})
-                        st.stop()
-                    groq_messages = [{"role": "system", "content": system_prompt}]
-                    for m in messages[:-1]:
-                        groq_messages.append({"role": m["role"], "content": m["content"]})
-                    groq_messages.append({"role": "user", "content": user_input})
-                    response = requests.post(
-                        "https://api.groq.com/openai/v1/chat/completions",
-                        headers={
-                            "Content-Type": "application/json",
-                            "Authorization": f"Bearer {api_key}",
-                        },
-                        json={
-                            "model": "llama-3.3-70b-versatile",
-                            "max_tokens": 1024,
-                            "temperature": 0.2,
-                            "messages": groq_messages,
-                        },
-                        timeout=30
-                    )
-                    result = response.json()
-                    if "choices" in result and result["choices"]:
-                        answer = result["choices"][0]["message"]["content"]
+                        answer = "⚠️ ANTHROPIC_API_KEY not found in Streamlit secrets."
                     else:
-                        err = result.get("error", {}).get("message", "Unknown error")
-                        answer = f"Sorry, I couldn't get a response. ({err})"
+                        response = requests.post(
+                            "https://api.anthropic.com/v1/messages",
+                            headers={
+                                "Content-Type": "application/json",
+                                "x-api-key": api_key,
+                                "anthropic-version": "2023-06-01",
+                            },
+                            json={
+                                "model": "claude-haiku-4-5-20251001",
+                                "max_tokens": 1024,
+                                "system": system_prompt,
+                                "messages": messages,
+                            },
+                            timeout=30
+                        )
+                        result = response.json()
+                        if "content" in result and result["content"]:
+                            answer = result["content"][0]["text"]
+                        else:
+                            err = result.get("error", {}).get("message", "Unknown error")
+                            answer = f"Sorry, I couldn't get a response. ({err})"
                 except Exception as e:
                     answer = f"Connection error: {str(e)}"
 
             st.markdown(answer)
-            st.session_state.chat_history.append({"role": "assistant", "content": answer})
-
-    # Clear chat button
-    if st.session_state.chat_history:
-        if st.button("🗑️ Clear conversation", key="clear_chat"):
-            st.session_state.chat_history = []
-            st.rerun()
+        # Add assistant response to history
+        st.session_state.chat_history.append({"role": "assistant", "content": answer})
