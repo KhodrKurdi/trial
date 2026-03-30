@@ -2156,13 +2156,15 @@ with tab7:
             lines.append(f"  Avg score: {phys['avg_behavior_score'].mean():.3f}")
             lines.append(f"  Priority: {(phys['risk_score']>=3).sum()}, Monitor: {phys['risk_score'].between(1,2).sum()}, Clear: {(phys['risk_score']==0).sum()}")
             lines.append(f"  Sentiment flags: {phys['negative_outlier'].sum()}")
-            priority = phys[phys['risk_score']>=3][['physician_id','avg_behavior_score','risk_score']].sort_values('avg_behavior_score')
-            if not priority.empty:
-                lines.append(f"  Priority physician IDs: {', '.join(priority['physician_id'].tolist())}")
-            bottom5 = phys.nsmallest(5, 'avg_behavior_score')[['physician_id','avg_behavior_score','risk_score']]
-            lines.append(f"  Lowest 5 scores: " + ", ".join([f"{r['physician_id']} ({r['avg_behavior_score']:.3f})" for _, r in bottom5.iterrows()]))
-            top5 = phys.nlargest(5, 'avg_behavior_score')[['physician_id','avg_behavior_score','risk_score']]
-            lines.append(f"  Highest 5 scores: " + ", ".join([f"{r['physician_id']} ({r['avg_behavior_score']:.3f})" for _, r in top5.iterrows()]))
+            # Full physician list with all scores
+            lines.append(f"  All physicians (ID, score, risk, IQR_flag, Z_flag, Bottom10, Sentiment_flag):")
+            for _, r in phys.sort_values('avg_behavior_score').iterrows():
+                iqr  = "IQR"  if r.get("low_iqr_outlier", False) else ""
+                z    = "Z"    if r.get("low_z_outlier",   False) else ""
+                b10  = "B10"  if r.get("low_bottom10",    False) else ""
+                sent = "SENT" if r.get("negative_outlier",False) else ""
+                flags = " ".join(f for f in [iqr,z,b10,sent] if f) or "none"
+                lines.append(f"    {r['physician_id']}: score={r['avg_behavior_score']:.3f}, risk={int(r['risk_score'])}, flags=[{flags}]")
             lines.append("")
 
         # ── CLINICAL INDICATORS (DEPARTMENTS & DIVISIONS) ─────────────────
