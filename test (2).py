@@ -107,6 +107,29 @@ st.markdown("""
     .comment-card.pos { border-left-color: #38a169; background: #f8fff9; }
     .comment-card.neu { border-left-color: #cbd5e0; }
 
+    /* ── Chat messages — force dark text ── */
+    [data-testid="stChatMessage"] { background: white !important; border-radius: 12px !important; }
+    [data-testid="stChatMessage"] p,
+    [data-testid="stChatMessage"] li,
+    [data-testid="stChatMessage"] td,
+    [data-testid="stChatMessage"] th,
+    [data-testid="stChatMessage"] span,
+    [data-testid="stChatMessage"] div { color: #1a365d !important; }
+    [data-testid="stChatMessage"] table {
+        border-collapse: collapse; width: 100%;
+    }
+    [data-testid="stChatMessage"] th {
+        background: #2b7bc8 !important; color: white !important;
+        padding: 8px 12px; font-size: 13px;
+    }
+    [data-testid="stChatMessage"] td {
+        padding: 7px 12px; border-bottom: 1px solid #e2e8f0;
+        font-size: 13px; color: #1a365d !important;
+    }
+    [data-testid="stChatMessage"] tr:nth-child(even) td {
+        background: #f0f6fc !important;
+    }
+
     /* ── Streamlit native ── */
     .stMetric {
         background: white; border-radius: 10px; padding: 14px 16px;
