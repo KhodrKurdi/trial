@@ -2087,42 +2087,88 @@ with tab7:
 
     # ── Build context summary from loaded data ────────────────────────────────
     @st.cache_data(show_spinner=False)
-    def build_context(_all_phys, _data, _available_depts):
+    def build_context(_all_phys, _data, _available_depts, _ind_df):
         lines = []
-        lines.append(f"AUBMC Physician Performance Dashboard — Data Summary")
-        lines.append(f"Total physicians: {len(_all_phys)}")
-        lines.append(f"Departments: {', '.join(_available_depts)}")
-        lines.append(f"Years covered: 2023, 2024, 2025")
-        lines.append(f"Overall avg behavior score: {_all_phys['avg_behavior_score'].mean():.3f} / 4.0")
-        lines.append(f"Priority physicians (risk 3-4): {(_all_phys['risk_score']>=3).sum()}")
-        lines.append(f"Monitor physicians (risk 1-2): {(_all_phys['risk_score'].between(1,2)).sum()}")
-        lines.append(f"Clear physicians (risk 0): {(_all_phys['risk_score']==0).sum()}")
-        lines.append(f"Negative sentiment flags: {_all_phys['negative_outlier'].sum()}")
+        lines.append("=" * 60)
+        lines.append("AUBMC PHYSICIAN PERFORMANCE DASHBOARD — DATA CONTEXT")
+        lines.append("=" * 60)
         lines.append("")
 
-        for dept in _available_depts:
-            _, phys, sent = _data[dept]
-            if phys is None or phys.empty:
-                continue
-            lines.append(f"--- {dept} ---")
+        # ── IMPORTANT TERMINOLOGY ─────────────────────────────────────────
+        lines.append("IMPORTANT TERMINOLOGY:")
+        lines.append("- 'Project groups' or 'Survey groups': AUBMC, ED, Pathology")
+        lines.append("  These are the 3 groups used in the behavior survey project.")
+        lines.append("  AUBMC = main hospital group, ED = Emergency Department group,")
+        lines.append("  Pathology = Pathology & Lab group.")
+        lines.append("  These are NOT clinical departments — they are project data groups.")
+        lines.append("")
+        lines.append("- 'Departments': The actual AUBMC clinical departments,")
+        lines.append("  e.g. Internal Medicine, Surgery, Ob/Gyn, Pediatrics, etc.")
+        lines.append("  These come from the indicators data (Tab 6).")
+        lines.append("")
+        lines.append("- 'Divisions': Sub-units within departments,")
+        lines.append("  e.g. Cardiology (under Internal Medicine),")
+        lines.append("  General Surgery (under Surgery), etc.")
+        lines.append("")
+
+        # ── BEHAVIOR SURVEY SUMMARY ───────────────────────────────────────
+        lines.append("=" * 40)
+        lines.append("BEHAVIOR SURVEY & PERFORMANCE DATA")
+        lines.append("=" * 40)
+        lines.append(f"Total physicians evaluated: {len(_all_phys)}")
+        lines.append(f"Years covered: 2023, 2024, 2025")
+        lines.append(f"Overall avg behavior score: {_all_phys['avg_behavior_score'].mean():.3f} / 4.0")
+        lines.append(f"Risk breakdown:")
+        lines.append(f"  Priority (risk 3-4): {(_all_phys['risk_score']>=3).sum()} physicians")
+        lines.append(f"  Monitor  (risk 1-2): {(_all_phys['risk_score'].between(1,2)).sum()} physicians")
+        lines.append(f"  Clear    (risk 0):   {(_all_phys['risk_score']==0).sum()} physicians")
+        lines.append(f"Negative sentiment flags: {_all_phys['negative_outlier'].sum()} physicians")
+        lines.append("")
+
+        for grp in _available_depts:
+            _, phys, _ = _data[grp]
+            if phys is None or phys.empty: continue
+            lines.append(f"Survey group: {grp}")
             lines.append(f"  Physicians: {len(phys)}")
             lines.append(f"  Avg score: {phys['avg_behavior_score'].mean():.3f}")
             lines.append(f"  Priority: {(phys['risk_score']>=3).sum()}, Monitor: {phys['risk_score'].between(1,2).sum()}, Clear: {(phys['risk_score']==0).sum()}")
-            lines.append(f"  Negative sentiment flags: {phys['negative_outlier'].sum()}")
-            # Priority physicians list
+            lines.append(f"  Sentiment flags: {phys['negative_outlier'].sum()}")
             priority = phys[phys['risk_score']>=3][['physician_id','avg_behavior_score','risk_score']].sort_values('avg_behavior_score')
             if not priority.empty:
                 lines.append(f"  Priority physician IDs: {', '.join(priority['physician_id'].tolist())}")
-            # Bottom 5 by score
             bottom5 = phys.nsmallest(5, 'avg_behavior_score')[['physician_id','avg_behavior_score','risk_score']]
-            lines.append(f"  Lowest 5 scores:")
-            for _, r in bottom5.iterrows():
-                lines.append(f"    {r['physician_id']}: score={r['avg_behavior_score']:.3f}, risk={int(r['risk_score'])}")
+            lines.append(f"  Lowest 5 scores: " + ", ".join([f"{r['physician_id']} ({r['avg_behavior_score']:.3f})" for _, r in bottom5.iterrows()]))
+            lines.append("")
+
+        # ── CLINICAL INDICATORS (DEPARTMENTS & DIVISIONS) ─────────────────
+        if _ind_df is not None and not _ind_df.empty:
+            lines.append("=" * 40)
+            lines.append("CLINICAL DEPARTMENTS & DIVISIONS (INDICATORS DATA)")
+            lines.append("=" * 40)
+            if "Department" in _ind_df.columns:
+                depts = _ind_df["Department"].dropna().unique()
+                lines.append(f"Clinical departments ({len(depts)}): {', '.join(sorted(depts))}")
+            if "Division_norm" in _ind_df.columns:
+                divs = _ind_df["Division_norm"].dropna().unique()
+                lines.append(f"Divisions ({len(divs)}): {', '.join(sorted(divs))}")
+            # Dept-level aggregates
+            if "Department" in _ind_df.columns and "ClinicVisits" in _ind_df.columns:
+                dept_g = _ind_df.groupby("Department").agg(
+                    Visits=("ClinicVisits","sum"),
+                    Complaints=("PatientComplaints","sum") if "PatientComplaints" in _ind_df.columns else ("ClinicVisits","count"),
+                    AvgWait=("ClinicWaitingTime","mean") if "ClinicWaitingTime" in _ind_df.columns else ("ClinicVisits","count"),
+                ).reset_index().sort_values("Visits", ascending=False)
+                lines.append("")
+                lines.append("Department summary (visits / complaints / avg wait):")
+                for _, r in dept_g.iterrows():
+                    lines.append(f"  {r['Department']}: {int(r['Visits']):,} visits, {int(r.get('Complaints',0))} complaints, {r.get('AvgWait',0):.1f} min avg wait")
             lines.append("")
 
         return "\n".join(lines)
 
-    context = build_context(all_phys, data, available_depts)
+    # Load indicators for context (may be None if not configured)
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.3") if "load_indicators" in dir() else None
+    context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
     if "chat_history" not in st.session_state:
@@ -2153,9 +2199,15 @@ with tab7:
         # Build system prompt with live data context
         system_prompt = f"""You are MC, an AI data assistant for the AUBMC Physician Performance Dashboard.
 You help medical administrators and stakeholders understand physician performance data.
+
+CRITICAL — TERMINOLOGY YOU MUST FOLLOW:
+- When someone says "department", they mean the CLINICAL departments: Internal Medicine, Surgery, Ob/Gyn, Pediatrics, etc.
+- AUBMC, ED, and Pathology are NOT departments — they are project survey groups used in the behavior analysis.
+- If someone asks about "departments", answer using clinical department data from the indicators section.
+- If someone asks about survey scores, outliers, or risk flags, use the survey group data (AUBMC/ED/Pathology groups).
+
 Answer questions clearly, concisely, and accurately using ONLY the data provided below.
-Be direct, professional, and helpful. Do not invent numbers not in the data.
-If a physician ID is mentioned, look it up in the data.
+Be direct and professional. Do not invent numbers not present in the data.
 
 DATA CONTEXT:
 {context}
