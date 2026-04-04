@@ -2254,7 +2254,11 @@ with tab7:
                 div  = div_lookup.get(pid, dept)
                 name = name_lookup.get(pid, "")
                 pct  = r.get("percentile", 0)
-                lines.append(f"    {pid} | {name} | {dept} | {div} | score={r['avg_behavior_score']:.3f} | percentile={pct:.0f}th | risk={int(r['risk_score'])} | flags=[{flags}]")
+                compound = r.get("avg_compound", float("nan"))
+                compound_str = f"{compound:.3f}" if pd.notna(compound) else "n/a"
+                neg_ratio = r.get("negative_ratio", float("nan"))
+                neg_ratio_str = f"{neg_ratio:.1%}" if pd.notna(neg_ratio) else "n/a"
+                lines.append(f"    {pid} | {name} | {dept} | {div} | score={r['avg_behavior_score']:.3f} | percentile={pct:.0f}th | risk={int(r['risk_score'])} | sentiment_compound={compound_str} | neg_ratio={neg_ratio_str} | flags=[{flags}]")
             lines.append("")
 
         # Also add a department-level risk summary for quick lookup
