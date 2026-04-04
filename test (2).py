@@ -1677,29 +1677,37 @@ with tab5:
                     pct_df = pd.DataFrame(pct_rows)
 
                     if not pct_df.empty:
-                        fig3, ax3 = plt.subplots(figsize=(10, 3.5))
+                        # Sort oldest to newest
+                        pct_df = pct_df.sort_values("Year").reset_index(drop=True)
+                        fig3, ax3 = plt.subplots(figsize=(max(5, len(pct_df)*2), 4.5))
                         colours_pct = ["#38a169" if p >= 50 else ("#f59e0b" if p >= 25 else "#e53e3e")
                                        for p in pct_df["Percentile Rank"]]
-                        bars3 = ax3.barh(pct_df["Year"].astype(str),
-                                         pct_df["Percentile Rank"],
-                                         color=colours_pct, edgecolor="white",
-                                         linewidth=1, height=0.45, alpha=0.85)
-                        ax3.axvline(50, color="#64748b", linestyle="--",
+                        x_pos = range(len(pct_df))
+                        bars3 = ax3.bar(x_pos, pct_df["Percentile Rank"],
+                                        color=colours_pct, edgecolor="white",
+                                        linewidth=1, width=0.55, alpha=0.88)
+                        ax3.axhline(50, color="#64748b", linestyle="--",
                                     linewidth=1.2, label="50th percentile")
-                        ax3.axvline(25, color="#e53e3e", linestyle=":",
+                        ax3.axhline(25, color="#e53e3e", linestyle=":",
                                     linewidth=1.2, label="25th percentile (concern)")
                         for bar, val in zip(bars3, pct_df["Percentile Rank"]):
-                            ax3.text(val + 0.5, bar.get_y() + bar.get_height()/2,
+                            ax3.text(bar.get_x() + bar.get_width()/2, val + 1.5,
                                      f"{val:.0f}th",
-                                     va="center", fontsize=10, fontweight="700")
-                        ax3.set_xlabel("Percentile Rank within Project (100 = best)", fontsize=10)
+                                     ha="center", va="bottom", fontsize=11, fontweight="700",
+                                     color="#1a365d")
+                        ax3.set_xticks(list(x_pos))
+                        ax3.set_xticklabels(pct_df["Year"].astype(str), fontsize=11)
+                        ax3.set_ylabel("Percentile Rank (100 = best)", fontsize=10, color="#64748b")
                         ax3.set_title(f"Physician {selected_phys} — Percentile Rank Over Time",
-                                      fontsize=11, fontweight="bold")
-                        ax3.set_xlim(0, 110)
-                        ax3.legend(fontsize=9)
-                        ax3.grid(axis="x", alpha=0.3, linestyle="--")
+                                      fontsize=11, fontweight="bold", color="#1a365d")
+                        ax3.set_ylim(0, 115)
+                        ax3.legend(fontsize=9, framealpha=0.9)
+                        ax3.grid(axis="y", alpha=0.25, linestyle="--", color="#bfdbfe")
+                        ax3.tick_params(colors="#64748b")
+                        for sp in ax3.spines.values(): sp.set_edgecolor("#e2e8f0")
                         ax3.set_facecolor("white")
                         fig3.patch.set_facecolor("white")
+                        plt.tight_layout()
                         st.pyplot(fig3, use_container_width=True)
                         plt.close()
 
