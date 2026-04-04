@@ -273,6 +273,95 @@ def add_outlier_flags(phys_df):
 
 vader = SentimentIntensityAnalyzer()
 
+# ── Custom medical/professional domain lexicon ────────────────────────────────
+# VADER was built for social media — it misses clinical/professional negative terms.
+# We extend its lexicon with domain-specific words scored -1.0 to -3.0 (negative)
+# and +1.0 to +2.0 (positive). Scale: ±4.0 max in VADER's system.
+_MEDICAL_LEXICON = {
+    # Strong negatives (-2.5 to -3.0)
+    "sexism":           -3.0,
+    "harassment":       -3.0,
+    "abuse":            -3.0,
+    "abusive":          -3.0,
+    "discriminatory":   -2.8,
+    "discrimination":   -2.8,
+    "malpractice":      -2.8,
+    "negligent":        -2.8,
+    "negligence":       -2.8,
+    "incompetent":      -2.8,
+    "incompetence":     -2.8,
+    "unethical":        -2.8,
+    "misconduct":       -2.8,
+
+    # Moderate negatives (-1.5 to -2.5)
+    "disrespects":      -2.5,
+    "disrespectful":    -2.5,
+    "disrespect":       -2.3,
+    "suboptimal":       -2.0,
+    "unprofessional":   -2.3,
+    "triggering":       -1.8,
+    "dismissive":       -2.0,
+    "condescending":    -2.3,
+    "arrogant":         -2.0,
+    "rude":             -2.0,
+    "intimidating":     -1.8,
+    "demeaning":        -2.3,
+    "belittling":       -2.3,
+    "humiliates":       -2.5,
+    "humiliating":      -2.5,
+    "inadequate":       -1.8,
+    "inconsiderate":    -1.8,
+    "inattentive":      -1.5,
+    "unapproachable":   -1.8,
+    "unavailable":      -1.2,
+    "unhelpful":        -1.8,
+    "uncompassionate":  -2.0,
+    "impatient":        -1.5,
+    "impolite":         -1.8,
+    "inappropriate":    -2.0,
+    "unprepared":       -1.5,
+    "overconfident":    -1.5,
+    "careless":         -2.0,
+    "rushed":           -1.3,
+    "avoids":           -1.2,
+    "disorganized":     -1.5,
+    "lacks":            -1.2,
+    "bullying":         -2.8,
+    "bully":            -2.5,
+
+    # Mild negatives (-0.5 to -1.5)
+    "improvements":     -0.5,  # "needs improvements" context
+    "improve":          -0.3,
+    "concern":          -0.8,
+    "concerns":         -0.8,
+    "complaints":       -1.0,
+    "complaint":        -1.0,
+    "difficult":        -0.8,
+    "challenging":      -0.5,
+    "late":             -0.8,
+    "delayed":          -0.8,
+
+    # Positives (+1.5 to +2.5)
+    "compassionate":    +2.5,
+    "empathetic":       +2.5,
+    "empathy":          +2.3,
+    "supportive":       +2.0,
+    "knowledgeable":    +2.0,
+    "dedicated":        +2.0,
+    "thorough":         +2.0,
+    "approachable":     +2.0,
+    "attentive":        +2.0,
+    "collaborative":    +1.8,
+    "professional":     +1.8,
+    "respectful":       +2.0,
+    "responsive":       +1.8,
+    "excellent":        +2.5,
+    "outstanding":      +2.5,
+    "exceptional":      +2.5,
+    "commendable":      +2.3,
+}
+vader.lexicon.update(_MEDICAL_LEXICON)
+
 def score_vader(text, threshold=-0.05):
     try:
         s = vader.polarity_scores(str(text))
@@ -787,7 +876,7 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Department Summary Table ──────────────────────────────────────────────
-    st.markdown('<div class="section-header">Project Summary</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Department Summary</div>', unsafe_allow_html=True)
     summary_rows = []
     for dept in available_depts:
         _, phys, _ = data[dept]
