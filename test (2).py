@@ -407,6 +407,11 @@ GITHUB_URLS = {
 
     # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
     "indicators": "Physicians indicators.csv",
+
+    # ── Physician lookup CSVs (Name, Department, Division per year) ──────────
+    "lookup_2023": "Datasource, cycle 2023.csv",
+    "lookup_2024": "Datasource, cycle 2024.csv",
+    "lookup_2025": "Datasource, cycle 2025.csv",
 }
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
@@ -460,10 +465,73 @@ if not all_phys_frames:
 all_phys = pd.concat(all_phys_frames, ignore_index=True)
 available_depts = [n for n, (r,p,s) in data.items() if p is not None and len(p) > 0]
 
+# ── Load physician lookup (Name, Department, Division) ───────────────────────
+@st.cache_data(show_spinner=False)
+def load_physician_lookup(urls, _version="v1.0"):
+    """Load and merge the three annual lookup CSVs into one physician→dept/div map."""
+    frames = []
+    for key in ["lookup_2023", "lookup_2024", "lookup_2025"]:
+        url = urls.get(key, "")
+        if not url or url.startswith("REPLACE"):
+            continue
+        try:
+            df = pd.read_csv(url)
+            df.columns = df.columns.str.strip()
+            frames.append(df)
+        except Exception:
+            pass
+    if not frames:
+        return pd.DataFrame(columns=["physician_id", "FullName", "Department", "Division"])
+    lookup = pd.concat(frames, ignore_index=True).drop_duplicates(subset=["OriginalID"])
+    lookup["OriginalID"] = lookup["OriginalID"].astype(str).str.strip().str.lower()
+    lookup["Division"] = lookup["DIVISION"].fillna(lookup["DEPARTMENT"])
+    lookup["Division"] = lookup["Division"].where(
+        lookup["Division"].astype(str).str.strip() != "", lookup["DEPARTMENT"])
+    lookup = lookup.rename(columns={"DEPARTMENT": "Department", "FullName": "FullName"})
+    lookup["physician_id_key"] = lookup["OriginalID"]
+    return lookup[["physician_id_key", "FullName", "Department", "Division"]].drop_duplicates(subset=["physician_id_key"])
+
+physician_lookup = load_physician_lookup(GITHUB_URLS, _version="v1.0")
+
+# Merge Department + Division onto all_phys using suffix key (Data29_aa → aa)
+if not physician_lookup.empty:
+    all_phys["_key"] = all_phys["physician_id"].astype(str).str.split("_", n=1).str[-1].str.lower()
+    all_phys = all_phys.merge(
+        physician_lookup[["physician_id_key", "FullName", "Department", "Division"]],
+        left_on="_key", right_on="physician_id_key", how="left"
+    ).drop(columns=["_key", "physician_id_key"], errors="ignore")
+    all_phys["Division"] = all_phys["Division"].fillna(all_phys["Department"])
+else:
+    all_phys["FullName"]   = ""
+    all_phys["Department"] = ""
+    all_phys["Division"]   = ""
+
+
 # ─── MAIN HEADER ─────────────────────────────────────────────────────────────
 st.markdown("# 🏥 AUBMC Physician Performance Dashboard")
-st.markdown(f"**Departments active:** {'  ·  '.join(available_depts)}  &nbsp;&nbsp; **Physicians:** {len(all_phys):,}  &nbsp;&nbsp; **Years:** 2023–2025")
+st.markdown(f"**Projects active:** {'  ·  '.join(available_depts)}  &nbsp;&nbsp; **Physicians:** {len(all_phys):,}  &nbsp;&nbsp; **Years:** 2023–2025")
 st.markdown("---")
+
+
+# ── Department / Division filter helpers (from lookup) ────────────────────────
+def get_dept_options(df):
+    if "Department" in df.columns:
+        return ["All"] + sorted(df["Department"].dropna().unique().tolist())
+    return ["All"]
+
+def get_div_options(df, dept="All"):
+    if "Division" not in df.columns:
+        return ["All"]
+    if dept != "All":
+        df = df[df["Department"] == dept]
+    return ["All"] + sorted(df["Division"].dropna().unique().tolist())
+
+def apply_dept_div_filter(df, dept, div):
+    if dept != "All" and "Department" in df.columns:
+        df = df[df["Department"] == dept]
+    if div != "All" and "Division" in df.columns:
+        df = df[df["Division"] == div]
+    return df
 
 # ─── TABS ────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
@@ -482,12 +550,20 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
 with tab1:
     st.markdown('<div class="section-header">🔑 Key Performance Indicators</div>', unsafe_allow_html=True)
 
-    total      = len(all_phys)
-    priority   = (all_phys["risk_score"] >= 3).sum()
-    monitor    = (all_phys["risk_score"].between(1, 2)).sum()
-    clear      = (all_phys["risk_score"] == 0).sum()
-    avg_score  = all_phys["avg_behavior_score"].mean()
-    pct_neg    = (all_phys["negative_outlier"] == True).sum()
+    # Department / Division filter
+    t1f1, t1f2, t1f3 = st.columns([1, 1, 2])
+    with t1f1:
+        t1_dept = st.selectbox("Department", get_dept_options(all_phys), key="t1_dept")
+    with t1f2:
+        t1_div  = st.selectbox("Division",   get_div_options(all_phys, t1_dept), key="t1_div")
+    t1_phys = apply_dept_div_filter(all_phys, t1_dept, t1_div)
+
+    total      = len(t1_phys)
+    priority   = (t1_phys["risk_score"] >= 3).sum()
+    monitor    = (t1_phys["risk_score"].between(1, 2)).sum()
+    clear      = (t1_phys["risk_score"] == 0).sum()
+    avg_score  = t1_phys["avg_behavior_score"].mean()
+    pct_neg    = (t1_phys["negative_outlier"] == True).sum()
 
     c1, c2, c3, c4, c5, c6 = st.columns(6)
     with c1:
@@ -533,9 +609,9 @@ with tab1:
     # ── Risk Score — big and prominent ───────────────────────────────────────
     st.markdown('<div class="section-header">🎯 Risk Score Breakdown</div>', unsafe_allow_html=True)
     risk_vals = [
-        int((all_phys["risk_score"] == 0).sum()),
-        int(all_phys["risk_score"].between(1, 2).sum()),
-        int((all_phys["risk_score"] >= 3).sum()),
+        int((t1_phys["risk_score"] == 0).sum()),
+        int(t1_phys["risk_score"].between(1, 2).sum()),
+        int((t1_phys["risk_score"] >= 3).sum()),
     ]
     total_phys_r = sum(risk_vals)
     fig_risk, ax_risk = plt.subplots(figsize=(10, 4.5))
@@ -599,7 +675,7 @@ with tab1:
     ax_dr.set_xticks(x)
     ax_dr.set_xticklabels(dept_risk_df["dept"], fontsize=12)
     ax_dr.set_ylabel("Number of Physicians", fontsize=10)
-    ax_dr.set_title("Priority · Monitor · Clear by Department", fontsize=13, fontweight="bold", pad=12)
+    ax_dr.set_title("Priority · Monitor · Clear by Project", fontsize=13, fontweight="bold", pad=12)
     ax_dr.legend(fontsize=10, loc="upper right")
     ax_dr.grid(axis="y", alpha=0.3, linestyle="--")
     ax_dr.set_facecolor("white"); fig_dr.patch.set_facecolor("white")
@@ -614,12 +690,12 @@ with tab1:
     with col_left:
         st.markdown('<div class="section-header">⚠️ Top Physicians Needing Attention</div>', unsafe_allow_html=True)
         top_flagged = (
-            all_phys[all_phys["risk_score"] >= 1]
+            t1_phys[t1_phys["risk_score"] >= 1]
             .sort_values(["risk_score", "avg_behavior_score"], ascending=[False, True])
             .head(10)
         )
         if top_flagged.empty:
-            st.success("No physicians flagged across all departments.")
+            st.success("No physicians flagged across all projects.")
         else:
             for _, fp in top_flagged.iterrows():
                 rs = int(fp["risk_score"])
@@ -697,7 +773,7 @@ with tab1:
             plt.tight_layout(); st.pyplot(fig_sent, use_container_width=True); plt.close()
 
             # Neg sentiment outlier physicians
-            neg_flag_n = int(all_phys["negative_outlier"].sum()) if "negative_outlier" in all_phys.columns else 0
+            neg_flag_n = int(t1_phys["negative_outlier"].sum()) if "negative_outlier" in t1_phys.columns else 0
             st.markdown(f"""
             <div style="background:#fef2f2; border-left:4px solid #ef4444; border-radius:8px;
                         padding:12px 16px; margin-top:8px">
@@ -717,7 +793,7 @@ with tab1:
         _, phys, _ = data[dept]
         if phys is None: continue
         row = {
-            "Department":      dept,
+            "Project":         dept,
             "Physicians":      len(phys),
             "Avg Score":       f"{phys['avg_behavior_score'].mean():.2f}",
             "Priority (3-4)":  int((phys['risk_score']>=3).sum()),
@@ -737,15 +813,23 @@ with tab2:
 
     col_f1, col_f2, col_f3 = st.columns(3)
     with col_f1:
-        dept_filter = st.selectbox("Department", ["All"] + available_depts, key="flag_dept")
+        dept_filter = st.selectbox("Project", ["All"] + available_depts, key="flag_dept")
     with col_f2:
         risk_filter = st.selectbox("Risk Level", ["All","Priority (3-4)","Monitor (1-2)","Clear (0)"], key="flag_risk")
     with col_f3:
         sort_by = st.selectbox("Sort by", ["Risk Score ↓", "Avg Score ↑", "Neg. Ratio ↓"], key="flag_sort")
 
+    # Department / Division filters
+    t2f1, t2f2 = st.columns(2)
+    with t2f1:
+        t2_dept = st.selectbox("Department", get_dept_options(all_phys), key="t2_dept")
+    with t2f2:
+        t2_div  = st.selectbox("Division",   get_div_options(all_phys, t2_dept), key="t2_div")
+
     df_view = all_phys.copy()
     if dept_filter != "All":
         df_view = df_view[df_view["department"] == dept_filter]
+    df_view = apply_dept_div_filter(df_view, t2_dept, t2_div)
     if risk_filter == "Priority (3-4)":
         df_view = df_view[df_view["risk_score"] >= 3]
     elif risk_filter == "Monitor (1-2)":
@@ -763,7 +847,7 @@ with tab2:
     # Table with risk pills
     display_cols = {
         "physician_id":       "Physician ID",
-        "department":         "Department",
+        "department":         "Project",
         "avg_behavior_score": "Avg Score",
         "n_forms":            "Evaluations",
         "z_score":            "Z-Score",
@@ -809,7 +893,7 @@ with tab2:
 
     dd1, dd2, dd3 = st.columns(3)
     with dd1:
-        dd_dept = st.selectbox("Department", available_depts, key="deep_dept")
+        dd_dept = st.selectbox("Project", available_depts, key="deep_dept")
     with dd2:
         # Build year list from raw data for selected dept
         raw_dd, phys_dd_all, sent_dd = data[dd_dept]
@@ -862,7 +946,7 @@ with tab2:
             year_label = f" — {dd_year}" if dd_year != "All Years" else " — All Years"
 
             dc1, dc2, dc3, dc4 = st.columns(4)
-            with dc1: st.metric("Department", dd_dept)
+            with dc1: st.metric("Project", dd_dept)
             with dc2: st.metric(f"Avg Score{year_label}", f"{row['avg_behavior_score']:.3f} / 4.0")
             with dc3: st.metric("Evaluations", int(row["n_forms"]))
             with dc4: st.metric("Risk Score (0–4)", f"{int(row['risk_score'])} / 4")
@@ -919,11 +1003,20 @@ with tab2:
 with tab3:
     st.markdown('<div class="section-header">📊 Department-Level Analysis</div>', unsafe_allow_html=True)
 
-    dept_sel = st.selectbox("Select Department", available_depts, key="dept_view")
+    dept_sel = st.selectbox("Select Project", available_depts, key="dept_view")
     _, phys_d, _ = data[dept_sel]
 
+    # Department / Division filters
+    t3f1, t3f2 = st.columns(2)
+    with t3f1:
+        t3_dept = st.selectbox("Department", get_dept_options(all_phys), key="t3_dept")
+    with t3f2:
+        t3_div  = st.selectbox("Division",   get_div_options(all_phys, t3_dept), key="t3_div")
+    if phys_d is not None:
+        phys_d = apply_dept_div_filter(phys_d, t3_dept, t3_div)
+
     if phys_d is None or phys_d.empty:
-        st.warning("No data available for this department.")
+        st.warning("No data available for this project.")
     else:
         d1, d2, d3, d4 = st.columns(4)
         with d1: st.metric("Physicians", len(phys_d))
@@ -1006,10 +1099,10 @@ with tab3:
         method_df["Physicians Flagged"] = method_df["Flag Column"].apply(
             lambda c: int(phys_d[c].sum()) if c in phys_d.columns else 0
         )
-        method_df["% of Department"] = (
+        method_df["% of Project"] = (
             method_df["Physicians Flagged"] / len(phys_d) * 100
         ).round(1).astype(str) + "%"
-        st.dataframe(method_df[["Method","Physicians Flagged","% of Department"]],
+        st.dataframe(method_df[["Method","Physicians Flagged","% of Project"]],
                      use_container_width=True, hide_index=True)
 
         # Within-dept ranking table
@@ -1068,6 +1161,16 @@ with tab4:
             t2 = str(t).strip().lower().rstrip(".,;:!?/ ")
             return t2 in _skip_t4 or any(t2.startswith(p) for p in ("no comment","no interaction","no opportunity","d/a","n/a","i have never","never had the chance","haven't had the chance","i have not"))
         all_sent = all_sent[~all_sent["comments"].astype(str).apply(_is_noise_t4)].copy()
+
+        # Department / Division filters
+        t4f1, t4f2 = st.columns(2)
+        with t4f1:
+            t4_dept = st.selectbox("Department", get_dept_options(all_phys), key="t4_dept")
+        with t4f2:
+            t4_div  = st.selectbox("Division",   get_div_options(all_phys, t4_dept), key="t4_div")
+        # Filter sent_all by physician IDs that match dept/div
+        phys_filtered = apply_dept_div_filter(all_phys, t4_dept, t4_div)
+        all_sent = all_sent[all_sent["physician_id"].isin(phys_filtered["physician_id"])] if t4_dept != "All" or t4_div != "All" else all_sent
 
         # ── KPI row ───────────────────────────────────────────────────────────
         total_c = len(all_sent)
@@ -1135,7 +1238,7 @@ with tab4:
         ax_sb.set_yticks(list(y))
         ax_sb.set_yticklabels(depts_order, fontsize=9)
         ax_sb.set_xlabel("% of Comments", fontsize=10)
-        ax_sb.set_title("Sentiment Breakdown by Department (% of comments)", fontsize=12, fontweight="bold")
+        ax_sb.set_title("Sentiment Breakdown by Project (% of comments)", fontsize=12, fontweight="bold")
         ax_sb.axvline(100, color="#e5e7eb", linewidth=0.8)
         ax_sb.legend(fontsize=9, loc="lower right")
         ax_sb.set_xlim(0, 100)
@@ -1151,8 +1254,8 @@ with tab4:
         # ── Chart 2: Yearly sentiment trend (2023-2025) ───────────────────────
         st.markdown('<div class="section-header">📈 Yearly Sentiment Trend (2023–2025)</div>', unsafe_allow_html=True)
 
-        trend_dept_sent = st.selectbox("Filter by Department", ["All Departments"] + available_depts, key="sent_trend_dept")
-        df_trend_sent = all_sent if trend_dept_sent == "All Departments" else all_sent[all_sent["dept"] == trend_dept_sent]
+        trend_dept_sent = st.selectbox("Filter by Project", ["All Projects"] + available_depts, key="sent_trend_dept")
+        df_trend_sent = all_sent if trend_dept_sent == "All Projects" else all_sent[all_sent["dept"] == trend_dept_sent]
 
         if "year" not in df_trend_sent.columns or df_trend_sent["year"].isna().all():
             st.warning("Year data not available in sentiment data.")
@@ -1235,7 +1338,7 @@ with tab5:
     # ── Filters row ───────────────────────────────────────────────────────────
     tf1, tf2, tf3 = st.columns([1, 1.5, 1])
     with tf1:
-        trend_dept = st.selectbox("Department", available_depts, key="trend_dept")
+        trend_dept = st.selectbox("Project", available_depts, key="trend_dept")
     raw_d, phys_d, _ = data[trend_dept]
     # Exclude self-evaluations from all trend calculations
     if raw_d is not None and "raters_group" in raw_d.columns:
@@ -1249,7 +1352,7 @@ with tab5:
         # Physician selector — "All" shows department-level view
         all_phys_ids = sorted(raw_d["physician_id"].dropna().unique().tolist())
         with tf2:
-            view_mode = st.radio("View", ["Department Overall", "Individual Physician"],
+            view_mode = st.radio("View", ["Project Overall", "Individual Physician"],
                                  horizontal=True, key="trend_mode")
         with tf3:
             if view_mode == "Individual Physician":
@@ -1260,7 +1363,7 @@ with tab5:
         st.markdown("---")
 
         # ── DEPARTMENT OVERALL VIEW ───────────────────────────────────────────
-        if view_mode == "Department Overall":
+        if view_mode == "Project Overall":
 
             trend_rows = []
             for yr in years_avail:
@@ -1420,7 +1523,7 @@ with tab5:
                         dept_avg_list  = [dept_avgs[yr] for yr in dept_yr_list]
                         ax.plot(dept_yr_list, dept_avg_list, "s--",
                                 color="#9ca3af", linewidth=1.5, markersize=5,
-                                label=f"{trend_dept} Mean", alpha=0.8)
+                                label=f"{trend_dept} Mean (Project)", alpha=0.8)
 
                         # Physician score line
                         ax.plot(phys_trend["Year"], phys_trend["Avg Score"], "o-",
@@ -1498,7 +1601,7 @@ with tab5:
                                 "Physician Score": round(phys_agg.loc[
                                     phys_agg["physician_id"] == selected_phys,
                                     "avg_behavior_score"].values[0], 3),
-                                "Dept Mean Score":  round(dept_avg_yr, 3),
+                                "Project Mean Score":  round(dept_avg_yr, 3),
                                 "Physicians in Dept": len(phys_agg),
                             })
                     pct_df = pd.DataFrame(pct_rows)
@@ -1519,7 +1622,7 @@ with tab5:
                             ax3.text(val + 0.5, bar.get_y() + bar.get_height()/2,
                                      f"{val:.0f}th",
                                      va="center", fontsize=10, fontweight="700")
-                        ax3.set_xlabel("Percentile Rank within Department (100 = best)", fontsize=10)
+                        ax3.set_xlabel("Percentile Rank within Project (100 = best)", fontsize=10)
                         ax3.set_title(f"Physician {selected_phys} — Percentile Rank Over Time",
                                       fontsize=11, fontweight="bold")
                         ax3.set_xlim(0, 110)
@@ -1531,7 +1634,7 @@ with tab5:
                         plt.close()
 
                         st.markdown("**Year-by-Year Summary for this Physician**")
-                        merged_summary = phys_trend.merge(pct_df[["Year","Percentile Rank","Dept Mean Score","Physicians in Dept"]],
+                        merged_summary = phys_trend.merge(pct_df[["Year","Percentile Rank","Project Mean Score","Physicians in Dept"]],
                                                           on="Year", how="left")
                         st.dataframe(merged_summary, use_container_width=True, hide_index=True)
 
@@ -1860,9 +1963,9 @@ with tab6:
             sel_cycle = st.selectbox("📅 Fiscal Cycle", cycles, key="ind_cycle")
         df_filt = ind_df if sel_cycle == "All" else ind_df[ind_df["FiscalCycle"] == sel_cycle]
         with fc2:
-            dept_list_f = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist())                           if "Department" in df_filt.columns else ["All Departments"]
+            dept_list_f = ["All Projects"] + sorted(df_filt["Department"].dropna().unique().tolist())                           if "Department" in df_filt.columns else ["All Projects"]
             sel_dept_f = st.selectbox("🏥 Department", dept_list_f, key="ind_dept_filter")
-        df_view = df_filt if sel_dept_f == "All Departments" else df_filt[df_filt["Department"] == sel_dept_f]
+        df_view = df_filt if sel_dept_f == "All Projects" else df_filt[df_filt["Department"] == sel_dept_f]
 
         # ── Top KPIs ──────────────────────────────────────────────────────────
         st.markdown("<br>", unsafe_allow_html=True)
@@ -1977,7 +2080,7 @@ with tab6:
 
         dd1, dd2, dd3 = st.columns([1.5, 1.2, 1])
         with dd1:
-            dept_opts_dd = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist())                            if "Department" in df_filt.columns else ["All Departments"]
+            dept_opts_dd = ["All Projects"] + sorted(df_filt["Department"].dropna().unique().tolist())                            if "Department" in df_filt.columns else ["All Projects"]
             sel_dept_dd = st.selectbox("Department", dept_opts_dd, key="div_dept")
         with dd2:
             div_metric = st.selectbox("Metric",
@@ -1985,7 +2088,7 @@ with tab6:
         with dd3:
             top_n = st.slider("Top N", min_value=5, max_value=30, value=10, step=5, key="div_topn")
 
-        df_div = df_filt if sel_dept_dd == "All Departments" else df_filt[df_filt["Department"] == sel_dept_dd]
+        df_div = df_filt if sel_dept_dd == "All Projects" else df_filt[df_filt["Department"] == sel_dept_dd]
 
         if "Division_norm" in df_div.columns:
             id_col2 = "Aubnetid" if "Aubnetid" in df_div.columns else df_div.columns[0]
@@ -2026,7 +2129,7 @@ with tab6:
             ax3.set_xlabel(div_metric, fontsize=10, color="#64748b")
             ax3.set_title(
                 f"Top {min(top_n,len(div_plot))} Divisions — {div_metric}"
-                + (f"  ·  {sel_dept_dd}" if sel_dept_dd!="All Departments" else ""),
+                + (f"  ·  {sel_dept_dd}" if sel_dept_dd!="All Projects" else ""),
                 fontsize=12, fontweight="800", color="#1a365d", pad=8)
             ax3.tick_params(colors="#64748b", labelsize=9)
             for sp in ax3.spines.values(): sp.set_edgecolor("#e2e8f0")
