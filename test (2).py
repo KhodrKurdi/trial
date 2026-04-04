@@ -1393,30 +1393,42 @@ with tab4:
 with tab5:
     st.markdown('<div class="section-header">📈 Year-on-Year Trends (2023–2025)</div>', unsafe_allow_html=True)
 
-    # ── Filters row ───────────────────────────────────────────────────────────
-    tf1, tf2, tf3 = st.columns([1, 1.5, 1])
+    # ── Filters row 1: Project + View mode ──────────────────────────────────────
+    tf1, tf2 = st.columns([1, 2])
     with tf1:
         trend_dept = st.selectbox("Project", available_depts, key="trend_dept")
     raw_d, phys_d, _ = data[trend_dept]
-    # Exclude self-evaluations from all trend calculations
     if raw_d is not None and "raters_group" in raw_d.columns:
         raw_d = raw_d[raw_d["raters_group"] != "Faculty Self-Evaluation"].copy()
+    with tf2:
+        view_mode = st.radio("View", ["Project Overall", "Individual Physician"],
+                             horizontal=True, key="trend_mode")
+
+    # ── Filters row 2: Department + Division ─────────────────────────────────
+    tf3, tf4 = st.columns(2)
+    proj_phys_t5 = all_phys[all_phys["department"] == trend_dept] if "department" in all_phys.columns else all_phys
+    with tf3:
+        t5_dept = st.selectbox("Department", get_dept_options(proj_phys_t5), key="t5_dept")
+    with tf4:
+        t5_div  = st.selectbox("Division",   get_div_options(proj_phys_t5, t5_dept), key="t5_div")
+
+    # Apply dept/div filter to physician pool
+    phys_pool_t5 = apply_dept_div_filter(proj_phys_t5, t5_dept, t5_div)["physician_id"].unique()
+    if (t5_dept != "All" or t5_div != "All") and raw_d is not None:
+        raw_d = raw_d[raw_d["physician_id"].isin(phys_pool_t5)].copy()
 
     if raw_d is None or raw_d.empty or "year" not in raw_d.columns or raw_d["year"].isna().all():
         st.warning("Year data not available. Check that your files include a Fillout Date column.")
     else:
         years_avail = sorted(raw_d["year"].dropna().unique().astype(int))
 
-        # Physician selector — "All" shows department-level view
         all_phys_ids = sorted(raw_d["physician_id"].dropna().unique().tolist())
-        with tf2:
-            view_mode = st.radio("View", ["Project Overall", "Individual Physician"],
-                                 horizontal=True, key="trend_mode")
-        with tf3:
-            if view_mode == "Individual Physician":
-                selected_phys = st.selectbox("Physician ID", all_phys_ids, key="trend_phys")
-            else:
+        if view_mode == "Individual Physician":
+            selected_phys = st.selectbox("Physician ID", ["— Select —"] + all_phys_ids, key="trend_phys")
+            if selected_phys == "— Select —":
                 selected_phys = None
+        else:
+            selected_phys = None
 
         st.markdown("---")
 
@@ -1696,111 +1708,8 @@ with tab5:
                                                           on="Year", how="left")
                         st.dataframe(merged_summary, use_container_width=True, hide_index=True)
 
-                    # ── PEER COMPARISON ───────────────────────────────────────
+                    # ── Peer ranking table ────────────────────────────────────
                     st.markdown("---")
-                    st.markdown('<div class="section-header">👥 Peer Comparison — Department Distribution</div>', unsafe_allow_html=True)
-
-                    # Build per-year box plot data + selected physician dot
-                    bp1, bp2 = st.columns(2)
-
-                    with bp1:
-                        st.markdown("**Score Distribution by Year — Selected Physician vs Peers**")
-                        fig_bp, ax_bp = plt.subplots(figsize=(7, 5))
-
-                        box_data  = []
-                        positions = []
-                        sel_dots  = []
-
-                        for pos, yr in enumerate(years_avail):
-                            yr_dept_scores = raw_d[raw_d["year"] == yr]["overall_score"].dropna().tolist()
-                            if not yr_dept_scores:
-                                continue
-                            box_data.append(yr_dept_scores)
-                            positions.append(pos)
-
-                            # Selected physician dot for this year
-                            sel_yr = raw_d[(raw_d["year"] == yr) & (raw_d["physician_id"] == selected_phys)]["overall_score"].dropna()
-                            sel_dots.append((pos, sel_yr.mean() if not sel_yr.empty else np.nan))
-
-                        bp = ax_bp.boxplot(
-                            box_data, positions=positions, widths=0.5, patch_artist=True,
-                            boxprops=dict(facecolor="#dbeafe", color="#2b7bc8", linewidth=1.5),
-                            medianprops=dict(color="#1a365d", linewidth=2.5),
-                            whiskerprops=dict(color="#64748b", linewidth=1.2),
-                            capprops=dict(color="#64748b", linewidth=1.5),
-                            flierprops=dict(marker="o", color="#9ca3af", alpha=0.4, markersize=4),
-                        )
-
-                        # Selected physician dot per year
-                        for pos, val in sel_dots:
-                            if not np.isnan(val):
-                                ax_bp.scatter(pos, val, color="#e53e3e", s=120, zorder=10,
-                                              marker="D", label=f"▶ {selected_phys}" if pos == positions[0] else "")
-                                ax_bp.annotate(f"{val:.2f}", (pos, val),
-                                               textcoords="offset points", xytext=(10, 0),
-                                               fontsize=9, fontweight="700", color="#e53e3e")
-
-                        ax_bp.set_xticks(positions)
-                        ax_bp.set_xticklabels([str(yr) for yr in years_avail[:len(positions)]], fontsize=11)
-                        ax_bp.set_ylabel("Avg Behaviour Score (0–4)", fontsize=10)
-                        ax_bp.set_ylim(0, 4.2)
-                        ax_bp.set_title(f"{trend_dept} — Score Distribution per Year", fontsize=11, fontweight="bold")
-                        ax_bp.legend(fontsize=9, loc="lower right")
-                        ax_bp.grid(axis="y", alpha=0.3, linestyle="--")
-                        ax_bp.set_facecolor("white")
-                        fig_bp.patch.set_facecolor("white")
-                        plt.tight_layout()
-                        st.pyplot(fig_bp, use_container_width=True)
-                        plt.close()
-
-                    with bp2:
-                        st.markdown("**Overall Score Distribution — Selected Physician vs All Peers**")
-                        fig_bp2, ax_bp2 = plt.subplots(figsize=(7, 5))
-
-                        all_dept_scores = raw_d["overall_score"].dropna().tolist()
-                        sel_overall = raw_d[raw_d["physician_id"] == selected_phys]["overall_score"].dropna()
-                        sel_mean = sel_overall.mean() if not sel_overall.empty else np.nan
-
-                        ax_bp2.boxplot(
-                            [all_dept_scores], positions=[0], widths=0.4, patch_artist=True,
-                            boxprops=dict(facecolor="#dbeafe", color="#2b7bc8", linewidth=1.5),
-                            medianprops=dict(color="#1a365d", linewidth=2.5),
-                            whiskerprops=dict(color="#64748b", linewidth=1.2),
-                            capprops=dict(color="#64748b", linewidth=1.5),
-                            flierprops=dict(marker="o", color="#9ca3af", alpha=0.4, markersize=4),
-                        )
-
-                        if not np.isnan(sel_mean):
-                            ax_bp2.scatter(0, sel_mean, color="#e53e3e", s=180, zorder=10,
-                                           marker="D", label=f"▶ {selected_phys} ({sel_mean:.3f})")
-                            ax_bp2.axhline(sel_mean, color="#e53e3e", linestyle=":", linewidth=1.5, alpha=0.6)
-
-                        dept_median = np.median(all_dept_scores)
-                        dept_mean   = np.mean(all_dept_scores)
-                        ax_bp2.axhline(dept_mean, color="#1a365d", linestyle="--", linewidth=1.5,
-                                       label=f"Dept mean ({dept_mean:.3f})", alpha=0.8)
-
-                        # Percentile of selected physician
-                        if not np.isnan(sel_mean):
-                            pct = (np.array(all_dept_scores) < sel_mean).mean() * 100
-                            ax_bp2.text(0.3, sel_mean, f"{pct:.0f}th percentile",
-                                        fontsize=10, fontweight="700",
-                                        color="#e53e3e", va="center")
-
-                        ax_bp2.set_xticks([0])
-                        ax_bp2.set_xticklabels([trend_dept], fontsize=10)
-                        ax_bp2.set_ylabel("Avg Behaviour Score (0–4)", fontsize=10)
-                        ax_bp2.set_ylim(0, 4.2)
-                        ax_bp2.set_title("Overall Score — Physician vs Department", fontsize=11, fontweight="bold")
-                        ax_bp2.legend(fontsize=9, loc="lower right")
-                        ax_bp2.grid(axis="y", alpha=0.3, linestyle="--")
-                        ax_bp2.set_facecolor("white")
-                        fig_bp2.patch.set_facecolor("white")
-                        plt.tight_layout()
-                        st.pyplot(fig_bp2, use_container_width=True)
-                        plt.close()
-
-                    # ── Peer ranking table (compact) ───────────────────────────
                     st.markdown("**Peer Ranking Table**")
                     st.caption("Sorted by Overall Avg ↓ · Trend = last year minus first year")
 
