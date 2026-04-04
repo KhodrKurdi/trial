@@ -505,7 +505,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.1"):
+def load_from_github(urls, min_f, threshold, _version="v5.4"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -538,7 +538,7 @@ with st.spinner("Loading data from GitHub and running VADER sentiment analysis..
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.1"
+        _version="v5.4"
     )
 
 # Build combined physician table from available departments
@@ -556,7 +556,7 @@ available_depts = [n for n, (r,p,s) in data.items() if p is not None and len(p) 
 
 # ── Load physician lookup (Name, Department, Division) ───────────────────────
 @st.cache_data(show_spinner=False)
-def load_physician_lookup(urls, _version="v1.0"):
+def load_physician_lookup(urls, _version="v1.1"):
     """Load and merge the three annual lookup CSVs into one physician→dept/div map."""
     frames = []
     for key in ["lookup_2023", "lookup_2024", "lookup_2025"]:
@@ -580,7 +580,7 @@ def load_physician_lookup(urls, _version="v1.0"):
     lookup["physician_id_key"] = lookup["OriginalID"]
     return lookup[["physician_id_key", "FullName", "Department", "Division"]].drop_duplicates(subset=["physician_id_key"])
 
-physician_lookup = load_physician_lookup(GITHUB_URLS, _version="v1.0")
+physician_lookup = load_physician_lookup(GITHUB_URLS, _version="v1.1")
 
 # Merge Department + Division onto all_phys using suffix key (Data29_aa → aa)
 if not physician_lookup.empty:
@@ -1988,7 +1988,7 @@ with tab6:
     st.markdown('<div class="section-header">🏢 Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.3"):
+    def load_indicators(url, _version="v5.4"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2015,7 +2015,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.3")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.4")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -2401,7 +2401,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.3") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.4") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
