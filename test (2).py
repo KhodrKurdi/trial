@@ -1255,26 +1255,36 @@ with tab4:
         neg_cnt  = dept_sent[dept_sent["sentiment"]=="NEGATIVE"].set_index("dept")["count"].reindex(depts_order).fillna(0)
         pos_cnt  = dept_sent[dept_sent["sentiment"]=="POSITIVE"].set_index("dept")["count"].reindex(depts_order).fillna(0)
 
-        fig_sb, ax_sb = plt.subplots(figsize=(10, max(4, len(depts_order)*0.45)))
-        y = range(len(depts_order))
-        b1 = ax_sb.barh(list(y), neg_pct.values, color="#e53e3e", alpha=0.85, label="Negative")
-        b2 = ax_sb.barh(list(y), neu_pct.values, left=neg_pct.values, color="#9ca3af", alpha=0.75, label="Neutral")
-        b3 = ax_sb.barh(list(y), pos_pct.values, left=(neg_pct+neu_pct).values, color="#38a169", alpha=0.85, label="Positive")
+        fig_sb, ax_sb = plt.subplots(figsize=(10, max(4.5, len(depts_order)*0.55)))
+        y = list(range(len(depts_order)))
+        ax_sb.barh(y, neg_pct.values, color="#e53e3e", alpha=0.88, label="Negative", height=0.6)
+        ax_sb.barh(y, neu_pct.values, left=neg_pct.values, color="#9ca3af", alpha=0.75, label="Neutral", height=0.6)
+        ax_sb.barh(y, pos_pct.values, left=(neg_pct+neu_pct).values, color="#38a169", alpha=0.88, label="Positive", height=0.6)
 
-        # Annotate negative % on each bar
-        for i, (np_, nc) in enumerate(zip(neg_pct.values, neg_cnt.values)):
-            if np_ > 3:
-                ax_sb.text(np_/2, i, f"{np_:.1f}%", va="center", ha="center",
+        # Label all 3 segments
+        for i in range(len(depts_order)):
+            nv = neg_pct.values[i]
+            uv = neu_pct.values[i]
+            pv = pos_pct.values[i]
+            if nv >= 4:
+                ax_sb.text(nv/2, i, f"{nv:.1f}%", va="center", ha="center",
+                           fontsize=8, fontweight="700", color="white")
+            if uv >= 6:
+                ax_sb.text(nv + uv/2, i, f"{uv:.1f}%", va="center", ha="center",
+                           fontsize=8, fontweight="700", color="white")
+            if pv >= 4:
+                ax_sb.text(nv + uv + pv/2, i, f"{pv:.1f}%", va="center", ha="center",
                            fontsize=8, fontweight="700", color="white")
 
-        ax_sb.set_yticks(list(y))
-        ax_sb.set_yticklabels(depts_order, fontsize=9)
-        ax_sb.set_xlabel("% of Comments", fontsize=10)
-        ax_sb.set_title("Sentiment Breakdown by Project (% of comments)", fontsize=12, fontweight="bold")
-        ax_sb.axvline(100, color="#e5e7eb", linewidth=0.8)
-        ax_sb.legend(fontsize=9, loc="lower right")
+        ax_sb.set_yticks(y)
+        ax_sb.set_yticklabels(depts_order, fontsize=10)
+        ax_sb.set_xlabel("% of Comments", fontsize=10, color="#64748b")
+        ax_sb.set_title("Sentiment Breakdown by Project (% of comments)", fontsize=12, fontweight="bold", color="#1a365d")
+        ax_sb.legend(fontsize=9, loc="lower right", framealpha=0.9)
         ax_sb.set_xlim(0, 100)
-        ax_sb.grid(axis="x", alpha=0.25, linestyle="--")
+        ax_sb.grid(axis="x", alpha=0.2, linestyle="--", color="#bfdbfe")
+        ax_sb.tick_params(colors="#64748b")
+        for sp in ax_sb.spines.values(): sp.set_edgecolor("#e2e8f0")
         ax_sb.set_facecolor("white")
         fig_sb.patch.set_facecolor("white")
         plt.tight_layout()
@@ -1308,34 +1318,50 @@ with tab4:
 
             fig_yr, (ax_yr1, ax_yr2) = plt.subplots(1, 2, figsize=(12, 4.5))
 
-            # Left: stacked bar by year
+            # Left: stacked bar by year — label all 3 segments
             w = 0.5
-            x = range(len(years_s))
-            ax_yr1.bar(x, neg_yr.values, width=w, color="#e53e3e", alpha=0.85, label="Negative")
+            x = list(range(len(years_s)))
+            ax_yr1.bar(x, neg_yr.values, width=w, color="#e53e3e", alpha=0.88, label="Negative")
             ax_yr1.bar(x, neu_yr.values, width=w, bottom=neg_yr.values, color="#9ca3af", alpha=0.75, label="Neutral")
-            ax_yr1.bar(x, pos_yr.values, width=w, bottom=(neg_yr+neu_yr).values, color="#38a169", alpha=0.85, label="Positive")
-            for xi, np_ in zip(x, neg_yr.values):
-                ax_yr1.text(xi, np_/2, f"{np_:.1f}%", ha="center", va="center",
-                            fontsize=9, fontweight="700", color="white")
-            ax_yr1.set_xticks(list(x))
+            ax_yr1.bar(x, pos_yr.values, width=w, bottom=(neg_yr+neu_yr).values, color="#38a169", alpha=0.88, label="Positive")
+            for xi in x:
+                nv = neg_yr.values[xi]
+                uv = neu_yr.values[xi]
+                pv = pos_yr.values[xi]
+                if nv >= 3:
+                    ax_yr1.text(xi, nv/2, f"{nv:.1f}%", ha="center", va="center",
+                                fontsize=9, fontweight="700", color="white")
+                if uv >= 5:
+                    ax_yr1.text(xi, nv + uv/2, f"{uv:.1f}%", ha="center", va="center",
+                                fontsize=9, fontweight="700", color="white")
+                if pv >= 3:
+                    ax_yr1.text(xi, nv + uv + pv/2, f"{pv:.1f}%", ha="center", va="center",
+                                fontsize=9, fontweight="700", color="white")
+            ax_yr1.set_xticks(x)
             ax_yr1.set_xticklabels([str(y) for y in years_s], fontsize=10)
-            ax_yr1.set_ylabel("% of Comments", fontsize=10)
-            ax_yr1.set_title("Sentiment Mix by Year", fontsize=11, fontweight="bold")
-            ax_yr1.legend(fontsize=9)
-            ax_yr1.set_ylim(0, 100)
-            ax_yr1.grid(axis="y", alpha=0.3, linestyle="--")
+            ax_yr1.set_ylabel("% of Comments", fontsize=10, color="#64748b")
+            ax_yr1.set_title("Sentiment Mix by Year", fontsize=11, fontweight="bold", color="#1a365d")
+            ax_yr1.legend(fontsize=9, framealpha=0.9)
+            ax_yr1.set_ylim(0, 105)
+            ax_yr1.grid(axis="y", alpha=0.2, linestyle="--", color="#bfdbfe")
+            ax_yr1.tick_params(colors="#64748b")
+            for sp in ax_yr1.spines.values(): sp.set_edgecolor("#e2e8f0")
             ax_yr1.set_facecolor("white")
 
-            # Right: negative % trend line
+            # Right: all 3 sentiment trend lines with clear labels
             ax_yr2.plot(years_s, neg_yr.values, color="#e53e3e", linewidth=2.5,
                         marker="o", markersize=8, label="Negative %")
             ax_yr2.plot(years_s, pos_yr.values, color="#38a169", linewidth=2.5,
                         marker="s", markersize=8, label="Positive %")
-            for yr_v, nv, pv in zip(years_s, neg_yr.values, pos_yr.values):
+            ax_yr2.plot(years_s, neu_yr.values, color="#9ca3af", linewidth=2,
+                        marker="^", markersize=7, label="Neutral %", linestyle="--")
+            for yr_v, nv, pv, uv in zip(years_s, neg_yr.values, pos_yr.values, neu_yr.values):
                 ax_yr2.annotate(f"{nv:.1f}%", (yr_v, nv), textcoords="offset points",
                                 xytext=(0, 10), ha="center", fontsize=9, color="#e53e3e", fontweight="700")
                 ax_yr2.annotate(f"{pv:.1f}%", (yr_v, pv), textcoords="offset points",
-                                xytext=(0,-15), ha="center", fontsize=9, color="#38a169", fontweight="700")
+                                xytext=(0, 10), ha="center", fontsize=9, color="#38a169", fontweight="700")
+                ax_yr2.annotate(f"{uv:.1f}%", (yr_v, uv), textcoords="offset points",
+                                xytext=(0,-15), ha="center", fontsize=9, color="#64748b", fontweight="600")
             ax_yr2.set_xticks(years_s)
             ax_yr2.set_xticklabels([str(y) for y in years_s], fontsize=10)
             ax_yr2.set_ylabel("% of Comments", fontsize=10)
