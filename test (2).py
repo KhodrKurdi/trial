@@ -2226,6 +2226,11 @@ with tab7:
         lines.append(f"Negative sentiment flags: {_all_phys['negative_outlier'].sum()} physicians")
         lines.append("")
 
+        # Build a lookup from all_phys for dept/division per physician
+        dept_lookup  = _all_phys.set_index("physician_id")["Department"].to_dict() if "Department" in _all_phys.columns else {}
+        div_lookup   = _all_phys.set_index("physician_id")["Division"].to_dict()   if "Division"   in _all_phys.columns else {}
+        name_lookup  = _all_phys.set_index("physician_id")["FullName"].to_dict()   if "FullName"   in _all_phys.columns else {}
+
         for grp in _available_depts:
             _, phys, _ = _data[grp]
             if phys is None or phys.empty: continue
@@ -2234,15 +2239,46 @@ with tab7:
             lines.append(f"  Avg score: {phys['avg_behavior_score'].mean():.3f}")
             lines.append(f"  Priority: {(phys['risk_score']>=3).sum()}, Monitor: {phys['risk_score'].between(1,2).sum()}, Clear: {(phys['risk_score']==0).sum()}")
             lines.append(f"  Sentiment flags: {phys['negative_outlier'].sum()}")
-            # Full physician list with all scores
-            lines.append(f"  All physicians (ID, score, risk, IQR_flag, Z_flag, Bottom10, Sentiment_flag):")
-            for _, r in phys.sort_values('avg_behavior_score').iterrows():
+            # Compute percentile rank within the group
+            phys_pct = phys.copy()
+            phys_pct["percentile"] = phys_pct["avg_behavior_score"].rank(pct=True).mul(100).round(1)
+            lines.append(f"  All physicians (ID | Name | Department | Division | score | percentile | risk | flags):")
+            for _, r in phys_pct.sort_values('avg_behavior_score').iterrows():
+                pid  = r['physician_id']
                 iqr  = "IQR"  if r.get("low_iqr_outlier", False) else ""
                 z    = "Z"    if r.get("low_z_outlier",   False) else ""
                 b10  = "B10"  if r.get("low_bottom10",    False) else ""
                 sent = "SENT" if r.get("negative_outlier",False) else ""
                 flags = " ".join(f for f in [iqr,z,b10,sent] if f) or "none"
-                lines.append(f"    {r['physician_id']}: score={r['avg_behavior_score']:.3f}, risk={int(r['risk_score'])}, flags=[{flags}]")
+                dept = dept_lookup.get(pid, "Unknown")
+                div  = div_lookup.get(pid, dept)
+                name = name_lookup.get(pid, "")
+                pct  = r.get("percentile", 0)
+                lines.append(f"    {pid} | {name} | {dept} | {div} | score={r['avg_behavior_score']:.3f} | percentile={pct:.0f}th | risk={int(r['risk_score'])} | flags=[{flags}]")
+            lines.append("")
+
+        # Also add a department-level risk summary for quick lookup
+        if dept_lookup:
+            lines.append("=" * 40)
+            lines.append("RISK SUMMARY BY CLINICAL DEPARTMENT")
+            lines.append("=" * 40)
+            dept_risk = {}
+            for _, r in _all_phys.iterrows():
+                pid  = r["physician_id"]
+                dept = dept_lookup.get(pid, "Unknown")
+                if dept not in dept_risk:
+                    dept_risk[dept] = {"Priority":0,"Monitor":0,"Clear":0,"Flagged_IDs":[]}
+                risk = int(r.get("risk_score",0))
+                if risk >= 3:
+                    dept_risk[dept]["Priority"] += 1
+                    dept_risk[dept]["Flagged_IDs"].append(pid)
+                elif risk >= 1:
+                    dept_risk[dept]["Monitor"] += 1
+                else:
+                    dept_risk[dept]["Clear"] += 1
+            for dept, counts in sorted(dept_risk.items()):
+                fids = ", ".join(counts["Flagged_IDs"]) if counts["Flagged_IDs"] else "none"
+                lines.append(f"  {dept}: Priority={counts['Priority']}, Monitor={counts['Monitor']}, Clear={counts['Clear']} | Priority IDs: {fids}")
             lines.append("")
 
         # ── CLINICAL INDICATORS (DEPARTMENTS & DIVISIONS) ─────────────────
