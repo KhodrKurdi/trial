@@ -409,9 +409,9 @@ GITHUB_URLS = {
     "indicators": "Physicians indicators.csv",
 
     # ── Physician lookup CSVs (Name, Department, Division per year) ──────────
-    "lookup_2023": "Datasource, cycle 2023",
-    "lookup_2024": "Datasource, cycle 2024",
-    "lookup_2025": "Datasource, cycle 2025",
+    "lookup_2023": "Datasource, cycle 2023.csv",
+    "lookup_2024": "Datasource, cycle 2024.csv",
+    "lookup_2025": "Datasource, cycle 2025.csv",
 }
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
