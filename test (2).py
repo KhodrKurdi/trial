@@ -948,6 +948,11 @@ with tab2:
             else:
                 phys_src = phys_dd_all
 
+        # Merge Department + Division from all_phys lookup onto phys_src
+        if phys_src is not None and "Department" not in phys_src.columns:
+            lookup_cols = all_phys[["physician_id","Department","Division","FullName"]].drop_duplicates("physician_id")
+            phys_src = phys_src.merge(lookup_cols, on="physician_id", how="left")
+
         row_mask = phys_src["physician_id"] == selected_id if phys_src is not None else pd.Series(False)
         if phys_src is None or not row_mask.any():
             st.warning(f"No data found for {selected_id}.")
@@ -960,6 +965,14 @@ with tab2:
             with dc2: st.metric(f"Avg Score{year_label}", f"{row['avg_behavior_score']:.3f} / 4.0")
             with dc3: st.metric("Evaluations", int(row["n_forms"]))
             with dc4: st.metric("Risk Score (0–4)", f"{int(row['risk_score'])} / 4")
+
+            dept_val = row.get("Department", "") or "—"
+            div_val  = row.get("Division",   "") or "—"
+            name_val = row.get("FullName",   "") or "—"
+            dd_info1, dd_info2, dd_info3 = st.columns(3)
+            with dd_info1: st.metric("Physician Name", name_val)
+            with dd_info2: st.metric("Department",     dept_val)
+            with dd_info3: st.metric("Division",       div_val)
 
             dc5, dc6, dc7, dc8 = st.columns(4)
             with dc5: st.metric("Z-Score", f"{row.get('z_score', 0):.2f}")
@@ -1011,7 +1024,7 @@ with tab2:
 # TAB 3 — DEPARTMENT VIEW
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab3:
-    st.markdown('<div class="section-header">📊 Department-Level Analysis</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">📊 Project-Level Analysis</div>', unsafe_allow_html=True)
 
     dept_sel = st.selectbox("Select Project", available_depts, key="dept_view")
     _, phys_d, _ = data[dept_sel]
@@ -1030,7 +1043,7 @@ with tab3:
     else:
         d1, d2, d3, d4 = st.columns(4)
         with d1: st.metric("Physicians", len(phys_d))
-        with d2: st.metric("Dept. Mean Score", f"{phys_d['avg_behavior_score'].mean():.3f}")
+        with d2: st.metric("Project Mean Score", f"{phys_d['avg_behavior_score'].mean():.3f}")
         with d3: st.metric("IQR Outliers", int(phys_d["low_iqr_outlier"].sum()) if "low_iqr_outlier" in phys_d.columns else 0)
         with d4: st.metric("Priority Flags", int((phys_d["risk_score"]>=3).sum()))
 
@@ -1055,7 +1068,7 @@ with tab3:
                        label=f"Mean ({scores_d.mean():.2f})")
             ax.set_xlabel("Physician Index", fontsize=10)
             ax.set_ylabel("Avg Behaviour Score", fontsize=10)
-            ax.set_title(f"{dept_sel} — IQR Score Outliers", fontsize=11, fontweight="bold")
+            ax.set_title(f"{dept_sel}{" · " + t3_dept if t3_dept != "All" else ""}{" / " + t3_div if t3_div != "All" else ""} — IQR Score Outliers", fontsize=11, fontweight="bold")
             ax.legend(fontsize=9)
             ax.grid(alpha=0.3, linestyle="--")
             ax.set_facecolor("white")
@@ -1093,7 +1106,7 @@ with tab3:
 
             ax2.set_xlabel("Avg Behaviour Score (0–4)", fontsize=10)
             ax2.set_ylabel("Number of Physicians", fontsize=10)
-            ax2.set_title(f"{dept_sel} — Colleague Comparison", fontsize=11, fontweight="bold")
+            ax2.set_title(f"{dept_sel}{" · " + t3_dept if t3_dept != "All" else ""}{" / " + t3_div if t3_div != "All" else ""} — Colleague Comparison", fontsize=11, fontweight="bold")
             ax2.grid(axis="y", alpha=0.3, linestyle="--")
             ax2.set_facecolor("white")
             fig2.patch.set_facecolor("white")
@@ -1110,7 +1123,7 @@ with tab3:
             lambda c: int(phys_d[c].sum()) if c in phys_d.columns else 0
         )
         method_df["% of Project"] = (
-            method_df["Physicians Flagged"] / len(phys_d) * 100
+            method_df["Physicians Flagged"] / max(len(phys_d), 1) * 100
         ).round(1).astype(str) + "%"
         st.dataframe(method_df[["Method","Physicians Flagged","% of Project"]],
                      use_container_width=True, hide_index=True)
