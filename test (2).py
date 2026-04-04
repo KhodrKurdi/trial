@@ -921,7 +921,9 @@ with tab2:
         phys_in_yr = []
     with dd5:
         if phys_in_yr:
-            selected_id = st.selectbox("Physician ID", phys_in_yr, key="deep_id")
+            selected_id = st.selectbox("Physician ID", ["— Select —"] + phys_in_yr, key="deep_id")
+            if selected_id == "— Select —":
+                selected_id = None
         else:
             selected_id = None
             st.info("No physicians for this selection.")
