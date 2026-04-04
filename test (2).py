@@ -409,9 +409,9 @@ GITHUB_URLS = {
     "indicators": "Physicians indicators.csv",
 
     # ── Physician lookup CSVs (Name, Department, Division per year) ──────────
-    "lookup_2023": "Datasource, cycle 2023.csv",
-    "lookup_2024": "Datasource, cycle 2024.csv",
-    "lookup_2025": "Datasource, cycle 2025.csv",
+    "lookup_2023": "REPLACE_WITH_LOOKUP_2023_URL",
+    "lookup_2024": "REPLACE_WITH_LOOKUP_2024_URL",
+    "lookup_2025": "REPLACE_WITH_LOOKUP_2025_URL",
 }
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
@@ -891,27 +891,35 @@ with tab2:
     st.markdown("---")
     st.markdown('<div class="section-header">🔍 Individual Physician Deep-Dive</div>', unsafe_allow_html=True)
 
-    dd1, dd2, dd3 = st.columns(3)
+    # Row 1: Project + Year
+    dd1, dd2 = st.columns(2)
     with dd1:
         dd_dept = st.selectbox("Project", available_depts, key="deep_dept")
     with dd2:
-        # Build year list from raw data for selected dept
         raw_dd, phys_dd_all, sent_dd = data[dd_dept]
         if raw_dd is not None and "year" in raw_dd.columns:
             yr_opts = ["All Years"] + sorted(raw_dd["year"].dropna().unique().astype(int).tolist(), reverse=True)
         else:
             yr_opts = ["All Years"]
         dd_year = st.selectbox("Year", yr_opts, key="deep_year")
+
+    # Row 2: Department + Division + Physician (cascading)
+    dd3, dd4, dd5 = st.columns(3)
     with dd3:
-        # Filter physicians by dept (and year if selected)
-        if raw_dd is not None:
-            if dd_year == "All Years":
-                dd_raw_filt = raw_dd
-            else:
-                dd_raw_filt = raw_dd[raw_dd["year"] == int(dd_year)]
-            phys_in_yr = sorted(dd_raw_filt["physician_id"].dropna().unique().tolist())
-        else:
-            phys_in_yr = []
+        dd_dept_filter = st.selectbox("Department", get_dept_options(all_phys), key="deep_dept_f")
+    with dd4:
+        dd_div_filter  = st.selectbox("Division", get_div_options(all_phys, dd_dept_filter), key="deep_div_f")
+
+    # Build physician list filtered by year + department + division
+    if raw_dd is not None:
+        dd_raw_filt = raw_dd if dd_year == "All Years" else raw_dd[raw_dd["year"] == int(dd_year)]
+        # Apply dept/div filter via all_phys lookup
+        phys_pool = apply_dept_div_filter(all_phys, dd_dept_filter, dd_div_filter)["physician_id"].unique()
+        dd_raw_filt = dd_raw_filt[dd_raw_filt["physician_id"].isin(phys_pool)] if dd_dept_filter != "All" or dd_div_filter != "All" else dd_raw_filt
+        phys_in_yr = sorted(dd_raw_filt["physician_id"].dropna().unique().tolist())
+    else:
+        phys_in_yr = []
+    with dd5:
         if phys_in_yr:
             selected_id = st.selectbox("Physician ID", phys_in_yr, key="deep_id")
         else:
