@@ -1027,20 +1027,29 @@ with tab3:
     st.markdown('<div class="section-header">📊 Project-Level Analysis</div>', unsafe_allow_html=True)
 
     dept_sel = st.selectbox("Select Project", available_depts, key="dept_view")
-    _, phys_d, _ = data[dept_sel]
 
-    # Department / Division filters
+    # Department / Division filters — cascade under project
     t3f1, t3f2 = st.columns(2)
+    # Only show depts/divs that belong to the selected project
+    proj_phys = all_phys[all_phys["department"] == dept_sel] if "department" in all_phys.columns else all_phys
     with t3f1:
-        t3_dept = st.selectbox("Department", get_dept_options(all_phys), key="t3_dept")
+        t3_dept = st.selectbox("Department", get_dept_options(proj_phys), key="t3_dept")
     with t3f2:
-        t3_div  = st.selectbox("Division",   get_div_options(all_phys, t3_dept), key="t3_div")
-    if phys_d is not None:
-        phys_d = apply_dept_div_filter(phys_d, t3_dept, t3_div)
+        t3_div  = st.selectbox("Division",   get_div_options(proj_phys, t3_dept), key="t3_div")
+
+    # Filter all_phys by project + department + division — single source of truth
+    phys_d = proj_phys.copy()
+    phys_d = apply_dept_div_filter(phys_d, t3_dept, t3_div)
 
     if phys_d is None or phys_d.empty:
         st.warning("No data available for this project.")
     else:
+        # Recompute outlier flags on the filtered subset so IQR/Z thresholds
+        # reflect the currently visible population
+        if len(phys_d) >= 4:
+            phys_d, _, _ = add_outlier_flags(phys_d)
+            phys_d = add_risk(phys_d)
+
         d1, d2, d3, d4 = st.columns(4)
         with d1: st.metric("Physicians", len(phys_d))
         with d2: st.metric("Project Mean Score", f"{phys_d['avg_behavior_score'].mean():.3f}")
