@@ -1107,8 +1107,14 @@ with tab2:
                     phys_comments = phys_comments[phys_comments["year"] == int(dd_year)]
                 if not phys_comments.empty:
                     yr_suffix = f", {dd_year}" if dd_year != "All Years" else ""
-                    # Filter out display-only noise comments (D/A, No comment, etc.)
                     phys_comments_display = phys_comments[~phys_comments["comments"].astype(str).apply(_is_no_info)]
+                    # Check if flag is triggered by a comment hidden from display
+                    hidden_neg = phys_comments[
+                        phys_comments["comments"].astype(str).apply(_is_no_info) &
+                        (phys_comments["compound"] <= -0.05)
+                    ]
+                    if not hidden_neg.empty:
+                        st.warning(f"⚠️ Negative sentiment flag is triggered by {len(hidden_neg)} non-informative comment(s) being scored (e.g. 'Not working with him'). These are excluded from display but were scored before filtering. Consider clearing the cache to recompute.")
                     st.markdown(f"**Peer Comments** ({len(phys_comments_display)} total{yr_suffix}):")
                     for _, crow in phys_comments_display.sort_values("compound").iterrows():
                         css_class = "neg" if crow["sentiment"]=="NEGATIVE" else ("pos" if crow["sentiment"]=="POSITIVE" else "neu")
