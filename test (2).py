@@ -372,6 +372,27 @@ def score_vader(text, threshold=-0.05):
     except:
         return {"compound": 0.0, "sentiment": "NEUTRAL"}
 
+# Non-informative comment patterns — excluded from scoring and display
+_NO_INFO_PREFIXES = (
+    "no comment", "no interaction", "no opportunity", "no contact",
+    "no direct", "no significant", "no exposure", "no encounter",
+    "no working", "no personal", "no experience",
+    "d/a", "n/a", "i have never", "never had the chance",
+    "haven't had the chance", "i have not", "i did not", "i don't",
+    "i do not have", "haven't worked", "have not worked",
+    "not had the", "not worked with", "not interacted",
+    "we have no contact", "we have no", "no working relationship",
+)
+_NO_INFO_EXACT = {
+    "d/a","n/a","na","n.a","n.a.","-","--","---","none","nil",
+    ".","..","...","no comment","no comments","no interaction",
+    "no interactions","not applicable","not available","no opportunity"
+}
+
+def _is_no_info(text):
+    t = str(text).strip().lower().rstrip(".,;:!?/ ")
+    return t in _NO_INFO_EXACT or any(t.startswith(p) for p in _NO_INFO_PREFIXES)
+
 def run_sentiment(df, threshold=-0.05):
     # Match notebook: score all non-empty, non-self-eval comments — no skip list
     df_s = df[
@@ -380,6 +401,8 @@ def run_sentiment(df, threshold=-0.05):
         (df["comments"].astype(str).str.strip() != "")
     ].copy()
     df_s["comments"] = df_s["comments"].astype(str).str.strip()
+    # Exclude non-informative comments from scoring (no contact, no interaction etc.)
+    df_s = df_s[~df_s["comments"].apply(_is_no_info)].copy()
     results = df_s["comments"].apply(lambda t: score_vader(t, threshold))
     df_s = pd.concat([df_s, pd.DataFrame(results.tolist(), index=df_s.index)], axis=1)
     return df_s
@@ -824,11 +847,7 @@ with tab1:
         if all_sent_frames:
             sent_all = pd.concat(all_sent_frames, ignore_index=True)
             # Filter out noise comments from display counts (same as deep-dive display filter)
-            _skip_t1 = {"d/a","n/a","na","n.a","n.a.","-","--","---","none","nil",".","..","...","no comment","no comments","no interaction","no interactions","not applicable","not available","no opportunity"}
-            def _is_noise(t):
-                t2 = str(t).strip().lower().rstrip(".,;:!?/ ")
-                return t2 in _skip_t1 or any(t2.startswith(p) for p in ("no comment","no interaction","no opportunity","d/a","n/a","i have never","never had the chance","haven't had the chance","i have not"))
-            sent_all = sent_all[~sent_all["comments"].astype(str).apply(_is_noise)].copy()
+            sent_all = sent_all[~sent_all["comments"].astype(str).apply(_is_no_info)].copy()
             total_c  = len(sent_all)
             neg_c    = (sent_all["sentiment"] == "NEGATIVE").sum()
             pos_c    = (sent_all["sentiment"] == "POSITIVE").sum()
@@ -1083,11 +1102,7 @@ with tab2:
                 if not phys_comments.empty:
                     yr_suffix = f", {dd_year}" if dd_year != "All Years" else ""
                     # Filter out display-only noise comments (D/A, No comment, etc.)
-                    _skip = {"d/a","n/a","na","n.a","n.a.","-","--","---","none","nil",".","..","...","no comment","no comments","no interaction","no interactions","not applicable","not available","no opportunity"}
-                    def _is_display_skip(t):
-                        t2 = str(t).strip().lower().rstrip(".,;:!?/ ")
-                        return t2 in _skip or any(t2.startswith(p) for p in ("no comment","no interaction","no opportunity","d/a","n/a","i have never","never had the chance","haven't had the chance","i have not"))
-                    phys_comments_display = phys_comments[~phys_comments["comments"].astype(str).apply(_is_display_skip)]
+                    phys_comments_display = phys_comments[~phys_comments["comments"].astype(str).apply(_is_no_info)]
                     st.markdown(f"**Peer Comments** ({len(phys_comments_display)} total{yr_suffix}):")
                     for _, crow in phys_comments_display.sort_values("compound").iterrows():
                         css_class = "neg" if crow["sentiment"]=="NEGATIVE" else ("pos" if crow["sentiment"]=="POSITIVE" else "neu")
@@ -1277,11 +1292,7 @@ with tab4:
     else:
         all_sent = pd.concat(sent_frames, ignore_index=True)
         # Filter noise comments from display
-        _skip_t4 = {"d/a","n/a","na","n.a","n.a.","-","--","---","none","nil",".","..","...","no comment","no comments","no interaction","no interactions","not applicable","not available","no opportunity"}
-        def _is_noise_t4(t):
-            t2 = str(t).strip().lower().rstrip(".,;:!?/ ")
-            return t2 in _skip_t4 or any(t2.startswith(p) for p in ("no comment","no interaction","no opportunity","d/a","n/a","i have never","never had the chance","haven't had the chance","i have not"))
-        all_sent = all_sent[~all_sent["comments"].astype(str).apply(_is_noise_t4)].copy()
+        all_sent = all_sent[~all_sent["comments"].astype(str).apply(_is_no_info)].copy()
 
         # Department / Division filters
         t4f1, t4f2 = st.columns(2)
