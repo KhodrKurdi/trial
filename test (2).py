@@ -323,24 +323,14 @@ _MEDICAL_LEXICON = {
     "overconfident":    -1.5,
     "careless":         -2.0,
     "rushed":           -1.3,
-    "avoids":           -1.2,
-    "disorganized":     -1.5,
-    "lacks":            -1.2,
-    "bullying":         -2.8,
+        "disorganized":     -1.5,
+        "bullying":         -2.8,
     "bully":            -2.5,
 
     # Mild negatives (-0.5 to -1.5)
-    "improvements":     -0.5,  # "needs improvements" context
-    "improve":          -0.3,
-    "concern":          -0.8,
-    "concerns":         -0.8,
-    "complaints":       -1.0,
+                    "complaints":       -1.0,
     "complaint":        -1.0,
-    "difficult":        -0.8,
-    "challenging":      -0.5,
-    "late":             -0.8,
-    "delayed":          -0.8,
-
+                
     # Positives (+1.5 to +2.5)
     "compassionate":    +2.5,
     "empathetic":       +2.5,
@@ -410,7 +400,7 @@ def run_sentiment(df, threshold=-0.05):
 def sentiment_summary(df_sent, min_comments=5, threshold=-0.05):
     # Check if any comment has compound < 0 (catches comments VADER labels NEUTRAL but are still negative-leaning)
     has_any_negative = (
-        df_sent[df_sent["compound"] < 0]
+        df_sent[df_sent["compound"] <= -0.05]
         .groupby("physician_id")
         .size()
         .reset_index(name="n_neg_compound")
@@ -430,7 +420,7 @@ def sentiment_summary(df_sent, min_comments=5, threshold=-0.05):
     s = s.merge(has_any_negative[["physician_id","has_negative"]], on="physician_id", how="left")
     s["has_negative"] = s["has_negative"].fillna(False)
 
-    # Flag if physician has ANY comment with compound < 0
+    # Flag if physician has ANY comment with compound <= -0.05 (VADER negative threshold)
     s["negative_outlier"] = s["has_negative"]
     s = s.drop(columns=["has_negative"])
     return s
