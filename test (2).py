@@ -864,19 +864,28 @@ with tab1:
                 <div style="font-size:12px; color:#9ca3af; margin-top:2px">across all departments</div>
             </div>""", unsafe_allow_html=True)
 
-            # Sentiment bar
-            fig_sent, ax_sent = plt.subplots(figsize=(4, 1.8))
-            ax_sent.barh([""], [neg_pct], color="#e53e3e", alpha=0.88, label=f"Negative {neg_pct:.1f}%")
-            ax_sent.barh([""], [neu_pct], left=[neg_pct], color="#9ca3af", alpha=0.75, label=f"Neutral {neu_pct:.1f}%")
-            ax_sent.barh([""], [pos_pct], left=[neg_pct+neu_pct], color="#38a169", alpha=0.88, label=f"Positive {pos_pct:.1f}%")
-            for val, left, col in [(neg_pct,0,"#e53e3e"),(neu_pct,neg_pct,"#64748b"),(pos_pct,neg_pct+neu_pct,"#38a169")]:
-                if val > 4:
-                    ax_sent.text(left + val/2, 0, f"{val:.1f}%", ha="center", va="center",
-                                 fontsize=9, fontweight="700", color="white")
-            ax_sent.set_xlim(0, 100)
-            ax_sent.set_title("Comment Sentiment Split", fontsize=10, fontweight="bold")
-            ax_sent.axis("off")
-            ax_sent.legend(fontsize=8, loc="lower center", bbox_to_anchor=(0.5, -0.55), ncol=3)
+            # Sentiment donut chart
+            fig_sent, ax_sent = plt.subplots(figsize=(4, 3.2))
+            sizes  = [neg_pct, neu_pct, pos_pct]
+            colors = ["#e53e3e", "#9ca3af", "#38a169"]
+            labels = [f"Negative\n{neg_pct:.1f}%", f"Neutral\n{neu_pct:.1f}%", f"Positive\n{pos_pct:.1f}%"]
+            wedges, texts = ax_sent.pie(
+                sizes, colors=colors, startangle=90,
+                wedgeprops=dict(width=0.55, edgecolor="white", linewidth=2),
+                pctdistance=0.75,
+            )
+            # Labels outside
+            for i, (wedge, label) in enumerate(zip(wedges, labels)):
+                angle = (wedge.theta2 + wedge.theta1) / 2
+                x = 1.25 * np.cos(np.radians(angle))
+                y = 1.25 * np.sin(np.radians(angle))
+                ha = "left" if x > 0 else "right"
+                ax_sent.text(x, y, label, ha=ha, va="center",
+                             fontsize=9, fontweight="700", color=colors[i])
+            # Centre label
+            ax_sent.text(0, 0, f"{total_c:,}\ncomments", ha="center", va="center",
+                         fontsize=9, fontweight="700", color="#1a365d")
+            ax_sent.set_title("Comment Sentiment Split", fontsize=10, fontweight="bold", color="#1a365d", pad=8)
             fig_sent.patch.set_facecolor("white")
             plt.tight_layout(); st.pyplot(fig_sent, use_container_width=True); plt.close()
 
