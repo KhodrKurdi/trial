@@ -372,6 +372,13 @@ _NO_INFO_PREFIXES = (
     "i do not have", "haven't worked", "have not worked",
     "not had the", "not worked with", "not interacted",
     "we have no contact", "we have no", "no working relationship",
+    "not working with", "not work with", "don't work with",
+    "do not work with", "never worked with", "never work with",
+    "have not had", "i have not had", "unable to comment",
+    "cannot comment", "can't comment", "no opportunity to",
+    "i have not interacted", "no enough interaction",
+    "not enough interaction", "limited interaction",
+    "minimal interaction", "no sufficient",
 )
 _NO_INFO_EXACT = {
     "d/a","n/a","na","n.a","n.a.","-","--","---","none","nil",
