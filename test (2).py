@@ -2276,7 +2276,7 @@ with tab7:
                     dept_risk[dept]["Monitor"] += 1
                 else:
                     dept_risk[dept]["Clear"] += 1
-            for dept, counts in sorted(dept_risk.items()):
+            for dept, counts in sorted(dept_risk.items(), key=lambda x: str(x[0])):
                 fids = ", ".join(counts["Flagged_IDs"]) if counts["Flagged_IDs"] else "none"
                 lines.append(f"  {dept}: Priority={counts['Priority']}, Monitor={counts['Monitor']}, Clear={counts['Clear']} | Priority IDs: {fids}")
             lines.append("")
