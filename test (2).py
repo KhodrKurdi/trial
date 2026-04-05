@@ -2106,83 +2106,152 @@ with tab6:
         st.markdown("<br>", unsafe_allow_html=True)
 
         # ══════════════════════════════════════════════════════════════════════
-        # SECTION 1 — DEPARTMENT VIEW
+        # SECTION 1 — OVERVIEW (dept-level when All, physician-level when filtered)
         # ══════════════════════════════════════════════════════════════════════
-        st.markdown('<div class="section-header">🏥 Department Overview</div>', unsafe_allow_html=True)
+        is_filtered = (sel_dept_t6 != "All Departments") or (sel_div_t6 != "All Divisions")
+        section_title = "👤 Physicians in Selection" if is_filtered else "🏥 Department Overview"
+        st.markdown(f'<div class="section-header">{section_title}</div>', unsafe_allow_html=True)
 
-        if "Department" in df_view.columns:
-            id_col = "Aubnetid" if "Aubnetid" in df_view.columns else df_view.columns[0]
-            dept_agg = {
-                "Physicians":        (id_col,           "nunique"),
-                "Divisions":         ("Division_norm",   "nunique") if "Division_norm" in df_view.columns else None,
-                "Total_Visits":      ("ClinicVisits",    "sum")     if "ClinicVisits"  in df_view.columns else None,
-                "Avg_Wait":          ("ClinicWaitingTime","mean")   if "ClinicWaitingTime" in df_view.columns else None,
-                "Total_Complaints":  ("PatientComplaints","sum")    if "PatientComplaints" in df_view.columns else None,
-            }
-            dept_agg = {k: v for k, v in dept_agg.items() if v is not None}
-            dept_sum = df_view.groupby("Department", as_index=False).agg(**dept_agg)
-            for c in ["Total_Visits","Total_Complaints","Divisions"]:
-                if c not in dept_sum.columns: dept_sum[c] = 0
-            dept_sum["Total_Visits"]     = dept_sum["Total_Visits"].fillna(0).astype(int)
-            dept_sum["Total_Complaints"] = dept_sum["Total_Complaints"].fillna(0).astype(int)
-            dept_sum["Avg_Wait"]         = dept_sum["Avg_Wait"].round(1) if "Avg_Wait" in dept_sum.columns else 0
-            dept_sum["Rate"]             = (dept_sum["Total_Complaints"] /
-                                            dept_sum["Total_Visits"].replace(0, np.nan) * 100).round(2).fillna(0)
-            dept_sum = dept_sum.sort_values("Total_Visits", ascending=False).reset_index(drop=True)
+        if is_filtered:
+            # ── Physician-level view when dept/div selected ───────────────────
+            if "Physician Name" in df_view.columns and not df_view.empty:
+                id_col = "Aubnetid" if "Aubnetid" in df_view.columns else df_view.columns[0]
+                phys_agg_spec = {"Physicians_count": (id_col, "nunique")}
+                if "ClinicVisits"      in df_view.columns: phys_agg_spec["Total_Visits"]     = ("ClinicVisits",     "sum")
+                if "ClinicWaitingTime" in df_view.columns: phys_agg_spec["Avg_Wait"]          = ("ClinicWaitingTime","mean")
+                if "PatientComplaints" in df_view.columns: phys_agg_spec["Total_Complaints"]  = ("PatientComplaints","sum")
+                phys_sum = df_view.groupby("Physician Name", as_index=False).agg(**phys_agg_spec)
+                for c in ["Total_Visits","Total_Complaints","Avg_Wait"]:
+                    if c not in phys_sum.columns: phys_sum[c] = 0
+                phys_sum["Total_Visits"]     = phys_sum["Total_Visits"].fillna(0).astype(int)
+                phys_sum["Total_Complaints"] = phys_sum["Total_Complaints"].fillna(0).astype(int)
+                phys_sum["Avg_Wait"]         = phys_sum["Avg_Wait"].round(1)
+                phys_sum["Rate"]             = (phys_sum["Total_Complaints"] /
+                                                phys_sum["Total_Visits"].replace(0,np.nan)*100).round(2).fillna(0)
+                phys_sum = phys_sum.sort_values("Total_Visits", ascending=False).reset_index(drop=True)
 
-            # Dept chart + complaint rate side by side
-            dc1, dc2 = st.columns(2)
-            with dc1:
-                fig, ax = plt.subplots(figsize=(7, max(3.5, len(dept_sum)*0.5)))
-                max_v = dept_sum["Total_Visits"].max() or 1
-                colours = [plt.cm.Blues(0.35 + 0.6*(v/max_v)) for v in dept_sum["Total_Visits"]]
-                bars = ax.barh(dept_sum["Department"], dept_sum["Total_Visits"],
-                               color=colours, edgecolor="white", linewidth=0.5, height=0.6)
-                for bar, val in zip(bars, dept_sum["Total_Visits"]):
-                    ax.text(val + max_v*0.015, bar.get_y()+bar.get_height()/2,
-                            f"{val:,}", va="center", fontsize=9, fontweight="700", color="#1a365d")
-                ax.set_xlabel("Total Clinic Visits", fontsize=10, color="#64748b")
-                ax.set_title("Visits by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
-                ax.tick_params(colors="#64748b", labelsize=9)
-                for sp in ax.spines.values(): sp.set_edgecolor("#e2e8f0")
-                ax.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
-                ax.set_facecolor("white"); fig.patch.set_facecolor("white")
-                plt.tight_layout(); st.pyplot(fig, use_container_width=True); plt.close()
+                pc1, pc2 = st.columns(2)
+                with pc1:
+                    fig, ax = plt.subplots(figsize=(7, max(4, len(phys_sum)*0.45)))
+                    max_v = phys_sum["Total_Visits"].max() or 1
+                    colours = [plt.cm.Blues(0.35 + 0.6*(v/max_v)) for v in phys_sum["Total_Visits"]]
+                    bars = ax.barh(phys_sum["Physician Name"], phys_sum["Total_Visits"],
+                                   color=colours, edgecolor="white", linewidth=0.5, height=0.6)
+                    for bar, val in zip(bars, phys_sum["Total_Visits"]):
+                        ax.text(val + max_v*0.015, bar.get_y()+bar.get_height()/2,
+                                f"{val:,}", va="center", fontsize=9, fontweight="700", color="#1a365d")
+                    ax.set_xlabel("Total Clinic Visits", fontsize=10, color="#64748b")
+                    ax.set_title(f"Visits by Physician — {sel_dept_t6}" + (f" / {sel_div_t6}" if sel_div_t6 != "All Divisions" else ""),
+                                 fontsize=11, fontweight="800", color="#1a365d", pad=8)
+                    ax.tick_params(colors="#64748b", labelsize=9)
+                    for sp in ax.spines.values(): sp.set_edgecolor("#e2e8f0")
+                    ax.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
+                    ax.set_facecolor("white"); fig.patch.set_facecolor("white")
+                    plt.tight_layout(); st.pyplot(fig, use_container_width=True); plt.close()
 
-            with dc2:
-                fig2, ax2 = plt.subplots(figsize=(7, max(3.5, len(dept_sum)*0.5)))
-                c2 = ["#e53e3e" if r > dept_sum["Rate"].quantile(0.75) and r > 0
-                      else "#f59e0b" if r > 0 else "#38a169"
-                      for r in dept_sum["Rate"]]
-                bars2 = ax2.barh(dept_sum["Department"], dept_sum["Rate"],
-                                 color=c2, edgecolor="white", linewidth=0.5, height=0.6, alpha=0.88)
-                for bar, val in zip(bars2, dept_sum["Rate"]):
-                    ax2.text(val + 0.003, bar.get_y()+bar.get_height()/2,
-                             f"{val:.2f}%", va="center", fontsize=9, fontweight="700", color="#1a365d")
-                ax2.set_xlabel("Complaints per 100 Visits", fontsize=10, color="#64748b")
-                ax2.set_title("Complaint Rate by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
-                ax2.tick_params(colors="#64748b", labelsize=9)
-                for sp in ax2.spines.values(): sp.set_edgecolor("#e2e8f0")
-                ax2.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
-                ax2.set_facecolor("white"); fig2.patch.set_facecolor("white")
-                ax2.legend(handles=[
-                    mpatches.Patch(color="#38a169", alpha=0.88, label="No complaints"),
-                    mpatches.Patch(color="#f59e0b", alpha=0.88, label="Low rate"),
-                    mpatches.Patch(color="#e53e3e", alpha=0.88, label="High rate"),
-                ], fontsize=8, loc="lower right", framealpha=0.9)
-                plt.tight_layout(); st.pyplot(fig2, use_container_width=True); plt.close()
+                with pc2:
+                    fig2, ax2 = plt.subplots(figsize=(7, max(4, len(phys_sum)*0.45)))
+                    c2 = ["#e53e3e" if c>=3 else "#f59e0b" if c>=1 else "#38a169"
+                          for c in phys_sum["Total_Complaints"]]
+                    ax2.barh(phys_sum["Physician Name"], phys_sum["Total_Complaints"],
+                             color=c2, edgecolor="white", linewidth=0.5, height=0.6, alpha=0.88)
+                    for i, (val, wt) in enumerate(zip(phys_sum["Total_Complaints"], phys_sum["Avg_Wait"])):
+                        ax2.text(val + 0.05, i, f"{val} complaints · {wt:.0f} min wait",
+                                 va="center", fontsize=9, fontweight="600", color="#1a365d")
+                    ax2.set_xlabel("Total Complaints", fontsize=10, color="#64748b")
+                    ax2.set_title("Complaints & Wait Time by Physician",
+                                  fontsize=11, fontweight="800", color="#1a365d", pad=8)
+                    ax2.tick_params(colors="#64748b", labelsize=9)
+                    for sp in ax2.spines.values(): sp.set_edgecolor("#e2e8f0")
+                    ax2.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
+                    ax2.set_facecolor("white"); fig2.patch.set_facecolor("white")
+                    plt.tight_layout(); st.pyplot(fig2, use_container_width=True); plt.close()
 
-            # Dept summary table
-            dept_display = dept_sum.rename(columns={
-                "Physicians":"Physicians","Divisions":"Divisions",
-                "Total_Visits":"Visits","Avg_Wait":"Avg Wait (min)",
-                "Total_Complaints":"Complaints","Rate":"Complaint Rate %"
-            })
-            st.dataframe(dept_display, use_container_width=True, hide_index=True,
-                column_config={
-                    "Visits":      st.column_config.ProgressColumn(min_value=0, max_value=int(dept_display["Visits"].max()), format="%d"),
-                    "Complaints":  st.column_config.ProgressColumn(min_value=0, max_value=max(1,int(dept_display["Complaints"].max())), format="%d"),
+                # Physician summary table
+                phys_display = phys_sum.rename(columns={
+                    "Physician Name":"Physician","Total_Visits":"Visits",
+                    "Avg_Wait":"Avg Wait (min)","Total_Complaints":"Complaints","Rate":"Complaint Rate %"
+                }).drop(columns=["Physicians_count"], errors="ignore")
+                st.dataframe(phys_display, use_container_width=True, hide_index=True,
+                    column_config={
+                        "Visits":      st.column_config.ProgressColumn(min_value=0, max_value=max(1,int(phys_display["Visits"].max())), format="%d"),
+                        "Complaints":  st.column_config.ProgressColumn(min_value=0, max_value=max(1,int(phys_display["Complaints"].max())), format="%d"),
+                    })
+            else:
+                st.info("No physician data available for this selection.")
+
+        else:
+            # ── Department-level view when no filter selected ─────────────────
+            if "Department" in df_view.columns:
+                id_col = "Aubnetid" if "Aubnetid" in df_view.columns else df_view.columns[0]
+                dept_agg = {
+                    "Physicians":        (id_col,           "nunique"),
+                    "Divisions":         ("Division_norm",   "nunique") if "Division_norm" in df_view.columns else None,
+                    "Total_Visits":      ("ClinicVisits",    "sum")     if "ClinicVisits"  in df_view.columns else None,
+                    "Avg_Wait":          ("ClinicWaitingTime","mean")   if "ClinicWaitingTime" in df_view.columns else None,
+                    "Total_Complaints":  ("PatientComplaints","sum")    if "PatientComplaints" in df_view.columns else None,
+                }
+                dept_agg = {k: v for k, v in dept_agg.items() if v is not None}
+                dept_sum = df_view.groupby("Department", as_index=False).agg(**dept_agg)
+                for c in ["Total_Visits","Total_Complaints","Divisions"]:
+                    if c not in dept_sum.columns: dept_sum[c] = 0
+                dept_sum["Total_Visits"]     = dept_sum["Total_Visits"].fillna(0).astype(int)
+                dept_sum["Total_Complaints"] = dept_sum["Total_Complaints"].fillna(0).astype(int)
+                dept_sum["Avg_Wait"]         = dept_sum["Avg_Wait"].round(1) if "Avg_Wait" in dept_sum.columns else 0
+                dept_sum["Rate"]             = (dept_sum["Total_Complaints"] /
+                                                dept_sum["Total_Visits"].replace(0, np.nan) * 100).round(2).fillna(0)
+                dept_sum = dept_sum.sort_values("Total_Visits", ascending=False).reset_index(drop=True)
+
+                dc1, dc2 = st.columns(2)
+                with dc1:
+                    fig, ax = plt.subplots(figsize=(7, max(3.5, len(dept_sum)*0.5)))
+                    max_v = dept_sum["Total_Visits"].max() or 1
+                    colours = [plt.cm.Blues(0.35 + 0.6*(v/max_v)) for v in dept_sum["Total_Visits"]]
+                    bars = ax.barh(dept_sum["Department"], dept_sum["Total_Visits"],
+                                   color=colours, edgecolor="white", linewidth=0.5, height=0.6)
+                    for bar, val in zip(bars, dept_sum["Total_Visits"]):
+                        ax.text(val + max_v*0.015, bar.get_y()+bar.get_height()/2,
+                                f"{val:,}", va="center", fontsize=9, fontweight="700", color="#1a365d")
+                    ax.set_xlabel("Total Clinic Visits", fontsize=10, color="#64748b")
+                    ax.set_title("Visits by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
+                    ax.tick_params(colors="#64748b", labelsize=9)
+                    for sp in ax.spines.values(): sp.set_edgecolor("#e2e8f0")
+                    ax.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
+                    ax.set_facecolor("white"); fig.patch.set_facecolor("white")
+                    plt.tight_layout(); st.pyplot(fig, use_container_width=True); plt.close()
+                with dc2:
+                    fig2, ax2 = plt.subplots(figsize=(7, max(3.5, len(dept_sum)*0.5)))
+                    c2 = ["#e53e3e" if r > dept_sum["Rate"].quantile(0.75) and r > 0
+                          else "#f59e0b" if r > 0 else "#38a169"
+                          for r in dept_sum["Rate"]]
+                    bars2 = ax2.barh(dept_sum["Department"], dept_sum["Rate"],
+                                     color=c2, edgecolor="white", linewidth=0.5, height=0.6, alpha=0.88)
+                    for bar, val in zip(bars2, dept_sum["Rate"]):
+                        ax2.text(val + 0.003, bar.get_y()+bar.get_height()/2,
+                                 f"{val:.2f}%", va="center", fontsize=9, fontweight="700", color="#1a365d")
+                    ax2.set_xlabel("Complaints per 100 Visits", fontsize=10, color="#64748b")
+                    ax2.set_title("Complaint Rate by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
+                    ax2.tick_params(colors="#64748b", labelsize=9)
+                    for sp in ax2.spines.values(): sp.set_edgecolor("#e2e8f0")
+                    ax2.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
+                    ax2.set_facecolor("white"); fig2.patch.set_facecolor("white")
+                    ax2.legend(handles=[
+                        mpatches.Patch(color="#38a169", alpha=0.88, label="No complaints"),
+                        mpatches.Patch(color="#f59e0b", alpha=0.88, label="Low rate"),
+                        mpatches.Patch(color="#e53e3e", alpha=0.88, label="High rate"),
+                    ], fontsize=8, loc="lower right", framealpha=0.9)
+                    plt.tight_layout(); st.pyplot(fig2, use_container_width=True); plt.close()
+
+                dept_display = dept_sum.rename(columns={
+                    "Physicians":"Physicians","Divisions":"Divisions",
+                    "Total_Visits":"Visits","Avg_Wait":"Avg Wait (min)",
+                    "Total_Complaints":"Complaints","Rate":"Complaint Rate %"
                 })
+                st.dataframe(dept_display, use_container_width=True, hide_index=True,
+                    column_config={
+                        "Visits":      st.column_config.ProgressColumn(min_value=0, max_value=int(dept_display["Visits"].max()), format="%d"),
+                        "Complaints":  st.column_config.ProgressColumn(min_value=0, max_value=max(1,int(dept_display["Complaints"].max())), format="%d"),
+                    })
 
         st.markdown("<br>", unsafe_allow_html=True)
 
