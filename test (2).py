@@ -2443,23 +2443,48 @@ with tab7:
             # Compute percentile rank within the group
             phys_pct = phys.copy()
             phys_pct["percentile"] = phys_pct["avg_behavior_score"].rank(pct=True).mul(100).round(1)
-            lines.append(f"  All physicians (ID | Name | Department | Division | score | percentile | risk | flags):")
+            # Build year-by-year scores per physician from raw data
+            raw_grp, _, _ = _data[grp]
+            yr_scores = {}  # pid -> {year: avg_score}
+            if raw_grp is not None and "year" in raw_grp.columns:
+                for yr in sorted(raw_grp["year"].dropna().unique().astype(int)):
+                    yr_df = raw_grp[raw_grp["year"] == yr]
+                    yr_agg = aggregate_physician(yr_df)
+                    for _, row_yr in yr_agg.iterrows():
+                        pid_yr = row_yr["physician_id"]
+                        if pid_yr not in yr_scores:
+                            yr_scores[pid_yr] = {}
+                        yr_scores[pid_yr][yr] = round(row_yr["avg_behavior_score"], 3)
+
+            lines.append(f"  All physicians (ID | Name | Dept | Div | 2023 | 2024 | 2025 | trend | score | percentile | risk | flags):")
             for _, r in phys_pct.sort_values('avg_behavior_score').iterrows():
-                pid  = r['physician_id']
-                iqr  = "IQR"  if r.get("low_iqr_outlier", False) else ""
-                z    = "Z"    if r.get("low_z_outlier",   False) else ""
-                b10  = "B10"  if r.get("low_bottom10",    False) else ""
-                sent = "SENT" if r.get("negative_outlier",False) else ""
+                pid   = r['physician_id']
+                iqr   = "IQR"  if r.get("low_iqr_outlier", False) else ""
+                z     = "Z"    if r.get("low_z_outlier",   False) else ""
+                b10   = "B10"  if r.get("low_bottom10",    False) else ""
+                sent  = "SENT" if r.get("negative_outlier",False) else ""
                 flags = " ".join(f for f in [iqr,z,b10,sent] if f) or "none"
-                dept = dept_lookup.get(pid, "Unknown")
-                div  = div_lookup.get(pid, dept)
-                name = name_lookup.get(pid, "")
-                pct  = r.get("percentile", 0)
-                compound = r.get("avg_compound", float("nan"))
+                dept  = dept_lookup.get(pid, "Unknown")
+                div   = div_lookup.get(pid, dept)
+                name  = name_lookup.get(pid, "")
+                pct   = r.get("percentile", 0)
+                compound     = r.get("avg_compound", float("nan"))
                 compound_str = f"{compound:.3f}" if pd.notna(compound) else "n/a"
-                neg_ratio = r.get("negative_ratio", float("nan"))
-                neg_ratio_str = f"{neg_ratio:.1%}" if pd.notna(neg_ratio) else "n/a"
-                lines.append(f"    {pid} | {name} | {dept} | {div} | score={r['avg_behavior_score']:.3f} | percentile={pct:.0f}th | risk={int(r['risk_score'])} | sentiment_compound={compound_str} | neg_ratio={neg_ratio_str} | flags=[{flags}]")
+                neg_ratio    = r.get("negative_ratio", float("nan"))
+                neg_ratio_str= f"{neg_ratio:.1%}" if pd.notna(neg_ratio) else "n/a"
+                # Year-by-year scores
+                pid_yrs = yr_scores.get(pid, {})
+                s2023 = f"{pid_yrs[2023]:.3f}" if 2023 in pid_yrs else "—"
+                s2024 = f"{pid_yrs[2024]:.3f}" if 2024 in pid_yrs else "—"
+                s2025 = f"{pid_yrs[2025]:.3f}" if 2025 in pid_yrs else "—"
+                # Trend: last available minus first available
+                yr_vals = [pid_yrs[y] for y in sorted(pid_yrs)]
+                if len(yr_vals) >= 2:
+                    trend_val = yr_vals[-1] - yr_vals[0]
+                    trend_str = f"+{trend_val:.3f}" if trend_val > 0 else f"{trend_val:.3f}"
+                else:
+                    trend_str = "n/a"
+                lines.append(f"    {pid} | {name} | {dept} | {div} | 2023={s2023} | 2024={s2024} | 2025={s2025} | trend={trend_str} | score={r['avg_behavior_score']:.3f} | percentile={pct:.0f}th | risk={int(r['risk_score'])} | sentiment={compound_str} | neg_ratio={neg_ratio_str} | flags=[{flags}]")
             lines.append("")
 
         # Also add a department-level risk summary for quick lookup
