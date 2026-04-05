@@ -388,7 +388,23 @@ _NO_INFO_EXACT = {
 
 def _is_no_info(text):
     t = str(text).strip().lower().rstrip(".,;:!?/ ")
-    return t in _NO_INFO_EXACT or any(t.startswith(p) for p in _NO_INFO_PREFIXES)
+    if t in _NO_INFO_EXACT:
+        return True
+    if any(t.startswith(p) for p in _NO_INFO_PREFIXES):
+        return True
+    # Keyword-based: short comments (<= 12 words) containing no-contact phrases
+    words = t.split()
+    if len(words) <= 12:
+        no_contact_phrases = (
+            "no contact", "no interaction", "no direct", "no working",
+            "not work", "not working", "no opportunity", "no exposure",
+            "no experience with", "no sufficient", "no enough",
+            "not interacted", "never worked", "never interacted",
+            "have no direct", "have no contact", "no relationship",
+        )
+        if any(p in t for p in no_contact_phrases):
+            return True
+    return False
 
 def run_sentiment(df, threshold=-0.05):
     # Match notebook: score all non-empty, non-self-eval comments — no skip list
@@ -2044,15 +2060,25 @@ with tab6:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
     else:
         # ── Filters ───────────────────────────────────────────────────────────
-        fc1, fc2, fc3 = st.columns([1, 1, 2])
+        fc1, fc2, fc3 = st.columns(3)
         with fc1:
             cycles = ["All"] + sorted(ind_df["FiscalCycle"].dropna().unique().tolist(), reverse=True)                      if "FiscalCycle" in ind_df.columns else ["All"]
             sel_cycle = st.selectbox("📅 Fiscal Cycle", cycles, key="ind_cycle")
         df_filt = ind_df if sel_cycle == "All" else ind_df[ind_df["FiscalCycle"] == sel_cycle]
         with fc2:
-            dept_list_f = ["All Projects"] + sorted(df_filt["Department"].dropna().unique().tolist())                           if "Department" in df_filt.columns else ["All Projects"]
-            sel_dept_f = st.selectbox("🏥 Department", dept_list_f, key="ind_dept_filter")
-        df_view = df_filt if sel_dept_f == "All Projects" else df_filt[df_filt["Department"] == sel_dept_f]
+            dept_opts_t6 = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist())                            if "Department" in df_filt.columns else ["All Departments"]
+            sel_dept_t6 = st.selectbox("🏥 Department", dept_opts_t6, key="ind_dept_filter")
+        with fc3:
+            df_for_div = df_filt if sel_dept_t6 == "All Departments" else df_filt[df_filt["Department"] == sel_dept_t6]
+            div_opts_t6 = ["All Divisions"] + sorted(df_for_div["Division_norm"].dropna().unique().tolist())                           if "Division_norm" in df_for_div.columns else ["All Divisions"]
+            sel_div_t6 = st.selectbox("🔬 Division", div_opts_t6, key="ind_div_filter")
+
+        # Apply filters — df_view is used by ALL sections below
+        df_view = df_filt.copy()
+        if sel_dept_t6 != "All Departments" and "Department" in df_view.columns:
+            df_view = df_view[df_view["Department"] == sel_dept_t6]
+        if sel_div_t6 != "All Divisions" and "Division_norm" in df_view.columns:
+            df_view = df_view[df_view["Division_norm"] == sel_div_t6]
 
         # ── Top KPIs ──────────────────────────────────────────────────────────
         st.markdown("<br>", unsafe_allow_html=True)
@@ -2084,17 +2110,17 @@ with tab6:
         # ══════════════════════════════════════════════════════════════════════
         st.markdown('<div class="section-header">🏥 Department Overview</div>', unsafe_allow_html=True)
 
-        if "Department" in df_filt.columns:
-            id_col = "Aubnetid" if "Aubnetid" in df_filt.columns else df_filt.columns[0]
+        if "Department" in df_view.columns:
+            id_col = "Aubnetid" if "Aubnetid" in df_view.columns else df_view.columns[0]
             dept_agg = {
                 "Physicians":        (id_col,           "nunique"),
-                "Divisions":         ("Division_norm",   "nunique") if "Division_norm" in df_filt.columns else None,
-                "Total_Visits":      ("ClinicVisits",    "sum")     if "ClinicVisits"  in df_filt.columns else None,
-                "Avg_Wait":          ("ClinicWaitingTime","mean")   if "ClinicWaitingTime" in df_filt.columns else None,
-                "Total_Complaints":  ("PatientComplaints","sum")    if "PatientComplaints" in df_filt.columns else None,
+                "Divisions":         ("Division_norm",   "nunique") if "Division_norm" in df_view.columns else None,
+                "Total_Visits":      ("ClinicVisits",    "sum")     if "ClinicVisits"  in df_view.columns else None,
+                "Avg_Wait":          ("ClinicWaitingTime","mean")   if "ClinicWaitingTime" in df_view.columns else None,
+                "Total_Complaints":  ("PatientComplaints","sum")    if "PatientComplaints" in df_view.columns else None,
             }
             dept_agg = {k: v for k, v in dept_agg.items() if v is not None}
-            dept_sum = df_filt.groupby("Department", as_index=False).agg(**dept_agg)
+            dept_sum = df_view.groupby("Department", as_index=False).agg(**dept_agg)
             for c in ["Total_Visits","Total_Complaints","Divisions"]:
                 if c not in dept_sum.columns: dept_sum[c] = 0
             dept_sum["Total_Visits"]     = dept_sum["Total_Visits"].fillna(0).astype(int)
@@ -2165,17 +2191,15 @@ with tab6:
         # ══════════════════════════════════════════════════════════════════════
         st.markdown('<div class="section-header">🔬 Division Drill-Down</div>', unsafe_allow_html=True)
 
-        dd1, dd2, dd3 = st.columns([1.5, 1.2, 1])
+        dd1, dd2 = st.columns([1.5, 1])
         with dd1:
-            dept_opts_dd = ["All Projects"] + sorted(df_filt["Department"].dropna().unique().tolist())                            if "Department" in df_filt.columns else ["All Projects"]
-            sel_dept_dd = st.selectbox("Department", dept_opts_dd, key="div_dept")
-        with dd2:
             div_metric = st.selectbox("Metric",
                 ["Clinic Visits", "Avg Wait Time (min)", "Patient Complaints"], key="div_metric")
-        with dd3:
+        with dd2:
             top_n = st.slider("Top N", min_value=5, max_value=30, value=10, step=5, key="div_topn")
 
-        df_div = df_filt if sel_dept_dd == "All Projects" else df_filt[df_filt["Department"] == sel_dept_dd]
+        # Uses df_view — already filtered by Dept/Div from top filters
+        df_div = df_view
 
         if "Division_norm" in df_div.columns:
             id_col2 = "Aubnetid" if "Aubnetid" in df_div.columns else df_div.columns[0]
@@ -2216,7 +2240,7 @@ with tab6:
             ax3.set_xlabel(div_metric, fontsize=10, color="#64748b")
             ax3.set_title(
                 f"Top {min(top_n,len(div_plot))} Divisions — {div_metric}"
-                + (f"  ·  {sel_dept_dd}" if sel_dept_dd!="All Projects" else ""),
+                + (f"  ·  {sel_dept_t6}" if sel_dept_t6 != "All Departments" else "")                + (f"  /  {sel_div_t6}"  if sel_div_t6  != "All Divisions"  else ""),
                 fontsize=12, fontweight="800", color="#1a365d", pad=8)
             ax3.tick_params(colors="#64748b", labelsize=9)
             for sp in ax3.spines.values(): sp.set_edgecolor("#e2e8f0")
@@ -2248,23 +2272,15 @@ with tab6:
         # ══════════════════════════════════════════════════════════════════════
         st.markdown('<div class="section-header">👤 Physician Explorer</div>', unsafe_allow_html=True)
 
-        pe1, pe2, pe3, pe4 = st.columns(4)
+        pe1, pe2 = st.columns(2)
         with pe1:
-            dept_pe = ["All"] + sorted(df_filt["Department"].dropna().unique().tolist())                       if "Department" in df_filt.columns else ["All"]
-            sel_dept_pe = st.selectbox("Department", dept_pe, key="pe_dept")
-        df_pe = df_filt if sel_dept_pe=="All" else df_filt[df_filt["Department"]==sel_dept_pe]
-        with pe2:
-            div_pe = ["All"] + sorted(df_pe["Division_norm"].dropna().unique().tolist())                      if "Division_norm" in df_pe.columns else ["All"]
-            sel_div_pe = st.selectbox("Division", div_pe, key="pe_div")
-        df_pe = df_pe if sel_div_pe=="All" else df_pe[df_pe["Division_norm"]==sel_div_pe]
-        with pe3:
-            # Physician filter — based on filtered df
-            phys_opts = ["All"] + sorted(df_pe["Physician Name"].dropna().unique().tolist())                         if "Physician Name" in df_pe.columns else ["All"]
+            phys_opts = ["All"] + sorted(df_view["Physician Name"].dropna().unique().tolist())                         if "Physician Name" in df_view.columns else ["All"]
             sel_phys_pe = st.selectbox("Physician", phys_opts, key="pe_phys")
-        df_pe = df_pe if sel_phys_pe=="All" else df_pe[df_pe["Physician Name"]==sel_phys_pe]
-        with pe4:
+        with pe2:
             sel_sort_pe = st.selectbox("Sort by",
                 ["Clinic Visits ↓","Patient Complaints ↓","Waiting Time ↓"], key="pe_sort")
+        # df_view already filtered by Dept/Div from top filters
+        df_pe = df_view if sel_phys_pe == "All" else df_view[df_view["Physician Name"] == sel_phys_pe]
 
         sort_map = {"Clinic Visits ↓":"ClinicVisits","Patient Complaints ↓":"PatientComplaints","Waiting Time ↓":"ClinicWaitingTime"}
         sc = sort_map[sel_sort_pe]
@@ -2280,8 +2296,8 @@ with tab6:
             "ClinicVisits":"Visits","ClinicWaitingTime":"Wait (min)","PatientComplaints":"Complaints",
         }).reset_index(drop=True)
 
-        mv = int(df_filt["ClinicVisits"].max())      if "ClinicVisits"      in df_filt.columns else 100
-        mc = int(df_filt["PatientComplaints"].max()) if "PatientComplaints" in df_filt.columns else 10
+        mv = int(df_view["ClinicVisits"].max())      if "ClinicVisits"      in df_view.columns and not df_view.empty else 100
+        mc = int(df_view["PatientComplaints"].max()) if "PatientComplaints" in df_view.columns and not df_view.empty else 10
         st.dataframe(shown, use_container_width=True, hide_index=True,
             column_config={
                 "Visits":     st.column_config.ProgressColumn(min_value=0, max_value=mv, format="%d"),
