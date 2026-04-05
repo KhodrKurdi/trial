@@ -599,6 +599,8 @@ def load_physician_lookup(urls, _version="v1.1"):
         url = urls.get(key, "")
         if not url or url.startswith("REPLACE"):
             continue
+        if not url.startswith("http"):
+            continue  # skip relative filenames — must be full raw GitHub URL
         try:
             df = pd.read_csv(url)
             df.columns = df.columns.str.strip()
@@ -2365,8 +2367,10 @@ with tab6:
             "ClinicVisits":"Visits","ClinicWaitingTime":"Wait (min)","PatientComplaints":"Complaints",
         }).reset_index(drop=True)
 
-        mv = int(df_view["ClinicVisits"].max())      if "ClinicVisits"      in df_view.columns and not df_view.empty else 100
-        mc = int(df_view["PatientComplaints"].max()) if "PatientComplaints" in df_view.columns and not df_view.empty else 10
+        _mv = df_view["ClinicVisits"].max()      if "ClinicVisits"      in df_view.columns and not df_view.empty else None
+        _mc = df_view["PatientComplaints"].max() if "PatientComplaints" in df_view.columns and not df_view.empty else None
+        mv = int(_mv) if _mv is not None and pd.notna(_mv) else 100
+        mc = int(_mc) if _mc is not None and pd.notna(_mc) else 10
         st.dataframe(shown, use_container_width=True, hide_index=True,
             column_config={
                 "Visits":     st.column_config.ProgressColumn(min_value=0, max_value=mv, format="%d"),
