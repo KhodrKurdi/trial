@@ -692,13 +692,16 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
 with tab1:
     st.markdown('<div class="section-header">🔑 Key Performance Indicators</div>', unsafe_allow_html=True)
 
-    # Department / Division filter
-    t1f1, t1f2, t1f3 = st.columns([1, 1, 2])
+    # Project + Department + Division filters
+    t1f1, t1f2, t1f3 = st.columns(3)
     with t1f1:
-        t1_dept = st.selectbox("Department", get_dept_options(all_phys), key="t1_dept")
+        t1_proj = st.selectbox("Project", ["All"] + available_depts, key="t1_proj")
+    t1_pool = all_phys if t1_proj == "All" else all_phys[all_phys["department"] == t1_proj]
     with t1f2:
-        t1_div  = st.selectbox("Division",   get_div_options(all_phys, t1_dept), key="t1_div")
-    t1_phys = apply_dept_div_filter(all_phys, t1_dept, t1_div)
+        t1_dept = st.selectbox("Department", get_dept_options(t1_pool), key="t1_dept")
+    with t1f3:
+        t1_div  = st.selectbox("Division", get_div_options(t1_pool, t1_dept), key="t1_div")
+    t1_phys = apply_dept_div_filter(t1_pool, t1_dept, t1_div)
 
     total      = len(t1_phys)
     priority   = (t1_phys["risk_score"] >= 3).sum()
@@ -957,6 +960,44 @@ with tab1:
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab2:
     st.markdown('<div class="section-header">🎯 Physician Risk Register</div>', unsafe_allow_html=True)
+
+    # ── Methodology definitions ───────────────────────────────────────────────
+    with st.expander("📖 Outlier Detection Methods — Definitions", expanded=False):
+        mc1, mc2 = st.columns(2)
+        with mc1:
+            st.markdown("""
+**🔵 IQR Lower Fence**
+The Interquartile Range (IQR) method flags physicians whose score falls below the lower fence:
+> Lower Fence = Q1 − 1.5 × IQR
+
+Where Q1 is the 25th percentile and IQR = Q3 − Q1. This is a robust, non-parametric method resistant to extreme values. A physician below this fence is a statistical outlier relative to their peer group.
+
+---
+
+**🟣 Z-Score (≤ −2)**
+Measures how many standard deviations a physician's score is below the group mean:
+> Z = (Score − Mean) / Std Dev
+
+A Z-score ≤ −2 means the physician scores more than 2 standard deviations below the mean — this occurs in roughly 2.3% of a normal distribution. Assumes approximately normal score distribution.
+""")
+        with mc2:
+            st.markdown("""
+**🟠 Bottom 10% (P10)**
+Flags the lowest-scoring 10% of physicians within their project group regardless of the absolute score value. This is a percentile-based approach — always flags exactly 10% of the population, making it sensitive to relative performance even when absolute scores are clustered.
+
+---
+
+**🔴 Negative Sentiment (VADER)**
+Uses VADER (Valence Aware Dictionary and sEntiment Reasoner) to score free-text peer comments. Extended with a medical domain lexicon. A physician is flagged if any 2025 peer comment scores compound ≤ −0.05, indicating at least one meaningfully negative comment.
+
+---
+
+**⚠️ Composite Risk Score (0–4)**
+Each of the 4 flags above contributes **1 point**:
+- **0** = Clear ✓
+- **1–2** = Monitor 👁
+- **3–4** = Priority ⚠️ (requires immediate review)
+""")
 
     col_f1, col_f2, col_f3 = st.columns(3)
     with col_f1:
@@ -1272,7 +1313,27 @@ with tab3:
             plt.close()
 
         # Outlier method comparison table
-        st.markdown("**Outlier Method Comparison**")
+        mc_title, mc_help = st.columns([3, 1])
+        with mc_title:
+            st.markdown("**Outlier Method Comparison**")
+        with mc_help:
+            with st.popover("ℹ️ Method definitions"):
+                st.markdown("""
+**IQR Lower Fence**
+Flags scores below Q1 − 1.5×IQR. Robust to extreme values.
+
+**Z-Score ≤ −2**
+More than 2 standard deviations below the mean (~2.3% of population).
+
+**Bottom 10%**
+Lowest-scoring 10% regardless of absolute value. Always flags exactly 10%.
+
+**Neg. Sentiment**
+Any 2025 peer comment with VADER compound score ≤ −0.05.
+
+**Risk Score**
+Sum of all 4 flags (0–4). Priority = 3 or 4.
+""")
         method_df = pd.DataFrame({
                 "Method":       ["IQR Lower Fence", "Z-Score (≤−2)", "Bottom 10%", "Neg. Sentiment"],
                 "Flag Column":  ["low_iqr_outlier", "low_z_outlier", "low_bottom10", "negative_outlier"],
