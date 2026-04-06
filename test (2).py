@@ -487,18 +487,13 @@ def process_dept(df_raw, dept_name, threshold=-0.05, min_f=1):
     phys, mean, std = add_outlier_flags(phys)
     sent_raw = run_sentiment(df, threshold) if "comments" in df.columns else pd.DataFrame()
     if not sent_raw.empty:
-        # Compute sentiment on 2025 comments where available, else fall back to all years.
-        # This ensures physicians with comments only in 2023/2024 are still evaluated.
+        # Use 2025 comments only — consistent with notebook methodology.
+        # Physicians with no 2025 comments receive negative_outlier=False (no signal).
         if "year" in sent_raw.columns and not sent_raw[sent_raw["year"] == 2025].empty:
             sent_2025 = sent_raw[sent_raw["year"] == 2025]
         else:
             sent_2025 = sent_raw
-        sent_s_2025 = sentiment_summary(sent_2025)
-
-        # For physicians with no 2025 comments, supplement from all-years sentiment
-        sent_s_all  = sentiment_summary(sent_raw)
-        missing     = ~sent_s_all["physician_id"].isin(sent_s_2025["physician_id"])
-        sent_s      = pd.concat([sent_s_2025, sent_s_all[missing]], ignore_index=True)
+        sent_s = sentiment_summary(sent_2025)
 
         phys = merge_sentiment(phys, sent_s)
     else:
