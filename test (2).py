@@ -631,23 +631,6 @@ else:
     all_phys["Department"] = ""
     all_phys["Division"]   = ""
 
-# ── Lookup debug (remove after confirming dept/div populate) ─────────────────
-with st.expander("🔧 Lookup Debug — click to diagnose Department/Division", expanded=False):
-    st.write(f"**Lookup rows loaded:** {len(physician_lookup)}")
-    if not physician_lookup.empty:
-        st.write("**Sample lookup keys (OriginalID):**", physician_lookup["physician_id_key"].head(10).tolist())
-        st.write("**Sample physician_id keys from all_phys:**")
-        all_phys["_debug_key"] = all_phys["physician_id"].astype(str).str.split("_", n=1).str[-1].str.lower()
-        st.write(all_phys[["physician_id","_debug_key"]].head(10))
-        matched = all_phys["Department"].notna() & (all_phys["Department"] != "")
-        st.write(f"**Matched physicians:** {matched.sum()} / {len(all_phys)}")
-        all_phys = all_phys.drop(columns=["_debug_key"], errors="ignore")
-    else:
-        st.warning("Lookup is EMPTY — check that the filenames match exactly what is in your GitHub repo")
-        st.write("**Lookup URLs configured:**")
-        for k in ["lookup_2023","lookup_2024","lookup_2025"]:
-            st.write(f"  {k}: {GITHUB_URLS.get(k,'NOT SET')[:80]}")
-
 
 # ─── MAIN HEADER ─────────────────────────────────────────────────────────────
 st.markdown("# 🏥 AUBMC Physician Performance Dashboard")
@@ -962,41 +945,37 @@ with tab2:
     st.markdown('<div class="section-header">🎯 Physician Risk Register</div>', unsafe_allow_html=True)
 
     # ── Methodology definitions ───────────────────────────────────────────────
-    with st.expander("📖 Outlier Detection Methods — Definitions", expanded=False):
-        mc1, mc2 = st.columns(2)
-        with mc1:
+    _mdef_col, _mdef_btn = st.columns([4, 1])
+    with _mdef_col:
+        pass
+    with _mdef_btn:
+        with st.popover("📖 Method Definitions"):
             st.markdown("""
 **🔵 IQR Lower Fence**
-The Interquartile Range (IQR) method flags physicians whose score falls below the lower fence:
-> Lower Fence = Q1 − 1.5 × IQR
-
-Where Q1 is the 25th percentile and IQR = Q3 − Q1. This is a robust, non-parametric method resistant to extreme values. A physician below this fence is a statistical outlier relative to their peer group.
+Flags physicians below Q1 − 1.5×IQR. Robust, non-parametric, resistant to extreme values.
 
 ---
 
 **🟣 Z-Score (≤ −2)**
-Measures how many standard deviations a physician's score is below the group mean:
-> Z = (Score − Mean) / Std Dev
+Flags physicians more than 2 standard deviations below the group mean (~2.3% of population).
 
-A Z-score ≤ −2 means the physician scores more than 2 standard deviations below the mean — this occurs in roughly 2.3% of a normal distribution. Assumes approximately normal score distribution.
-""")
-        with mc2:
-            st.markdown("""
+---
+
 **🟠 Bottom 10% (P10)**
-Flags the lowest-scoring 10% of physicians within their project group regardless of the absolute score value. This is a percentile-based approach — always flags exactly 10% of the population, making it sensitive to relative performance even when absolute scores are clustered.
+Flags the lowest-scoring 10% regardless of absolute value. Always flags exactly 10% of the group.
 
 ---
 
 **🔴 Negative Sentiment (VADER)**
-Uses VADER (Valence Aware Dictionary and sEntiment Reasoner) to score free-text peer comments. Extended with a medical domain lexicon. A physician is flagged if any 2025 peer comment scores compound ≤ −0.05, indicating at least one meaningfully negative comment.
+Flags physicians with any 2025 peer comment scoring compound ≤ −0.05 using VADER + medical lexicon.
 
 ---
 
 **⚠️ Composite Risk Score (0–4)**
-Each of the 4 flags above contributes **1 point**:
+Sum of all 4 flags:
 - **0** = Clear ✓
 - **1–2** = Monitor 👁
-- **3–4** = Priority ⚠️ (requires immediate review)
+- **3–4** = Priority ⚠️
 """)
 
     col_f1, col_f2, col_f3 = st.columns(3)
