@@ -226,6 +226,9 @@ def compute_score(df):
 def add_year(df):
     if "fillout_date" in df.columns:
         df["year"] = pd.to_datetime(df["fillout_date"], errors="coerce").dt.year
+        # Fill NaN years from explicit tag if available
+        if "_explicit_year" in df.columns:
+            df["year"] = df["year"].fillna(df["_explicit_year"])
     elif "year" not in df.columns:
         # Fallback: try to detect year column by name variants
         year_candidates = [c for c in df.columns if "year" in c.lower() or "date" in c.lower()]
@@ -487,13 +490,17 @@ def process_dept(df_raw, dept_name, threshold=-0.05, min_f=1):
     phys, mean, std = add_outlier_flags(phys)
     sent_raw = run_sentiment(df, threshold) if "comments" in df.columns else pd.DataFrame()
     if not sent_raw.empty:
-        # Use 2025 comments only — consistent with notebook methodology.
-        # Physicians with no 2025 comments receive negative_outlier=False (no signal).
+        # 2025 primary, all-years fallback for physicians with no 2025 comments
         if "year" in sent_raw.columns and not sent_raw[sent_raw["year"] == 2025].empty:
             sent_2025 = sent_raw[sent_raw["year"] == 2025]
         else:
             sent_2025 = sent_raw
-        sent_s = sentiment_summary(sent_2025)
+        sent_s_2025 = sentiment_summary(sent_2025)
+
+        # Supplement with all-years for physicians who have no 2025 comments
+        sent_s_all = sentiment_summary(sent_raw)
+        missing    = ~sent_s_all["physician_id"].isin(sent_s_2025["physician_id"])
+        sent_s     = pd.concat([sent_s_2025, sent_s_all[missing]], ignore_index=True)
 
         phys = merge_sentiment(phys, sent_s)
     else:
@@ -546,9 +553,22 @@ def load_from_github(urls, min_f, threshold, _version="v5.4"):
             st.warning(f"Could not load {url}: {e}")
             return None
 
+    # Year map — explicit year tag per file key (matches notebook tag_year approach)
+    # This ensures rows with unparseable fillout_date still get the correct year
+    KEY_YEAR = {
+        "aubmc_23": 2023, "aubmc_24": 2024, "aubmc_25": 2025,
+        "ed_23":    2023, "ed_24":    2024, "ed_25":    2025,
+        "patho_23": 2023, "patho_24": 2024, "patho_25": 2025,
+    }
+
     def load_dept(keys, name):
-        frames = [fetch(urls[k]) for k in keys]
-        frames = [f for f in frames if f is not None]
+        frames = []
+        for k in keys:
+            df = fetch(urls[k])
+            if df is not None:
+                # Tag year explicitly — overrides fillout_date parsing for rows with bad dates
+                df["_explicit_year"] = KEY_YEAR.get(k, None)
+                frames.append(df)
         if not frames: return None, None, None
         raw = pd.concat(frames, ignore_index=True)
         return process_dept(raw, name, threshold, min_f=min_f)
