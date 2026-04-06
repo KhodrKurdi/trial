@@ -2444,7 +2444,7 @@ with tab7:
 
     # ── Build context summary from loaded data ────────────────────────────────
     @st.cache_data(show_spinner=False)
-    def build_context(_all_phys, _data, _available_depts, _ind_df):
+    def build_context(_all_phys, _data, _available_depts, _ind_df):  # v2
         lines = []
         lines.append("=" * 60)
         lines.append("AUBMC PHYSICIAN PERFORMANCE DASHBOARD — DATA CONTEXT")
@@ -2461,7 +2461,9 @@ with tab7:
         lines.append("")
         lines.append("- 'Departments': The actual AUBMC clinical departments,")
         lines.append("  e.g. Internal Medicine, Surgery, Ob/Gyn, Pediatrics, etc.")
-        lines.append("  These come from the indicators data (Tab 6).")
+        lines.append("  These are available per physician via the lookup merge.")
+        lines.append("  Each physician in the survey data HAS a Department and Division assigned.")
+        lines.append("  You CAN answer questions like 'which department has the most priority physicians'.")
         lines.append("")
         lines.append("- 'Divisions': Sub-units within departments,")
         lines.append("  e.g. Cardiology (under Internal Medicine),")
@@ -2472,7 +2474,10 @@ with tab7:
         lines.append("=" * 40)
         lines.append("BEHAVIOR SURVEY & PERFORMANCE DATA")
         lines.append("=" * 40)
+        # Check if dept/div data is available
+        has_dept = "Department" in _all_phys.columns and _all_phys["Department"].notna().any() and (_all_phys["Department"] != "").any()
         lines.append(f"Total physicians evaluated: {len(_all_phys)}")
+        lines.append(f"Department/Division data available: {'YES — each physician has dept and division assigned' if has_dept else 'NO — lookup not loaded'}")
         lines.append(f"Years covered: 2023, 2024, 2025")
         lines.append(f"Overall avg behavior score: {_all_phys['avg_behavior_score'].mean():.3f} / 4.0")
         lines.append(f"Risk breakdown:")
@@ -2628,9 +2633,12 @@ You help medical administrators and stakeholders understand physician performanc
 
 CRITICAL — TERMINOLOGY YOU MUST FOLLOW:
 - When someone says "department", they mean the CLINICAL departments: Internal Medicine, Surgery, Ob/Gyn, Pediatrics, etc.
-- AUBMC, ED, and Pathology are NOT departments — they are project survey groups used in the behavior analysis.
-- If someone asks about "departments", answer using clinical department data from the indicators section.
-- If someone asks about survey scores, outliers, or risk flags, use the survey group data (AUBMC/ED/Pathology groups).
+- AUBMC, ED, and Pathology are NOT departments — they are PROJECT SURVEY GROUPS used in the behavior analysis.
+- IMPORTANT: Each physician in the survey data HAS a clinical Department and Division assigned via a lookup merge.
+  You CAN answer questions like "which department has the most priority physicians" or "show me Surgery physicians".
+  The Department and Division fields appear in the physician data lines below.
+- If someone asks about survey scores, outliers, or risk flags by department, look at the Department field in each physician line.
+- If someone asks about clinic visits, wait times, or patient complaints — use the indicators data section.
 
 Answer questions clearly, concisely, and accurately using ONLY the data provided below.
 Be direct and professional. Do not invent numbers not present in the data.
