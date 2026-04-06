@@ -633,6 +633,23 @@ else:
     all_phys["Department"] = ""
     all_phys["Division"]   = ""
 
+# ── Lookup debug (remove after confirming dept/div populate) ─────────────────
+with st.expander("🔧 Lookup Debug — click to diagnose Department/Division", expanded=False):
+    st.write(f"**Lookup rows loaded:** {len(physician_lookup)}")
+    if not physician_lookup.empty:
+        st.write("**Sample lookup keys (OriginalID):**", physician_lookup["physician_id_key"].head(10).tolist())
+        st.write("**Sample physician_id keys from all_phys:**")
+        all_phys["_debug_key"] = all_phys["physician_id"].astype(str).str.split("_", n=1).str[-1].str.lower()
+        st.write(all_phys[["physician_id","_debug_key"]].head(10))
+        matched = all_phys["Department"].notna() & (all_phys["Department"] != "")
+        st.write(f"**Matched physicians:** {matched.sum()} / {len(all_phys)}")
+        all_phys = all_phys.drop(columns=["_debug_key"], errors="ignore")
+    else:
+        st.warning("Lookup is EMPTY — check that the URLs start with https:// and files exist on GitHub")
+        st.write("**Lookup URLs configured:**")
+        for k in ["lookup_2023","lookup_2024","lookup_2025"]:
+            st.write(f"  {k}: {GITHUB_URLS.get(k,'NOT SET')[:80]}")
+
 
 # ─── MAIN HEADER ─────────────────────────────────────────────────────────────
 st.markdown("# 🏥 AUBMC Physician Performance Dashboard")
