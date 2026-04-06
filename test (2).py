@@ -599,8 +599,6 @@ def load_physician_lookup(urls, _version="v1.1"):
         url = urls.get(key, "")
         if not url or url.startswith("REPLACE"):
             continue
-        if not url.startswith("http"):
-            continue  # skip relative filenames — must be full raw GitHub URL
         try:
             df = pd.read_csv(url)
             df.columns = df.columns.str.strip()
@@ -645,7 +643,7 @@ with st.expander("🔧 Lookup Debug — click to diagnose Department/Division", 
         st.write(f"**Matched physicians:** {matched.sum()} / {len(all_phys)}")
         all_phys = all_phys.drop(columns=["_debug_key"], errors="ignore")
     else:
-        st.warning("Lookup is EMPTY — check that the URLs start with https:// and files exist on GitHub")
+        st.warning("Lookup is EMPTY — check that the filenames match exactly what is in your GitHub repo")
         st.write("**Lookup URLs configured:**")
         for k in ["lookup_2023","lookup_2024","lookup_2025"]:
             st.write(f"  {k}: {GITHUB_URLS.get(k,'NOT SET')[:80]}")
