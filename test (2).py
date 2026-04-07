@@ -2439,15 +2439,19 @@ with tab6:
         # ══════════════════════════════════════════════════════════════════════
         st.markdown('<div class="section-header">👤 Physician Explorer</div>', unsafe_allow_html=True)
 
-        pe1, pe2 = st.columns(2)
+        pe0, pe1, pe2 = st.columns(3)
+        with pe0:
+            cycle_opts_pe = ["All Cycles"] + sorted(df_view["FiscalCycle"].dropna().unique().tolist(), reverse=True)                             if "FiscalCycle" in df_view.columns else ["All Cycles"]
+            sel_cycle_pe = st.selectbox("Fiscal Cycle", cycle_opts_pe, key="pe_cycle")
         with pe1:
-            phys_opts = ["All"] + sorted(df_view["Physician Name"].dropna().unique().tolist())                         if "Physician Name" in df_view.columns else ["All"]
+            df_pe_pool = df_view if sel_cycle_pe == "All Cycles" else df_view[df_view["FiscalCycle"] == sel_cycle_pe]
+            phys_opts = ["All"] + sorted(df_pe_pool["Physician Name"].dropna().unique().tolist())                         if "Physician Name" in df_pe_pool.columns else ["All"]
             sel_phys_pe = st.selectbox("Physician", phys_opts, key="pe_phys")
         with pe2:
             sel_sort_pe = st.selectbox("Sort by",
                 ["Clinic Visits ↓","Patient Complaints ↓","Waiting Time ↓"], key="pe_sort")
-        # df_view already filtered by Dept/Div from top filters
-        df_pe = df_view if sel_phys_pe == "All" else df_view[df_view["Physician Name"] == sel_phys_pe]
+        # Apply cycle + physician filters on top of df_view (already filtered by Dept/Div)
+        df_pe = df_pe_pool if sel_phys_pe == "All" else df_pe_pool[df_pe_pool["Physician Name"] == sel_phys_pe]
 
         sort_map = {"Clinic Visits ↓":"ClinicVisits","Patient Complaints ↓":"PatientComplaints","Waiting Time ↓":"ClinicWaitingTime"}
         sc = sort_map[sel_sort_pe]
