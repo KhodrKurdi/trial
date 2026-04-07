@@ -1394,13 +1394,18 @@ with tab4:
         # Filter noise comments from display
         all_sent = all_sent[~all_sent["comments"].astype(str).apply(_is_no_info)].copy()
 
-        # Department / Division filters
-        t4f1, t4f2 = st.columns(2)
+        # Project + Department + Division filters
+        t4f1, t4f2, t4f3 = st.columns(3)
         with t4f1:
-            t4_dept = st.selectbox("Department", get_dept_options(all_phys), key="t4_dept")
+            t4_proj = st.selectbox("Project", ["All"] + available_depts, key="t4_proj")
         with t4f2:
-            t4_div  = st.selectbox("Division",   get_div_options(all_phys, t4_dept), key="t4_div")
-        # Filter sent_all by physician IDs that match dept/div
+            t4_dept = st.selectbox("Department", get_dept_options(all_phys), key="t4_dept")
+        with t4f3:
+            t4_div  = st.selectbox("Division", get_div_options(all_phys, t4_dept), key="t4_div")
+        # Apply project filter first
+        if t4_proj != "All":
+            all_sent = all_sent[all_sent["dept"] == t4_proj]
+        # Filter by dept/div via physician lookup
         phys_filtered = apply_dept_div_filter(all_phys, t4_dept, t4_div)
         all_sent = all_sent[all_sent["physician_id"].isin(phys_filtered["physician_id"])] if t4_dept != "All" or t4_div != "All" else all_sent
 
@@ -1496,8 +1501,21 @@ with tab4:
         # ── Chart 2: Yearly sentiment trend (2023-2025) ───────────────────────
         st.markdown('<div class="section-header">📈 Yearly Sentiment Trend (2023–2025)</div>', unsafe_allow_html=True)
 
-        trend_dept_sent = st.selectbox("Filter by Project", ["All Projects"] + available_depts, key="sent_trend_dept")
-        df_trend_sent = all_sent if trend_dept_sent == "All Projects" else all_sent[all_sent["dept"] == trend_dept_sent]
+        tr1, tr2, tr3 = st.columns(3)
+        with tr1:
+            trend_proj_sent = st.selectbox("Project", ["All Projects"] + available_depts, key="sent_trend_proj")
+        with tr2:
+            trend_dept_sent = st.selectbox("Department", get_dept_options(all_phys), key="sent_trend_dept")
+        with tr3:
+            trend_div_sent  = st.selectbox("Division", get_div_options(all_phys, trend_dept_sent), key="sent_trend_div")
+
+        # Apply all filters to trend data
+        df_trend_sent = all_sent.copy()
+        if trend_proj_sent != "All Projects":
+            df_trend_sent = df_trend_sent[df_trend_sent["dept"] == trend_proj_sent]
+        if trend_dept_sent != "All" or trend_div_sent != "All":
+            phys_trend_filtered = apply_dept_div_filter(all_phys, trend_dept_sent, trend_div_sent)
+            df_trend_sent = df_trend_sent[df_trend_sent["physician_id"].isin(phys_trend_filtered["physician_id"])]
 
         if "year" not in df_trend_sent.columns or df_trend_sent["year"].isna().all():
             st.warning("Year data not available in sentiment data.")
