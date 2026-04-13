@@ -1520,28 +1520,36 @@ with tab4:
                 <div class="metric-sub">{no_info_pct:.1f}% of all forms — e.g. "N/A", ".", "Not working with"</div>
             </div>''', unsafe_allow_html=True)
         with br3:
-            # Donut chart showing the split
-            fig_cov, ax_cov = plt.subplots(figsize=(3, 2.5))
-            sizes_cov  = [meaningful_count, empty_count, no_info_count]
-            colors_cov = ["#38a169", "#94a3b8", "#f59e0b"]
-            labels_cov = [f"Meaningful\n{meaningful_pct:.1f}%",
-                          f"Empty\n{empty_pct:.1f}%",
-                          f"No-Contact\n{no_info_pct:.1f}%"]
-            wedges, _ = ax_cov.pie(sizes_cov, colors=colors_cov, startangle=90,
-                                    wedgeprops=dict(width=0.55, edgecolor="white", linewidth=1.5))
-            for i, (wedge, label) in enumerate(zip(wedges, labels_cov)):
-                angle = (wedge.theta2 + wedge.theta1) / 2
-                x = 1.3 * np.cos(np.radians(angle))
-                y = 1.3 * np.sin(np.radians(angle))
-                ax_cov.text(x, y, label, ha="center", va="center",
-                            fontsize=7, fontweight="700", color=colors_cov[i])
-            ax_cov.text(0, 0, f"{total_raw_comments:,}\nfields", ha="center", va="center",
-                        fontsize=8, fontweight="700", color="#1a365d")
-            ax_cov.set_title("Comment Coverage", fontsize=9, fontweight="bold", color="#1a365d", pad=4)
-            fig_cov.patch.set_facecolor("white")
-            plt.tight_layout()
-            st.pyplot(fig_cov, use_container_width=True)
-            plt.close()
+            st.markdown(f'''<div class="metric-card neutral">
+                <div class="metric-label">Comment Coverage</div>
+                <div class="metric-value" style="font-size:20px">{meaningful_pct:.1f}% meaningful</div>
+                <div class="metric-sub">{non_meaningful_pct:.1f}% non-meaningful out of {total_raw_comments:,} forms</div>
+            </div>''', unsafe_allow_html=True)
+
+        # ── Full-width stacked bar ─────────────────────────────────────────────
+        st.markdown("<br>", unsafe_allow_html=True)
+        fig_cov, ax_cov = plt.subplots(figsize=(10, 1.1))
+        ax_cov.barh([""], [meaningful_pct],  color="#38a169", height=0.55, label=f"Meaningful ({meaningful_pct:.1f}%)")
+        ax_cov.barh([""], [no_info_pct],     color="#f59e0b", height=0.55, left=meaningful_pct,              label=f"No-Contact ({no_info_pct:.1f}%)")
+        ax_cov.barh([""], [empty_pct],       color="#94a3b8", height=0.55, left=meaningful_pct+no_info_pct,  label=f"Empty/Blank ({empty_pct:.1f}%)")
+        # Labels inside bars (only if wide enough)
+        if meaningful_pct > 5:
+            ax_cov.text(meaningful_pct/2, 0, f"Meaningful\n{meaningful_pct:.1f}% ({meaningful_count:,})",
+                        ha="center", va="center", fontsize=9, fontweight="700", color="white")
+        if no_info_pct > 5:
+            ax_cov.text(meaningful_pct + no_info_pct/2, 0, f"No-Contact\n{no_info_pct:.1f}% ({no_info_count:,})",
+                        ha="center", va="center", fontsize=9, fontweight="700", color="white")
+        if empty_pct > 2:
+            ax_cov.text(meaningful_pct + no_info_pct + empty_pct/2, 0, f"Empty {empty_pct:.1f}%",
+                        ha="center", va="center", fontsize=8, fontweight="700", color="white")
+        ax_cov.set_xlim(0, 100)
+        ax_cov.set_xlabel("% of all evaluation forms", fontsize=9, color="#64748b")
+        ax_cov.tick_params(left=False, labelleft=False, colors="#64748b")
+        for sp in ax_cov.spines.values(): sp.set_visible(False)
+        ax_cov.set_facecolor("white"); fig_cov.patch.set_facecolor("white")
+        plt.tight_layout()
+        st.pyplot(fig_cov, use_container_width=True)
+        plt.close()
 
         # ── Before vs After filtering chart ───────────────────────────────────
         st.markdown("<br>", unsafe_allow_html=True)
