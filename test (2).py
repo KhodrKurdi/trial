@@ -1442,24 +1442,44 @@ with tab4:
         raw_comment_frames = []
         for dn in available_depts:
             raw_dn, _, _ = data[dn]
-            if raw_dn is not None and "comments" in raw_dn.columns:
-                raw_comment_frames.append(raw_dn[["comments"]].copy())
+            if raw_dn is not None:
+                # Use ALL columns — find comments column regardless of name
+                comments_col = None
+                if "comments" in raw_dn.columns:
+                    comments_col = "comments"
+                if comments_col:
+                    raw_comment_frames.append(raw_dn[[comments_col]].rename(columns={comments_col:"comments"}).copy())
 
         if raw_comment_frames:
             raw_comments_df    = pd.concat(raw_comment_frames, ignore_index=True)
             total_raw_comments = len(raw_comments_df)
-            _c = raw_comments_df["comments"]
+            _c     = raw_comments_df["comments"]
             _c_str = _c.astype(str).str.strip()
-            empty_mask_r     = _c.isna() | (_c_str == "") | (_c_str == "nan")
-            no_info_mask_r   = (~empty_mask_r) & _c.astype(str).apply(_is_no_info)
+            empty_mask_r      = _c.isna() | (_c_str == "") | (_c_str == "nan") | (_c_str.str.lower() == "nan")
+            no_info_mask_r    = (~empty_mask_r) & _c.astype(str).apply(_is_no_info)
             meaningful_mask_r = (~empty_mask_r) & (~no_info_mask_r)
-            empty_count      = int(empty_mask_r.sum())
-            no_info_count    = int(no_info_mask_r.sum())
-            meaningful_count = int(meaningful_mask_r.sum())
+            empty_count       = int(empty_mask_r.sum())
+            no_info_count     = int(no_info_mask_r.sum())
+            meaningful_count  = int(meaningful_mask_r.sum())
         else:
             total_raw_comments = len(all_sent_raw)
             empty_count = no_info_count = 0
             meaningful_count = total_raw_comments
+
+        # Debug expander — shows raw counts per project to verify
+        with st.expander("🔍 Debug — Raw comment counts per project", expanded=False):
+            for dn in available_depts:
+                raw_dn, _, _ = data[dn]
+                if raw_dn is not None:
+                    total_rows = len(raw_dn)
+                    has_comments = "comments" in raw_dn.columns
+                    if has_comments:
+                        c = raw_dn["comments"]
+                        n_empty = int((c.isna() | (c.astype(str).str.strip() == "") | (c.astype(str).str.strip().str.lower() == "nan")).sum())
+                        n_filled = total_rows - n_empty
+                        st.write(f"**{dn}**: {total_rows:,} total rows | {n_filled:,} have text | {n_empty:,} empty/NaN | columns: {list(raw_dn.columns[:8])}")
+                    else:
+                        st.write(f"**{dn}**: {total_rows:,} rows — NO comments column found | columns: {list(raw_dn.columns[:8])}")
 
         # Combined non-meaningful = empty + no-info
         non_meaningful_count = empty_count + no_info_count
