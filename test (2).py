@@ -1442,13 +1442,12 @@ with tab4:
         raw_comment_frames = []
         for dn in available_depts:
             raw_dn, _, _ = data[dn]
-            if raw_dn is not None:
-                # Use ALL columns — find comments column regardless of name
-                comments_col = None
-                if "comments" in raw_dn.columns:
-                    comments_col = "comments"
-                if comments_col:
-                    raw_comment_frames.append(raw_dn[[comments_col]].rename(columns={comments_col:"comments"}).copy())
+            if raw_dn is not None and "comments" in raw_dn.columns:
+                rdf = raw_dn.copy()
+                # Exclude self-evaluations — consistent with VADER scoring pipeline
+                if "raters_group" in rdf.columns:
+                    rdf = rdf[rdf["raters_group"] != "Faculty Self-Evaluation"]
+                raw_comment_frames.append(rdf[["comments"]])
 
         if raw_comment_frames:
             raw_comments_df    = pd.concat(raw_comment_frames, ignore_index=True)
@@ -1480,7 +1479,7 @@ with tab4:
         empty_mask    = all_sent_raw["comments"].isna() | (all_sent_raw["comments"].astype(str).str.strip() == "")
 
         st.markdown('<div class="section-header">📊 Comment Coverage Overview</div>', unsafe_allow_html=True)
-        st.caption(f"Based on {total_raw_comments:,} total evaluation forms submitted across all projects and years.")
+        st.caption(f"Based on {total_raw_comments:,} peer evaluation forms (self-evaluations excluded) across all projects and years. The VADER sentiment counts below may differ if Project/Department/Division filters are active.")
 
         # Row 1 — headline numbers
         cov1, cov2, cov3 = st.columns(3)
