@@ -1,0 +1,726 @@
+Aubnetid,FiscalCycle,Physician Name,Division,ClinicVisits,ClinicWaitingTime,PatientComplaints,ContractEffectiveDate,Department
+aa107,Cycle 2022-2023,Abdallah Adra,Obstetrics and Gynecology  ,269,40.67,,7/1/2011,Obstetrics and Gynecology  
+aa22,Cycle 2022-2023,Asma Arabi,Endocrinology,1087,93.74,,7/1/2011,Internal Medicine
+ab00,Cycle 2022-2023,Abdul Rahman Bizri,Infectious Diseases,553,49.46,,7/1/2011,Internal Medicine
+ab29,Cycle 2022-2023,Ahmad Beydoun,Neurology ,1334,63.97,,7/1/2011,Neurology 
+ab58,Cycle 2022-2023,Alaa Bou Ghannam,Ophthalmology ,2929,60.16,,9/13/2017,Ophthalmology 
+abualfa,Cycle 2022-2023,Ali Abu-Alfa,Nephrology,1455,40.09,,7/1/2011,Internal Medicine
+ac85,Cycle 2022-2023,Ali Choucair,Neurology,280,15.5,,10/11/2022,Neurology
+ae67,Cycle 2022-2023,Albert El Hajj,Urology,3546,59.46,,7/9/2013,Surgery
+agkibbi,Cycle 2022-2023,Abdul Ghani Kibbi,Dermatology,1562,40.14,,7/1/2011,Dermatology
+ah111,Cycle 2022-2023,Antoine Hanna,Orthodontics,412,NULL,,1/13/2015,Dentofacial Medicine
+ah51,Cycle 2022-2023,Ahmad Husari,Pulmonary and Critical Care,1405,22.6,,7/1/2011,Internal Medicine
+ah77,Cycle 2022-2023,Abdullatif Hamdan,Otorhinolaryngology - Head and Neck Surgery,842,101.55,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+ahannoun,Cycle 2022-2023,Antoine Hannoun,Obstetrics and Gynecology  ,1945,40.17,,7/1/2011,Obstetrics and Gynecology  
+ai12,Cycle 2022-2023,Amir Ibrahim,Plastic Surgery,2442,44.72,,8/26/2014,Surgery
+ai18,Cycle 2022-2023,Ali Ismail,Pediatrics and Adolescent Medicine  ,526,59.66,2,7/8/2014,Pediatrics and Adolescent Medicine  
+am132,Cycle 2022-2023,Achraf Makki,Neurology,21,34.78,,5/15/2014,Neurology
+am43,Cycle 2022-2023,Anthony Macari,Dentofacial,2950,90,,7/1/2011,Dentofacial Medicine
+an21,Cycle 2022-2023,Anwar Nassar,Obstetrics and Gynecology  ,3006,33.17,,7/1/2011,Obstetrics and Gynecology  
+ar20,Cycle 2022-2023,Abdallah Rebeiz,Cardiology,4585,22.15,,7/1/2011,Internal Medicine
+as04,Cycle 2022-2023,Ali Shamsuddin,Hematology-Oncology,1998,85.36,,7/1/2011,Internal Medicine
+as08,Cycle 2022-2023,Ala' Sharara,Gastroenterology,1504,25.86,,7/1/2011,Internal Medicine
+as25,Cycle 2022-2023,Assaad Soweid,Gastroenterology,72,31.45,,7/1/2011,Internal Medicine
+as96,Cycle 2022-2023,Abdel Majid Sheikh Taha,Orthopaedic Surgery,156,26.21,,10/23/2015,Surgery
+at01,Cycle 2022-2023,Ahmad Tayim,Orthopaedic Surgery,5280,20,,7/1/2011,Surgery
+at35,Cycle 2022-2023,Arafat Tfayli,Hematology-Oncology,1861,54.71,1,7/1/2011,Internal Medicine
+ataher,Cycle 2022-2023,Ali Taher,Hematology-Oncology,811,38.69,,7/1/2011,Internal Medicine
+az22,Cycle 2022-2023,Ahmad Zaghal,Pediatric Surgery,332,31.59,,8/9/2017,Surgery
+az51,Cycle 2022-2023,Aline El-Zakhem,Infectious Diseases,250,43.93,,4/11/2014,Internal Medicine
+ba24,Cycle 2022-2023,Bishara Atiyeh,Plastic Surgery,NULL,NULL,1,7/1/2011,Surgery
+ba47,Cycle 2022-2023,Bernard Abi-Saleh,Cardiology,875,38.1,1,7/26/2011,Internal Medicine
+ba69,Cycle 2022-2023,Bilal Aoun,Pediatric Nephrology,NULL,43.45,,6/28/2012,Internal Medicine
+bazarbac,Cycle 2022-2023,Ali Bazarbachi,Hematology-Oncology,1635,57.11,,7/1/2012,Internal Medicine
+bb12,Cycle 2022-2023,Bassel Bachir,Urology,136,41.6,,1/14/2016,Surgery
+bk01,Cycle 2022-2023,Beatrice Khater,Family Medicine ,1412,31.71,,7/1/2011,Family Medicine 
+bk03,Cycle 2022-2023,Brigitte Khoury,Psychiatry ,591,46.91,,7/1/2011,Psychiatry 
+bndean,Cycle 2022-2023,Baha' Noureddin,Ophthalmology ,4707,15.24,,7/1/2011,Ophthalmology 
+brsaab,Cycle 2022-2023,Bassem Saab,Family Medicine ,1308,24.49,1,7/1/2011,Family Medicine 
+bs05,Cycle 2022-2023,Bernard Sagherian,Orthopaedic Surgery,1448,25.06,,7/1/2011,Surgery
+by04,Cycle 2022-2023,Bassem Youssef,Radiation Oncology ,1610,37.73,,7/17/2012,Radiation Oncology 
+ca12,Cycle 2022-2023,Christiane Al-Haddad,Ophthalmology ,2577,43.64,,7/1/2011,Ophthalmology 
+cm69,Cycle 2022-2023,Christian Pierre Makary,Dentofacial,395,137,,12/21/2021,Dentofacial Medicine
+cs56,Cycle 2022-2023,Carine Sakr,Family Medicine ,391,25.2,,1/12/2018,Family Medicine 
+da115,Cycle 2022-2023,Dinah Ayna,Psychiatry ,880,61.07,,1/21/2020,Psychiatry 
+dc09,Cycle 2022-2023,Dina Chamsy,Obstetrics and Gynecology  ,3059,41.61,1,8/26/2014,Obstetrics and Gynecology  
+dg00,Cycle 2022-2023,Walid Gharzuddine,Cardiology,752,23.5,,7/1/2011,Internal Medicine
+dk01,Cycle 2022-2023,Nadim Kanj,Pulmonary and Critical Care,1021,23.94,,7/1/2011,Internal Medicine
+dn17,Cycle 2022-2023,Dolly Noun,Pediatrics and Adolescent Medicine  ,469,193.58,,9/19/2018,Pediatrics and Adolescent Medicine  
+ds03,Cycle 2022-2023,Durriyya Sinno,Pediatrics and Adolescent Medicine,NULL,39.92,,7/1/2011,Pediatrics
+ds07,Cycle 2022-2023,Diana Rahme,Family Medicine ,745,35.13,,7/1/2011,Family Medicine 
+ds45,Cycle 2022-2023,Dana Saade,Dermatology,1239,50.27,,10/1/2018,Dermatology
+ea27,Cycle 2022-2023,Elie Alam,Otorhinolaryngology - Head and Neck Surgery,2128,11.45,,1/14/2020,"Otolaryngology, Head & Neck surgery"
+eb22,Cycle 2022-2023,Evelyne Baroud,Psychiatry ,287,15.03,,9/20/2022,Psychiatry 
+eb34,Cycle 2022-2023,Elie Bechara,Pediatrics and Adolescent Medicine  ,521,194.17,,12/21/2021,Pediatrics and Adolescent Medicine  
+eg10,Cycle 2022-2023,Elias Ghossoub,Psychiatry ,1038,39.45,,9/1/2019,Psychiatry 
+eh11,Cycle 2022-2023,Elie Hobeika,Obstetrics and Gynecology  ,989,27.55,,1/14/2014,Obstetrics and Gynecology  
+es25,Cycle 2022-2023,Eman Sbaity,General Surgery,524,72.89,,7/8/2014,Surgery
+fa02,Cycle 2022-2023,Firass Abiad,General Surgery,193,47.46,,7/1/2011,Surgery
+fbitar,Cycle 2022-2023,Fadi Bitar,Pediatrics and Adolescent Medicine  ,1623,186.49,,7/1/2012,Pediatrics and Adolescent Medicine  
+fd21,Cycle 2022-2023,Fady Daniel,Gastroenterology,2442,64.77,,12/1/2014,Internal Medicine
+fh16,Cycle 2022-2023,Fady Haddad,Vascular Surgery,1689,103.98,,7/1/2011,Surgery
+fk01,Cycle 2022-2023,Faysal El- Kak,Obstetrics and Gynecology  ,95,24.5,,4/16/2013,Obstetrics and Gynecology  
+fm38,Cycle 2022-2023,Fadi Maalouf,Psychiatry ,1138,79.04,,7/1/2011,Psychiatry 
+fm79,Cycle 2022-2023,Fawzi Maalouf,Pediatrics and Adolescent Medicine  ,859,29.05,,8/9/2017,Pediatrics and Adolescent Medicine  
+fmourad,Cycle 2022-2023,Fadi Mourad,Gastroenterology,2254,42.18,,7/1/2011,Internal Medicine
+fs88,Cycle 2022-2023,Fadi Sawaya,Cardiology,1788,25.41,,1/23/2017,Internal Medicine
+ft10,Cycle 2022-2023,Farid Talih,Psychiatry ,1958,47.87,,7/1/2011,Psychiatry 
+fz05,Cycle 2022-2023,Fuad Ziyadeh,Nephrology,15,29.5,,7/1/2011,Internal Medicine
+ga03,Cycle 2022-2023,Ghassan Al-Awar,Infectious Diseases,442,81.54,,7/1/2011,Internal Medicine
+ga17,Cycle 2022-2023,George Abi Saad,General Surgery,764,44,,7/1/2011,Surgery
+ga62,Cycle 2022-2023,Georges Assaf,Family Medicine ,1467,47.57,,9/13/2017,Family Medicine 
+gdbaibo,Cycle 2022-2023,Ghassan Dbaibo,Pediatrics and Adolescent Medicine  ,2466,87.33,,7/1/2011,Pediatrics and Adolescent Medicine  
+gf01,Cycle 2022-2023,Ghada El-Hajj Fuleihan,Endocrinology,914,52.62,,7/1/2011,Internal Medicine
+gg02,Cycle 2022-2023,Ghina Ghazeeri,Obstetrics and Gynecology  ,7328,77.79,,7/1/2011,Obstetrics and Gynecology  
+gi14,Cycle 2022-2023,Ghina Ismail,Psychiatry ,196,59.25,,8/11/2014,Psychiatry 
+gk08,Cycle 2022-2023,Ghattas Khoury,General Surgery,203,51.98,,7/1/2011,Surgery
+gm33,Cycle 2022-2023,Grace Maalouf,Family Medicine ,1460,38.81,,7/1/2011,Family Medicine 
+gskaf,Cycle 2022-2023,Ghassan Skaf,Neurosurgery,1668,102,,7/1/2011,Surgery
+gz05,Cycle 2022-2023,George Zaytoun,Otorhinolaryngology - Head and Neck Surgery,3301,15.85,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+ha157,Cycle 2022-2023,Hazem Assi,Hematology-Oncology,2342,57.41,1,6/9/2014,Internal Medicine
+hb93,Cycle 2022-2023,Hisham Bou Fakhreddine,Pulmonary and Critical Care,235,26.46,,9/8/2020,Internal Medicine
+hd01,Cycle 2022-2023,Habib Dakik,Cardiology,1809,35.57,,7/1/2011,Internal Medicine
+hd17,Cycle 2022-2023,Houssein Darwish,Neurosurgery,2134,74.79,,3/1/2018,Surgery
+hd32,Cycle 2022-2023,Hassan Domiati,Neurology ,1760,52.45,,7/13/2021,Neurology 
+hg12,Cycle 2022-2023,Husam Ghosn,Geriatrics,66,18.2,,7/1/2011,Internal Medicine
+hm127,Cycle 2022-2023,Hiba Moukadem,Hematology-Oncology,1428,60.15,,6/18/2019,Internal Medicine
+hm95,Cycle 2022-2023,Hoda Metni Rafie,Dentofacial,547,15,,1/13/2015,Dentofacial Medicine
+hs03,Cycle 2022-2023,Hassan El Solh,Pediatric Hematology-Oncology,110,121.75,,7/1/2011,Internal Medicine
+hs06,Cycle 2022-2023,Haytham Salti,Vitreo-Retinal surgery,650,63.56,,7/1/2011,Surgery
+hs114,Cycle 2022-2023,Hala Ishak,Family Medicine ,1988,24.16,,8/18/2020,Family Medicine 
+hs13,Cycle 2022-2023,Hadi Skouri,Cardiology,63,27.88,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+ht31,Cycle 2022-2023,Hala Tfayli,Pediatrics and Adolescent Medicine  ,2909,74.84,,7/1/2011,Pediatrics and Adolescent Medicine  
+ia41,Cycle 2022-2023,Iman Abou Dalle,Hematology-Oncology,595,54.17,2,9/16/2019,Internal Medicine
+ib08,Cycle 2022-2023,Imad Bou Akl,Pulmonary and Critical Care,1539,19.61,,7/1/2011,Internal Medicine
+isalti,Cycle 2022-2023,Ibrahim Salti,Endocrinology,3139,25.93,,7/1/2011,Internal Medicine
+iu00,Cycle 2022-2023,Ihab Usta,Obstetrics and Gynecology  ,2344,62.57,,7/1/2011,Obstetrics and Gynecology  
+iuthman,Cycle 2022-2023,Imad Uthman,"Allergy, Immunology & Rheumatology",4598,54.4,,7/1/2011,Internal Medicine
+ja46,Cycle 2022-2023,Jumana Antoun,Family Medicine ,2474,43.65,,7/1/2011,Family Medicine 
+ja58,Cycle 2022-2023,Jihane Abou Rahal,Dermatology,1064,47.54,,1/1/2017,Dermatology
+jb24,Cycle 2022-2023,Jamil Borgi,Cardiothoracic Surgery,NULL,52,,2/14/2018,Surgery
+je46,Cycle 2022-2023,Jean El-Cheikh,Hematology-Oncology,904,66.48,,4/23/2015,Internal Medicine
+jg03,Cycle 2022-2023,Joseph Ghafari,Dentofacial,3678,94.22,,7/1/2011,Dentofacial Medicine
+jh34,Cycle 2022-2023,Jamal Hoballah,Vascular Surgery,1190,68.07,,7/1/2011,Surgery
+jkhattar,Cycle 2022-2023,Joe Khattar,Family Medicine ,1528,33.53,,7/1/2011,Family Medicine 
+jm88,Cycle 2022-2023,Jihane Moukhaiber,Pediatrics and Adolescent Medicine  ,80,72.43,,7/13/2021,Pediatrics and Adolescent Medicine  
+jr01,Cycle 2022-2023,Jibrail Razzouk,Family Medicine ,2244,60.58,,7/1/2011,Family Medicine 
+js62,Cycle 2022-2023,Joanna Saade,Ophthalmology ,2425,50.21,,9/13/2017,Ophthalmology 
+js73,Cycle 2022-2023,Johnny Salameh,Neurology,2,2.5,,10/13/2015,Neurology
+ju00,Cycle 2022-2023,Jinan Usta,Family Medicine ,1055,64.76,,7/1/2011,Family Medicine 
+kayunis,Cycle 2022-2023,Khalid Yunis,Pediatrics and Adolescent Medicine  ,962,67.27,,7/1/2011,Pediatrics and Adolescent Medicine  
+kb02,Cycle 2022-2023,Kassem Barada,Gastroenterology,1325,43.03,,7/1/2011,Internal Medicine
+ke27,Cycle 2022-2023,Katia El Taoum,Pediatrics and Adolescent Medicine  ,NULL,53.61,,12/1/2017,Pediatrics and Adolescent Medicine  
+kkaram,Cycle 2022-2023,Karam Karam,Obstetrics and Gynecology  ,150,19.36,,7/1/2011,Obstetrics and Gynecology  
+kt18,Cycle 2022-2023,Kristel Tabet,Dentofacial,136,128.5,,10/12/2021,Dentofacial Medicine
+kz12,Cycle 2022-2023,Kinan Zeno,Dentofacial,2167,174.5,,2/12/2019,Dentofacial Medicine
+la55,Cycle 2022-2023,Leyla Akoury-Dirani,Psychiatry ,801,26.98,,7/1/2011,Psychiatry 
+lc12,Cycle 2022-2023,Lama Charafeddine,Pediatrics and Adolescent Medicine  ,1062,61.48,,7/1/2011,Pediatrics and Adolescent Medicine  
+lf00,Cycle 2022-2023,Layla Farhood,Psychiatry ,464,34.1,,7/1/2011,Psychiatry 
+lh54,Cycle 2022-2023,Lara Hilal,Radiation Oncology ,438,32.9,,10/12/2021,Radiation Oncology 
+ma322,Cycle 2022-2023,Makram Ammoury,Orthodontics,223,NULL,,2/12/2019,Dentofacial Medicine
+ma56,Cycle 2022-2023,Miguel Abboud,Pediatrics and Adolescent Medicine  ,602,234.17,1,7/1/2011,Pediatrics and Adolescent Medicine  
+ma81,Cycle 2022-2023,Mariam Arabi,Pediatrics and Adolescent Medicine  ,1146,80.43,,7/1/2011,Pediatrics and Adolescent Medicine  
+mb112,Cycle 2022-2023,Maya Bizri,Psychiatry ,887,45.44,,2/20/2019,Psychiatry 
+mb178,Cycle 2022-2023,Marc Barakat,Psychiatry ,648,41.22,,6/14/2018,Psychiatry 
+mc39,Cycle 2022-2023,Marlene Chakhtoura,Endocrinology,1021,101.81,,7/20/2016,Internal Medicine
+md00,Cycle 2022-2023,Majida Daouk,Nephrology,381,39.4,,7/1/2011,Internal Medicine
+me141,Cycle 2022-2023,Michelle El Chekie,Dentofacial,105,NULL,,12/21/2021,Dentofacial Medicine
+mi24,Cycle 2022-2023,Mohamad Itani,Dentofacial,57,NULL,,7/1/2011,Dentofacial Medicine
+mike,Cycle 2022-2023,Muhieddine Seoud,Gynecologic Oncology,100,118.67,,7/1/2011,Internal Medicine
+mk04,Cycle 2022-2023,Maurice Khoury,Cardiology,1602,27.28,,7/1/2011,Internal Medicine
+mk104,Cycle 2022-2023,Mazen Kurban,Dermatology,2174,30.13,,7/1/2011,Dermatology
+mk12,Cycle 2022-2023,Mohamad Khalifeh,General Surgery,1907,53.39,,7/1/2011,Surgery
+mm116,Cycle 2022-2023,Mira Merashli,"Allergy, Immunology & Rheumatology",2164,82.35,,9/16/2016,Internal Medicine
+mm128,Cycle 2022-2023,Marc Mourad,Otorhinolaryngology - Head and Neck Surgery,1960,18.54,,5/10/2022,"Otolaryngology, Head & Neck surgery"
+mn04,Cycle 2022-2023,Mona Nabulsi,Pediatrics and Adolescent Medicine  ,NULL,27.52,,7/1/2011,Pediatrics and Adolescent Medicine  
+mn12,Cycle 2022-2023,Marwan Najjar,Neurosurgery,1647,67.11,,7/1/2011,Surgery
+mn36,Cycle 2022-2023,Mona Nasrallah,Endocrinology,1497,55.73,,7/1/2011,Internal Medicine
+mn40,Cycle 2022-2023,Marianne Majdalani Nimah,Pediatrics and Adolescent Medicine  ,1492,25.42,,7/1/2011,Pediatrics and Adolescent Medicine  
+mo08,Cycle 2022-2023,Mona Osman,Family Medicine ,2110,24.78,,7/1/2011,Family Medicine 
+mo21,Cycle 2022-2023,Makram Obeid,Pediatric Neurology,394,30.65,,8/18/2016,Neurology
+mobeid,Cycle 2022-2023,Mounir Obeid,Cardiothoracic Surgery,20,112.84,,7/1/2011,Surgery
+mr39,Cycle 2022-2023,Maya Romani,Family Medicine ,1874,78.49,,3/1/2012,Family Medicine 
+mr48,Cycle 2022-2023,Marwan Refaat,Cardiology,1542,35.01,,8/1/2012,Internal Medicine
+ms00,Cycle 2022-2023,Mahmoud Shoucair,Endocrinology,3572,51.63,,7/1/2011,Internal Medicine
+na161,Cycle 2022-2023,Nada Afeiche,Orthodontics,18,NULL,,10/8/2013,Dentofacial Medicine
+na46,Cycle 2022-2023,Naji Abou Chebel,Dentofacial,112,43.67,,7/1/2011,Dentofacial Medicine
+nb24,Cycle 2022-2023,Nazem Bassil,General IM & Geriatrics,330,27.47,,9/14/2021,Internal Medicine
+nc16,Cycle 2022-2023,Nada Chedid,Dentofacial,65,43.67,,7/1/2011,Dentofacial Medicine
+nd55,Cycle 2022-2023,Nadia Tina Dandan,Psychiatry ,456,26.21,,11/9/2021,Psychiatry 
+ne06,Cycle 2022-2023,Nabil ElKhoury,Obstetrics and Gynecology  ,424,58.29,,5/10/2022,Obstetrics and Gynecology  
+ne117,Cycle 2022-2023,Noelle El Asmar,Gastroenterology,665,41.55,,4/1/2022,Internal Medicine
+ne23,Cycle 2022-2023,Najla Lakkis,Family Medicine ,980,74.92,,7/1/2011,Family Medicine 
+ne42,Cycle 2022-2023,Nabil El-Ayoubi,Neurology ,1566,44.33,,7/11/2017,Neurology 
+ngrubeiz,Cycle 2022-2023,Nelly Rubeiz,Dermatology,3207,32.59,,7/1/2011,Dermatology
+nk159,Cycle 2022-2023,Nadine Kamel,Dentofacial,915,21.46,,6/14/2022,Dentofacial Medicine
+nm68,Cycle 2022-2023,Nisrine Makarem,Family Medicine ,1836,29.93,,7/9/2013,Family Medicine 
+nm90,Cycle 2022-2023,Nour Moukalled,Hematology-Oncology,1003,62.4,,2/8/2022,Internal Medicine
+nr00,Cycle 2022-2023,Nesrine Rizk,Infectious Diseases,417,58.7,,7/1/2012,Internal Medicine
+ns01,Cycle 2022-2023,Nabil Sharara,Family Medicine ,435,33.1,,7/1/2011,Family Medicine 
+ns23,Cycle 2022-2023,Nagi El-Saghir,Hematology-Oncology,1210,77.31,,7/1/2011,Internal Medicine
+ny12,Cycle 2022-2023,Nadine Yazbeck,Pediatrics and Adolescent Medicine  ,NULL,31.06,,7/1/2011,Pediatrics and Adolescent Medicine  
+oa09,Cycle 2022-2023,Ossama Abbas,Dermatology,1518,25.12,,7/1/2011,Dermatology
+pa10,Cycle 2022-2023,Patrick Anhoury,Orthodontics,92,NULL,,7/1/2011,Dentofacial Medicine
+pb05,Cycle 2022-2023,Pierre Bou Khalil,Pulmonary and Critical Care,1427,18.62,,7/1/2011,Internal Medicine
+pf09,Cycle 2022-2023,Pamela Farah,General IM & Geriatrics,37,26.33,,7/1/2022,Internal Medicine
+pk06,Cycle 2022-2023,Pascale Karam,Pediatrics and Adolescent Medicine  ,NULL,38.77,,7/1/2011,Pediatrics and Adolescent Medicine  
+ps04,Cycle 2022-2023,Pierre Sfeir,Cardiothoracic Surgery,311,62.3,,7/1/2011,Surgery
+ra102,Cycle 2022-2023,Reem Abdallah,Obstetrics and Gynecology  ,1722,53.34,,8/20/2015,Obstetrics and Gynecology  
+ra110,Cycle 2022-2023,Randa Barazi,Otorhinolaryngology - Head and Neck Surgery,2678,13.54,,9/1/2013,"Otolaryngology, Head & Neck surgery"
+ra169,Cycle 2022-2023,Ramzi Alameddine,Ophthalmology ,2599,48.55,,8/18/2016,Ophthalmology 
+rb148,Cycle 2022-2023,Raphah Borghol,Pediatrics and Adolescent Medicine  ,332,184.67,,7/13/2021,Pediatrics and Adolescent Medicine  
+rb50,Cycle 2022-2023,Rose-Mary Boustany,Pediatrics and Adolescent Medicine  ,821,72.88,2,7/1/2011,Pediatrics and Adolescent Medicine  
+rf30,Cycle 2022-2023,Roland Feghali,Orthodontics,22,NULL,,7/1/2011,Dentofacial Medicine
+rh00,Cycle 2022-2023,Rashid Haidar,Orthopaedic Surgery,6025,100.44,,7/1/2011,Surgery
+rh01,Cycle 2022-2023,Randa Haddad,Ophthalmology ,2097,43.56,,7/1/2011,Ophthalmology 
+rh08,Cycle 2022-2023,Rima Hanna Wakim,Pediatrics and Adolescent Medicine  ,2353,54.06,,7/1/2011,Pediatrics and Adolescent Medicine  
+rh110,Cycle 2022-2023,Ramzi Hajjar,General IM & Geriatrics,107,26.73,2,7/1/2011,Internal Medicine
+rh46,Cycle 2022-2023,Rola Hamam,Ophthalmology ,2686,75.51,,7/1/2011,Ophthalmology 
+rh52,Cycle 2022-2023,Ramzi Haddad,Dentofacial,2764,126.43,,7/1/2011,Dentofacial Medicine
+rk224,Cycle 2022-2023,Rita Khoury,Psychiatry ,454,56.64,,9/20/2022,Psychiatry 
+rkhauli,Cycle 2022-2023,Raja Khauli,Urology,1174,48.42,,7/1/2011,Surgery
+rm17,Cycle 2022-2023,Roger Moukarbel,Otorhinolaryngology - Head and Neck Surgery,143,24.08,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+rn05,Cycle 2022-2023,Rami Nasr,Urology,3570,40.6,,7/1/2011,Surgery
+rs01,Cycle 2022-2023,Raja Sawaya,Neurology ,3495,65.48,,7/1/2011,Neurology 
+rz24,Cycle 2022-2023,Randa Zeidan,Family Medicine ,2639,38.43,,7/1/2011,Family Medicine 
+sa11,Cycle 2022-2023,Shady Awwad,Ophthalmology ,4027,106.33,,7/1/2011,Ophthalmology 
+sa223,Cycle 2022-2023,Sandrine Atallah,Obstetrics and Gynecology,122,NULL,,4/15/2016,Ob/Gyn
+sa33,Cycle 2022-2023,Souha Allam,Ophthalmology ,2,NULL,,7/1/2011,Ophthalmology 
+salam,Cycle 2022-2023,Samir Alam,Cardiology,1420,14.53,,7/1/2011,Internal Medicine
+sarnaout,Cycle 2022-2023,Mohamad Samir Arnaout,Cardiology,966,20.51,,7/1/2011,Internal Medicine
+sb60,Cycle 2022-2023,Samia Badr,Family Medicine ,1856,21.17,,7/1/2011,Family Medicine 
+sd08,Cycle 2022-2023,Samer Dibe,General Surgery,1088,37.43,,11/1/2012,Surgery
+sd65,Cycle 2022-2023,Samer Doughan,General Surgery,2489,74.75,,3/5/2015,Surgery
+sfatweh,Cycle 2022-2023,Samir Atweh,Neurology ,1665,51.48,,7/1/2011,Neurology 
+sg29,Cycle 2022-2023,Saro Ghougassian,Orthodontics,261,NULL,,7/1/2011,Dentofacial Medicine
+sh95,Cycle 2022-2023,Sani Hlais,Family Medicine ,1689,51.18,,7/1/2011,Family Medicine 
+sk11,Cycle 2022-2023,Souha Kanj-Sharara,Infectious Diseases,994,54.69,,7/1/2011,Internal Medicine
+sk205,Cycle 2022-2023,Simone Khalifeh,Pediatric Neurology,644,64.85,,5/10/2022,Neurology
+sk88,Cycle 2022-2023,Samia Khoury,Neurology ,696,19.84,,7/1/2011,Neurology 
+sm03,Cycle 2022-2023,Samar Muwakkit,Pediatrics and Adolescent Medicine  ,407,142.39,,7/1/2011,Pediatrics and Adolescent Medicine  
+sm04,Cycle 2022-2023,Sami Moukheiber,Family Medicine ,774,53.26,,7/1/2011,Family Medicine 
+sm104,Cycle 2022-2023,Samir Mallat,Nephrology,1669,45.71,,7/1/2011,Internal Medicine
+smroueh,Cycle 2022-2023,Salman Mroueh,Pediatrics and Adolescent Medicine  ,NULL,25.31,,7/1/2011,Pediatrics and Adolescent Medicine  
+sr55,Cycle 2022-2023,Salim Rahhal,General Surgery,156,60.08,,4/13/2021,Surgery
+ss15,Cycle 2022-2023,Said Saghieh,Orthopaedic Surgery,4903,45.34,,7/1/2011,Surgery
+ss19,Cycle 2022-2023,Sami Sanjad,Pediatric Nephrology,NULL,37.86,,7/1/2011,Internal Medicine
+st29,Cycle 2022-2023,Sally Temraz,Hematology-Oncology,1949,59.44,,7/1/2011,Internal Medicine
+sz01,Cycle 2022-2023,Salah Zeineldine,Pulmonary and Critical Care,1884,28.19,,7/1/2011,Internal Medicine
+tb14,Cycle 2022-2023,Tony Bazi,Obstetrics and Gynecology  ,726,38.22,,7/1/2011,Obstetrics and Gynecology  
+te04,Cycle 2022-2023,Toufic Eid,Radiation Oncology ,1004,53.88,,7/1/2011,Radiation Oncology 
+um00,Cycle 2022-2023,Umayya Musharafieh,Family Medicine ,1022,83.8,,7/1/2011,Family Medicine 
+wajdik,Cycle 2022-2023,Wajdi Khaddaj,Family Medicine ,2690,39.17,,7/1/2011,Family Medicine 
+wchalhoub,Cycle 2022-2023,Wissam Chalhoub,Family Medicine ,1374,23.78,,11/11/2014,Family Medicine 
+wk40,Cycle 2022-2023,Wajiha Jurdi Kheir,Ophthalmology ,2479,73.78,,9/1/2019,Ophthalmology 
+wm00,Cycle 2022-2023,Walid Medawar,Nephrology,3789,33.24,,7/1/2011,Internal Medicine
+wn13,Cycle 2022-2023,Wassim Nasreddine,Neurology ,1272,36.57,,1/8/2013,Neurology 
+ws11,Cycle 2022-2023,Wael Shamseddeen,Psychiatry ,1799,51.59,,10/18/2017,Psychiatry 
+yb11,Cycle 2022-2023,Youssef Bakhach,Plastic Surgery,962,68.32,,2/6/2012,Surgery
+yj10,Cycle 2022-2023,Yehya Jassar,Cardiothoracic Surgery,16,15,,11/9/2021,Surgery
+ys22,Cycle 2022-2023,Yasser Shaib,Gastroenterology,1216,35.31,,5/21/2015,Internal Medicine
+za47,Cycle 2022-2023,Zeina Ayoub,Radiation Oncology ,576,62.19,,4/12/2018,Radiation Oncology 
+zb00,Cycle 2022-2023,Ziad Bashshur,Ophthalmology ,2967,104.74,,7/1/2011,Ophthalmology 
+zb21,Cycle 2022-2023,Ziad Bulbul,Pediatrics and Adolescent Medicine  ,362,84.36,,10/2/2015,Pediatrics and Adolescent Medicine  
+zg08,Cycle 2022-2023,Ziyad Ghazzal,Cardiology,620,31.6,,7/1/2011,Internal Medicine
+zk10,Cycle 2022-2023,Zeina Kanafani,Infectious Diseases,229,73.67,,7/1/2011,Internal Medicine
+zk27,Cycle 2022-2023,Zeina Korban,Otorhinolaryngology - Head and Neck Surgery,3022,16.23,,11/17/2016,"Otolaryngology, Head & Neck surgery"
+zs04,Cycle 2022-2023,Ziad Salem,Hematology-Oncology,370,36.05,,7/1/2011,Internal Medicine
+aa107,Cycle 2023-2024,Abdallah Adra,Obstetrics and Gynecology,236,25.97,,7/1/2011,Obstetrics and Gynecology
+aa22,Cycle 2023-2024,Asma Arabi,Endocrinology,1283,82.16,,7/1/2011,Internal Medicine
+aa232,Cycle 2023-2024,Ali Amine,Neurosurgery,166,50.13,,10/17/2023,Surgery
+ab00,Cycle 2023-2024,Abdul Rahman Bizri,Infectious Diseases,670,55.44,,7/1/2011,Internal Medicine
+ab29,Cycle 2023-2024,Ahmad Beydoun,Neurology,1366,49.61,,7/1/2011,Neurology
+ab58,Cycle 2023-2024,Alaa Bou Ghannam,Ophthalmology,3233,64.98,,9/13/2017,Ophthalmology
+abualfa,Cycle 2023-2024,Ali Abu-Alfa,Nephrology,1367,49.75,,7/1/2011,Internal Medicine
+ae67,Cycle 2023-2024,Albert El Hajj,Urology,3627,57.64,2,7/9/2013,Surgery
+agkibbi,Cycle 2023-2024,Abdul Ghani Kibbi,Dermatology,1567,31.07,,7/1/2011,Dermatology
+ah111,Cycle 2023-2024,Antoine Hanna,Dentofacial,520,NULL,,1/13/2015,Dentofacial Medicine
+ah51,Cycle 2023-2024,Ahmad Husari,Pulmonary and Critical Care,2572,22.26,2,7/1/2011,Internal Medicine
+ah77,Cycle 2023-2024,Abdullatif Hamdan,Otorhinolaryngology - Head and Neck Surgery,1143,63.41,1,7/1/2011,"Otolaryngology, Head & Neck surgery"
+ahannoun,Cycle 2023-2024,Antoine Hannoun,Obstetrics and Gynecology,1781,88.67,,7/1/2011,Obstetrics and Gynecology
+ai12,Cycle 2023-2024,Amir Ibrahim,Plastic Surgery,3223,38.89,3,8/26/2014,Surgery
+ai18,Cycle 2023-2024,Ali Ismail,Pediatrics and Adolescent Medicine,474,58.42,1,7/8/2014,Pediatrics and Adolescent Medicine
+ak27,Cycle 2023-2024,Ali Khalil,Obstetrics and Gynecology,NULL,NULL,1,7/1/2011,Obstetrics and Gynecology
+am132,Cycle 2023-2024,Achraf Makki,Neurology,16,25.2,,5/15/2014,Neurology
+am43,Cycle 2023-2024,Anthony Macari,Dentofacial,3700,126.07,,7/1/2011,Dentofacial Medicine
+an21,Cycle 2023-2024,Anwar Nassar,Obstetrics and Gynecology,2919,64.3,2,7/1/2011,Obstetrics and Gynecology
+ar20,Cycle 2023-2024,Abdallah Rebeiz,Cardiology,4776,22.07,,7/1/2011,Internal Medicine
+as04,Cycle 2023-2024,Ali Shamsuddin,Hematology-Oncology,2100,76.59,,7/1/2011,Internal Medicine
+as08,Cycle 2023-2024,Ala' Sharara,Gastroenterology,1507,31.08,,7/1/2011,Internal Medicine
+as25,Cycle 2023-2024,Assaad Soweid,Gastroenterology,1133,33.6,,7/1/2011,Internal Medicine
+as262,Cycle 2023-2024,Aed Saab,Emergency Medicine,NULL,NULL,1,9/12/2023,Emergency Medicine
+at01,Cycle 2023-2024,Ahmad Tayim,Orthopaedic Surgery,5449,12.91,1,7/1/2011,Surgery
+at35,Cycle 2023-2024,Arafat Tfayli,Hematology-Oncology,2091,37.72,,7/1/2011,Internal Medicine
+ataher,Cycle 2023-2024,Ali Taher,Hematology-Oncology,935,31.65,,7/1/2011,Internal Medicine
+az22,Cycle 2023-2024,Ahmad Zaghal,Pediatric Surgery Service,497,34.2,,8/9/2017,Surgery
+az51,Cycle 2023-2024,Aline El-Zakhem,Infectious Diseases,308,45.96,,4/11/2014,Internal Medicine
+ba47,Cycle 2023-2024,Bernard Abi-Saleh,Cardiology,1568,32.53,,7/26/2011,Internal Medicine
+bazarbac,Cycle 2023-2024,Ali Bazarbachi,Hematology-Oncology,1599,55.16,1,7/1/2012,Internal Medicine
+bb12,Cycle 2023-2024,Bassel Bachir,Urology,1292,44.67,,1/14/2016,Surgery
+bk01,Cycle 2023-2024,Beatrice Khater,Family Medicine,1263,40.75,,7/1/2011,Family Medicine
+bk03,Cycle 2023-2024,Brigitte Khoury,Psychiatry,609,42.89,,7/1/2011,Psychiatry
+bndean,Cycle 2023-2024,Baha' Noureddin,Ophthalmology,5002,16.36,,7/1/2011,Ophthalmology
+brsaab,Cycle 2023-2024,Bassem Saab,Family Medicine,1188,23.71,,7/1/2011,Family Medicine
+bs05,Cycle 2023-2024,Bernard Sagherian,Orthopaedic Surgery,1810,23.85,,7/1/2011,Surgery
+bt08,Cycle 2023-2024,Bassem Tanios,Nephrology and Hypertension,233,35.24,,7/20/2015,Internal Medicine
+by04,Cycle 2023-2024,Bassem Youssef,Radiation Oncology ,1589,104.7,,7/17/2012,Radiation Oncology 
+ca12,Cycle 2023-2024,Christiane Al-Haddad,Ophthalmology,2604,53.84,,7/1/2011,Ophthalmology
+cm69,Cycle 2023-2024,Christian Pierre Makary,Dentofacial,466,42.8,,12/21/2021,Dentofacial Medicine
+cm74,Cycle 2023-2024,Chadi Murr,Plastic Surgery,24,353.75,,9/12/2023,Surgery
+cr35,Cycle 2023-2024,Caline Rhayem,Endocrinology,340,25.89,,9/12/2023,Internal Medicine
+cs56,Cycle 2023-2024,Carine Sakr,Family Medicine,440,48.81,,1/12/2018,Family Medicine
+da115,Cycle 2023-2024,Dinah Ayna,Psychiatry,803,50.83,,1/21/2020,Psychiatry
+dc09,Cycle 2023-2024,Dina Chamsy,Obstetrics and Gynecology,3045,106.26,1,8/26/2014,Obstetrics and Gynecology
+dg00,Cycle 2023-2024,Walid Gharzuddine,Cardiology,803,22.91,1,7/1/2011,Internal Medicine
+dh85,Cycle 2023-2024,Dima Habanjar,Pediatrics and Adolescent Medicine,111,15.56,,8/8/2023,Pediatrics and Adolescent Medicine
+dk01,Cycle 2023-2024,Nadim Kanj,Pulmonary and Critical Care,1063,15.73,,7/1/2011,Internal Medicine
+dn17,Cycle 2023-2024,Dolly Noun,Pediatrics and Adolescent Medicine,684,280.17,,9/19/2018,Pediatrics and Adolescent Medicine
+ds03,Cycle 2023-2024,Durriyya Sinno,Pediatrics and Adolescent Medicine,NULL,52.11,,7/1/2011,Pediatrics and Adolescent Medicine
+ds07,Cycle 2023-2024,Diana Rahme,Family Medicine,709,34.62,,7/1/2011,Family Medicine
+ds45,Cycle 2023-2024,Dana Saade,Dermatology,1453,89.47,,10/1/2018,Dermatology
+ea27,Cycle 2023-2024,Elie Alam,Otorhinolaryngology - Head and Neck Surgery,2218,8.93,,1/14/2020,"Otolaryngology, Head & Neck surgery"
+eb22,Cycle 2023-2024,Evelyne Baroud,Psychiatry,836,38.09,,9/20/2022,Psychiatry
+eb34,Cycle 2023-2024,Elie Bechara,Pediatrics and Adolescent Medicine,762,219.75,,12/21/2021,Pediatrics and Adolescent Medicine
+eg10,Cycle 2023-2024,Elias Ghossoub,Psychiatry,1050,32.56,,9/1/2019,Psychiatry
+eh11,Cycle 2023-2024,Elie Hobeika,Obstetrics and Gynecology,948,112.43,,1/14/2014,Obstetrics and Gynecology
+es25,Cycle 2023-2024,Eman Sbaity,General Surgery,789,61.6,2,7/8/2014,Surgery
+fa02,Cycle 2023-2024,Firass Abiad,General Surgery,219,75.96,,7/1/2011,Surgery
+fa162,Cycle 2023-2024,Fatima Allaw,Infectious Diseases,163,40.75,,9/20/2022,Internal Medicine
+fbitar,Cycle 2023-2024,Fadi Bitar,Pediatrics and Adolescent Medicine,1760,283.19,,7/1/2012,Pediatrics and Adolescent Medicine
+fc24,Cycle 2023-2024,Fatme Charafeddine,Pediatrics and Adolescent Medicine,79,169.5,,11/12/2019,Pediatrics and Adolescent Medicine
+fd21,Cycle 2023-2024,Fady Daniel,Gastroenterology,2146,67.4,1,12/1/2014,Internal Medicine
+fh16,Cycle 2023-2024,Fady Haddad,Vascular Surgery,1733,90.25,1,7/1/2011,Surgery
+fk01,Cycle 2023-2024,Faysal El- Kak,Obstetrics and Gynecology,130,73.52,,4/16/2013,Obstetrics and Gynecology
+fk30,Cycle 2023-2024,Firas Kreidieh,Hematology-Oncology,630,21.39,1,9/12/2023,Internal Medicine
+fm38,Cycle 2023-2024,Fadi Maalouf,Psychiatry,1470,61.18,,7/1/2011,Psychiatry
+fm79,Cycle 2023-2024,Fawzi Maalouf,Pediatrics and Adolescent Medicine,818,27.03,,8/9/2017,Pediatrics and Adolescent Medicine
+fmourad,Cycle 2023-2024,Fadi Mourad,Gastroenterology,2276,43.1,1,7/1/2011,Internal Medicine
+fs88,Cycle 2023-2024,Fadi Sawaya,Cardiology,1927,23.86,2,1/23/2017,Internal Medicine
+ft10,Cycle 2023-2024,Farid Talih,Psychiatry,2151,49.53,,7/1/2011,Psychiatry
+fz05,Cycle 2023-2024,Fuad Ziyadeh,Nephrology,24,25.66,,7/1/2011,Internal Medicine
+ga03,Cycle 2023-2024,Ghassan Al-Awar,Infectious Diseases,454,83.82,1,7/1/2011,Internal Medicine
+ga17,Cycle 2023-2024,George Abi Saad,General Surgery,818,47.8,1,7/1/2011,Surgery
+ga62,Cycle 2023-2024,Georges Assaf,Family Medicine,1427,48.7,,9/13/2017,Family Medicine
+gdbaibo,Cycle 2023-2024,Ghassan Dbaibo,Pediatrics and Adolescent Medicine,1856,80.29,1,7/1/2011,Pediatrics and Adolescent Medicine
+gf01,Cycle 2023-2024,Ghada El-Hajj Fuleihan,Endocrinology,889,45.43,,7/1/2011,Internal Medicine
+gg02,Cycle 2023-2024,Ghina Ghazeeri,Obstetrics and Gynecology,7471,122.27,1,7/1/2011,Obstetrics and Gynecology
+gi14,Cycle 2023-2024,Ghina Ismail,Psychiatry,203,77.53,,8/11/2014,Psychiatry
+gk08,Cycle 2023-2024,Ghattas Khoury,General Surgery,120,69.64,,7/1/2011,Surgery
+gm33,Cycle 2023-2024,Grace Maalouf,Family Medicine,1207,140.89,,7/1/2011,Family Medicine
+gskaf,Cycle 2023-2024,Ghassan Skaf,Neurosurgery,1659,88.21,2,7/1/2011,Surgery
+gz05,Cycle 2023-2024,George Zaytoun,Otorhinolaryngology - Head and Neck Surgery,3195,11.82,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+ha157,Cycle 2023-2024,Hazem Assi,Hematology-Oncology,2314,65.18,1,6/9/2014,Internal Medicine
+hb93,Cycle 2023-2024,Hisham Bou Fakhreddine,Pulmonary and Critical Care,281,19.46,,9/8/2020,Internal Medicine
+hd01,Cycle 2023-2024,Habib Dakik,Cardiology,2045,30.72,2,7/1/2011,Internal Medicine
+hd17,Cycle 2023-2024,Houssein Darwish,Neurosurgery,2632,73.51,,3/1/2018,Surgery
+hd32,Cycle 2023-2024,Hassan Domiati,Neurology,1916,52.27,,7/13/2021,Neurology
+hg12,Cycle 2023-2024,Husam Ghosn,Geriatrics,68,31.02,,7/1/2011,Internal Medicine
+hm127,Cycle 2023-2024,Hiba Moukadem,Hematology-Oncology,1396,57.37,,6/18/2019,Internal Medicine
+hm95,Cycle 2023-2024,Hoda Metni Rafie,Dentofacial,707,32,,1/13/2015,Dentofacial Medicine
+hs03,Cycle 2023-2024,Hassan El Solh,Pediatric Hematology-Oncology,374,302.4,,7/1/2011,Internal Medicine
+hs06,Cycle 2023-2024,Haytham Salti,Vitreo-Retinal surgery,202,46.91,,7/1/2011,Surgery
+hs114,Cycle 2023-2024,Hala Ishak,Family Medicine,1750,23.48,,8/18/2020,Family Medicine
+hs13,Cycle 2023-2024,Hadi Skouri,Cardiology,20,16.1,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+ht31,Cycle 2023-2024,Hala Tfayli,Pediatrics and Adolescent Medicine,3115,68.97,4,7/1/2011,Pediatrics and Adolescent Medicine
+ia41,Cycle 2023-2024,Iman Abou Dalle,Hematology-Oncology,861,52.57,2,9/16/2019,Internal Medicine
+ib08,Cycle 2023-2024,Imad Bou Akl,Pulmonary and Critical Care,1435,15.24,,7/1/2011,Internal Medicine
+isalti,Cycle 2023-2024,Ibrahim Salti,Endocrinology,2654,25.78,,7/1/2011,Internal Medicine
+iu00,Cycle 2023-2024,Ihab Usta,Obstetrics and Gynecology,2318,203.72,2,7/1/2011,Obstetrics and Gynecology
+iuthman,Cycle 2023-2024,Imad Uthman,"Allergy, Immunology & Rheumatology",4651,47.58,,7/1/2011,Internal Medicine
+ja19,Cycle 2023-2024,Jaber Abbas,General Surgery,NULL,NULL,1,7/1/2011,Surgery
+ja46,Cycle 2023-2024,Jumana Antoun,Family Medicine,2094,37.31,,7/1/2011,Family Medicine
+ja58,Cycle 2023-2024,Jihane Abou Rahal,Dermatology,1235,46.05,,1/1/2017,Dermatology
+je46,Cycle 2023-2024,Jean El-Cheikh,Hematology-Oncology,1066,69.43,3,4/23/2015,Internal Medicine
+jg03,Cycle 2023-2024,Joseph Ghafari,Dentofacial,4277,146.02,,7/1/2011,Dentofacial Medicine
+jh34,Cycle 2023-2024,Jamal Hoballah,Vascular Surgery,1268,92.29,,7/1/2011,Surgery
+jkhattar,Cycle 2023-2024,Joe Khattar,Family Medicine,1618,42.06,,7/1/2011,Family Medicine
+jm88,Cycle 2023-2024,Jihane Moukhaiber,Pediatrics and Adolescent Medicine,101,53.09,,7/13/2021,Pediatrics and Adolescent Medicine
+jr01,Cycle 2023-2024,Jibrail Razzouk,Family Medicine,2317,55.66,,7/1/2011,Family Medicine
+js62,Cycle 2023-2024,Joanna Saade,Ophthalmology,2599,48.04,,9/13/2017,Ophthalmology
+js73,Cycle 2023-2024,Johnny Salameh,Neurology,4,NULL,,10/13/2015,Neurology
+ju00,Cycle 2023-2024,Jinan Usta,Family Medicine,1078,50.77,,7/1/2011,Family Medicine
+kayunis,Cycle 2023-2024,Khalid Yunis,Pediatrics and Adolescent Medicine,777,66.14,,7/1/2011,Pediatrics and Adolescent Medicine
+kb02,Cycle 2023-2024,Kassem Barada,Gastroenterology,1339,67.35,,7/1/2011,Internal Medicine
+ke27,Cycle 2023-2024,Katia El Taoum,Pediatrics and Adolescent Medicine,NULL,49.63,,12/1/2017,Pediatrics and Adolescent Medicine
+kkaram,Cycle 2023-2024,Karam Karam,Obstetrics and Gynecology,308,214.79,,7/1/2011,Obstetrics and Gynecology
+kt18,Cycle 2023-2024,Kristel Tabet,Dentofacial,189,162.33,,10/12/2021,Dentofacial Medicine
+kz12,Cycle 2023-2024,Kinan Zeno,Dentofacial,1187,NULL,,2/12/2019,Dentofacial Medicine
+la55,Cycle 2023-2024,Leyla Akoury-Dirani,Psychiatry,759,25.62,,7/1/2011,Psychiatry
+lc12,Cycle 2023-2024,Lama Charafeddine,Pediatrics and Adolescent Medicine,816,48.55,,7/1/2011,Pediatrics and Adolescent Medicine
+lf00,Cycle 2023-2024,Layla Farhood,Psychiatry,449,36.94,1,7/1/2011,Psychiatry
+lh54,Cycle 2023-2024,Lara Hilal,Radiation Oncology ,549,40.45,,10/12/2021,Radiation Oncology 
+lh68,Cycle 2023-2024,Laith Haddad,Pediatrics and Adolescent Medicine,193,19.84,,9/12/2023,Pediatrics and Adolescent Medicine
+ma322,Cycle 2023-2024,Makram Ammoury,Dentofacial,71,30,,2/12/2019,Dentofacial Medicine
+ma56,Cycle 2023-2024,Miguel Abboud,Pediatrics and Adolescent Medicine,818,257.55,,7/1/2011,Pediatrics and Adolescent Medicine
+ma81,Cycle 2023-2024,Mariam Arabi,Pediatrics and Adolescent Medicine,1222,62.63,,7/1/2011,Pediatrics and Adolescent Medicine
+mb112,Cycle 2023-2024,Maya Bizri,Psychiatry,221,26.73,2,2/20/2019,Psychiatry
+mb178,Cycle 2023-2024,Marc Barakat,Psychiatry,610,45.9,,6/14/2018,Psychiatry
+mb30,Cycle 2023-2024,Mohammad Bulbul,Urology,1,31,1,7/1/2011,Surgery
+mc39,Cycle 2023-2024,Marlene Chakhtoura,Endocrinology,1136,86.27,,7/20/2016,Internal Medicine
+md00,Cycle 2023-2024,Majida Daouk,Nephrology,358,30.46,,7/1/2011,Internal Medicine
+me141,Cycle 2023-2024,Michelle El Chekie,Dentofacial,162,NULL,,12/21/2021,Dentofacial Medicine
+mg46,Cycle 2023-2024,Mario Ghanem,Family Medicine,358,29.13,,7/1/2011,Family Medicine
+mh209,Cycle 2023-2024,Mohamad Haidar,Diagnostic Radiology,NULL,NULL,1,11/12/2013,Diagnostic Radiology
+mh246,Cycle 2023-2024,Mona Hnaini,Pediatric Neurology,366,33.04,,2/21/2023,Neurology
+mi24,Cycle 2023-2024,Mohamad Itani,Dentofacial,86,110.5,,7/1/2011,Dentofacial Medicine
+mk04,Cycle 2023-2024,Maurice Khoury,Cardiology,1485,28.91,,7/1/2011,Internal Medicine
+mk104,Cycle 2023-2024,Mazen Kurban,Dermatology,2667,19.58,,7/1/2011,Dermatology
+mk12,Cycle 2023-2024,Mohamad Khalifeh,General Surgery,1726,53.99,3,7/1/2011,Surgery
+mm116,Cycle 2023-2024,Mira Merashli,"Allergy, Immunology & Rheumatology",2220,77.07,,9/16/2016,Internal Medicine
+mm128,Cycle 2023-2024,Marc Mourad,Otorhinolaryngology - Head and Neck Surgery,2502,12.46,,5/10/2022,"Otolaryngology, Head & Neck surgery"
+mn04,Cycle 2023-2024,Mona Nabulsi,Pediatrics and Adolescent Medicine,NULL,24.73,,7/1/2011,Pediatrics and Adolescent Medicine
+mn103,Cycle 2023-2024,Mohamad Nasser Eddine,Orthopaedic Surgery,2395,71.77,,2/1/2023,Surgery
+mn12,Cycle 2023-2024,Marwan Najjar,Neurosurgery,1595,63.3,,7/1/2011,Surgery
+mn36,Cycle 2023-2024,Mona Nasrallah,Endocrinology,1545,53.25,,7/1/2011,Internal Medicine
+mn40,Cycle 2023-2024,Marianne Majdalani Nimah,Pediatrics and Adolescent Medicine,1602,26.04,,7/1/2011,Pediatrics and Adolescent Medicine
+mo08,Cycle 2023-2024,Mona Osman,Family Medicine,2095,26.29,,7/1/2011,Family Medicine
+mobeid,Cycle 2023-2024,Mounir Obeid,Cardiothoracic Surgery,58,314.88,,7/1/2011,Surgery
+mr39,Cycle 2023-2024,Maya Romani,Family Medicine,2269,76.05,,3/1/2012,Family Medicine
+mr48,Cycle 2023-2024,Marwan Refaat,Cardiology,1483,32.78,2,8/1/2012,Internal Medicine
+ms00,Cycle 2023-2024,Mahmoud Shoucair,Endocrinology,3194,46.37,,7/1/2011,Internal Medicine
+my22,Cycle 2023-2024,Muhammad Younis,Pediatric Ophthalmology & Motility,1,1305,,7/1/2011,Pediatrics
+na161,Cycle 2023-2024,Nada Afeiche,Orthodontics,31,70,,10/8/2013,Dentofacial Medicine
+na46,Cycle 2023-2024,Naji Abou Chebel,Dentofacial,87,34,,7/1/2011,Dentofacial Medicine
+nb24,Cycle 2023-2024,Nazem Bassil,General IM & Geriatrics,425,40.17,,9/14/2021,Internal Medicine
+nc16,Cycle 2023-2024,Nada Chedid,Dentofacial,36,NULL,,7/1/2011,Dentofacial Medicine
+nd55,Cycle 2023-2024,Nadia Tina Dandan,Psychiatry,596,30.56,,11/9/2021,Psychiatry
+ne06,Cycle 2023-2024,Nabil ElKhoury,Obstetrics and Gynecology,497,194.2,,5/10/2022,Obstetrics and Gynecology
+ne117,Cycle 2023-2024,Noelle El Asmar,Gastroenterology,581,48.86,,4/1/2022,Internal Medicine
+ne23,Cycle 2023-2024,Najla Lakkis,Family Medicine,1096,100.67,,7/1/2011,Family Medicine
+ne42,Cycle 2023-2024,Nabil El-Ayoubi,Neurology,1614,36.69,1,7/11/2017,Neurology
+nf32,Cycle 2023-2024,Nagham Faris,Emergency Medicine,NULL,NULL,1,6/16/2018,Emergency Medicine
+ngrubeiz,Cycle 2023-2024,Nelly Rubeiz,Dermatology,3197,28.66,,7/1/2011,Dermatology
+nk159,Cycle 2023-2024,Nadine Kamel,Dentofacial,1276,71,,6/14/2022,Dentofacial Medicine
+nm68,Cycle 2023-2024,Nisrine Makarem,Family Medicine,1745,199.96,,7/9/2013,Family Medicine
+nm90,Cycle 2023-2024,Nour Moukalled,Hematology-Oncology,1145,51.55,,2/8/2022,Internal Medicine
+nr00,Cycle 2023-2024,Nesrine Rizk,Infectious Diseases,460,63.4,1,7/1/2012,Internal Medicine
+ns01,Cycle 2023-2024,Nabil Sharara,Family Medicine,458,33.49,,7/1/2011,Family Medicine
+ns23,Cycle 2023-2024,Nagi El-Saghir,Hematology-Oncology,1260,65.45,1,7/1/2011,Internal Medicine
+ny12,Cycle 2023-2024,Nadine Yazbeck,Pediatrics and Adolescent Medicine,NULL,31.97,,7/1/2011,Pediatrics and Adolescent Medicine
+oa09,Cycle 2023-2024,Ossama Abbas,Dermatology,1774,23.71,,7/1/2011,Dermatology
+pa10,Cycle 2023-2024,Patrick Anhoury,Dentofacial,89,NULL,,7/1/2011,Dentofacial Medicine
+pb05,Cycle 2023-2024,Pierre Bou Khalil,Pulmonary and Critical Care,1271,12.63,,7/1/2011,Internal Medicine
+pf09,Cycle 2023-2024,Pamela Farah,General IM & Geriatrics,93,23.96,,7/1/2022,Internal Medicine
+pk06,Cycle 2023-2024,Pascale Karam,Pediatrics and Adolescent Medicine,NULL,143.64,1,7/1/2011,Pediatrics and Adolescent Medicine
+ps04,Cycle 2023-2024,Pierre Sfeir,Cardiothoracic Surgery,576,64.19,,7/1/2011,Surgery
+ra102,Cycle 2023-2024,Reem Abdallah,Obstetrics and Gynecology,1892,128.91,1,8/20/2015,Obstetrics and Gynecology
+ra110,Cycle 2023-2024,Randa Barazi,Otorhinolaryngology - Head and Neck Surgery,2926,10.04,1,9/1/2013,"Otolaryngology, Head & Neck surgery"
+ra169,Cycle 2023-2024,Ramzi Alameddine,Ophthalmology,2726,58.36,,8/18/2016,Ophthalmology
+rb148,Cycle 2023-2024,Raphah Borghol,Pediatrics and Adolescent Medicine,592,201.78,,7/13/2021,Pediatrics and Adolescent Medicine
+rb50,Cycle 2023-2024,Rose-Mary Boustany,Pediatrics and Adolescent Medicine,736,62.38,2,7/1/2011,Pediatrics and Adolescent Medicine
+rb94,Cycle 2023-2024,Ralph Bou Chebl,Emergency Medicine,NULL,NULL,1,9/11/2014,Emergency Medicine
+rh00,Cycle 2023-2024,Rashid Haidar,Orthopaedic Surgery,6222,89.86,1,7/1/2011,Surgery
+rh01,Cycle 2023-2024,Randa Haddad,Ophthalmology,2420,45.25,1,7/1/2011,Ophthalmology
+rh08,Cycle 2023-2024,Rima Hanna Wakim,Pediatrics and Adolescent Medicine,2261,56.28,,7/1/2011,Pediatrics and Adolescent Medicine
+rh110,Cycle 2023-2024,Ramzi Hajjar,General IM & Geriatrics,149,42.03,4,7/1/2011,Internal Medicine
+rh46,Cycle 2023-2024,Rola Hamam,Ophthalmology,2734,72.76,,7/1/2011,Ophthalmology
+rh52,Cycle 2023-2024,Ramzi Haddad,Dentofacial,2498,298.33,,7/1/2011,Dentofacial Medicine
+rk224,Cycle 2023-2024,Rita Khoury,Psychiatry,1016,88.91,,9/20/2022,Psychiatry
+rkhauli,Cycle 2023-2024,Raja Khauli,Urology,1297,50.86,,7/1/2011,Surgery
+rm17,Cycle 2023-2024,Roger Moukarbel,Otorhinolaryngology - Head and Neck Surgery,58,13.92,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+rn05,Cycle 2023-2024,Rami Nasr,Urology,3263,37.82,,7/1/2011,Surgery
+rn76,Cycle 2023-2024,Rakan Nassereldine,Vascular Surgery,348,59.78,1,11/9/2021,Surgery
+rs01,Cycle 2023-2024,Raja Sawaya,Neurology,3867,63.12,,7/1/2011,Neurology
+rs17,Cycle 2023-2024,Roger Sfeir,Vascular Surgery,203,28.31,,7/1/2011,Surgery
+rz24,Cycle 2023-2024,Randa Zeidan,Family Medicine,2862,33.4,,7/1/2011,Family Medicine
+sa11,Cycle 2023-2024,Shady Awwad,Ophthalmology,4023,90.6,,7/1/2011,Ophthalmology
+sa223,Cycle 2023-2024,Sandrine Atallah,Obstetrics and Gynecology,63,7,,4/15/2016,Ob/Gyn
+sa37,Cycle 2023-2024,Samir Akel,Pediatric Surgery Service,430,83.45,,7/1/2011,Surgery
+salam,Cycle 2023-2024,Samir Alam,Cardiology,1509,18.75,,7/1/2011,Internal Medicine
+sarnaout,Cycle 2023-2024,Mohamad Samir Arnaout,Cardiology,1008,26.48,1,7/1/2011,Internal Medicine
+sb60,Cycle 2023-2024,Samia Badr,Family Medicine,1778,37.04,,7/1/2011,Family Medicine
+sd08,Cycle 2023-2024,Samer Dibe,General Surgery,1122,36.69,,11/1/2012,Surgery
+sd65,Cycle 2023-2024,Samer Doughan,General Surgery,2517,63.27,2,3/5/2015,Surgery
+sfatweh,Cycle 2023-2024,Samir Atweh,Neurology,1585,72.85,,7/1/2011,Neurology
+sg29,Cycle 2023-2024,Saro Ghougassian,Dentofacial,419,NULL,,7/1/2011,Dentofacial Medicine
+sh95,Cycle 2023-2024,Sani Hlais,Family Medicine,1557,41.23,,7/1/2011,Family Medicine
+sk11,Cycle 2023-2024,Souha Kanj-Sharara,Infectious Diseases,959,46.79,1,7/1/2011,Internal Medicine
+sk159,Cycle 2023-2024,Sarah Khafaja,Pediatric Infectious Diseases,63,29.94,,9/12/2023,Internal Medicine
+sk205,Cycle 2023-2024,Simone Khalifeh,Pediatrics and Adolescent Medicine,543,51.08,,5/10/2022,Pediatrics and Adolescent Medicine
+sk88,Cycle 2023-2024,Samia Khoury,Neurology,718,14.47,,7/1/2011,Neurology
+sm03,Cycle 2023-2024,Samar Muwakkit,Pediatrics and Adolescent Medicine,637,258.15,,7/1/2011,Pediatrics and Adolescent Medicine
+sm04,Cycle 2023-2024,Sami Moukheiber,Family Medicine,730,296.04,,7/1/2011,Family Medicine
+sm104,Cycle 2023-2024,Samir Mallat,Nephrology,2028,108.69,2,7/1/2011,Internal Medicine
+smroueh,Cycle 2023-2024,Salman Mroueh,Pediatrics and Adolescent Medicine,NULL,25.1,,7/1/2011,Pediatrics and Adolescent Medicine
+sr55,Cycle 2023-2024,Salim Rahhal,General Surgery,164,67.85,,4/13/2021,Surgery
+ss15,Cycle 2023-2024,Said Saghieh,Orthopaedic Surgery,4941,43.96,1,7/1/2011,Surgery
+ss19,Cycle 2023-2024,Sami Sanjad,Pediatric Nephrology,NULL,37.17,,7/1/2011,Internal Medicine
+st29,Cycle 2023-2024,Sally Temraz,Hematology-Oncology,2003,51.12,1,7/1/2011,Internal Medicine
+sz01,Cycle 2023-2024,Salah Zeineldine,Pulmonary and Critical Care,1628,29.04,,7/1/2011,Internal Medicine
+tb14,Cycle 2023-2024,Tony Bazi,Obstetrics and Gynecology,774,74.32,1,7/1/2011,Obstetrics and Gynecology
+te04,Cycle 2023-2024,Toufic Eid,Radiation Oncology ,853,53.34,,7/1/2011,Radiation Oncology 
+th44,Cycle 2023-2024,Tarek El Halabi,Neurology,409,25.27,,7/1/2022,Neurology
+ts18,Cycle 2023-2024,Tarek Sunna,Neurosurgery,26,19.2,,7/1/2018,Surgery
+um00,Cycle 2023-2024,Umayya Musharafieh,Family Medicine,919,75.17,1,7/1/2011,Family Medicine
+wajdik,Cycle 2023-2024,Wajdi Khaddaj,Family Medicine,2735,43.63,2,7/1/2011,Family Medicine
+wchalhoub,Cycle 2023-2024,Wissam Chalhoub,Family Medicine,1198,23.81,,11/11/2014,Family Medicine
+wk40,Cycle 2023-2024,Wajiha Jurdi Kheir,Ophthalmology,2591,74.43,,9/1/2019,Ophthalmology
+wm00,Cycle 2023-2024,Walid Medawar,Nephrology,4034,29.46,2,7/1/2011,Internal Medicine
+wn13,Cycle 2023-2024,Wassim Nasreddine,Neurology,1225,34.28,,1/8/2013,Neurology
+ws11,Cycle 2023-2024,Wael Shamseddeen,Psychiatry,1933,50.21,,10/18/2017,Psychiatry
+yb11,Cycle 2023-2024,Youssef Bakhach,Plastic Surgery,847,72.51,,2/6/2012,Surgery
+yj10,Cycle 2023-2024,Yehya Jassar,Cardiothoracic Surgery,29,NULL,,11/9/2021,Surgery
+ys22,Cycle 2023-2024,Yasser Shaib,Gastroenterology,1288,39.69,1,5/21/2015,Internal Medicine
+za47,Cycle 2023-2024,Zeina Ayoub,Radiation Oncology ,762,57.74,,4/12/2018,Radiation Oncology 
+zb00,Cycle 2023-2024,Ziad Bashshur,Ophthalmology,3409,108.15,,7/1/2011,Ophthalmology
+zb21,Cycle 2023-2024,Ziad Bulbul,Pediatrics and Adolescent Medicine,578,60.43,1,10/2/2015,Pediatrics and Adolescent Medicine
+zc27,Cycle 2023-2024,Zeina El Chemali,Neurology,50,24.94,,5/9/2023,Neurology
+zg08,Cycle 2023-2024,Ziyad Ghazzal,Cardiology,668,30.88,1,7/1/2011,Internal Medicine
+zk10,Cycle 2023-2024,Zeina Kanafani,Infectious Diseases,273,63.28,,7/1/2011,Internal Medicine
+zk27,Cycle 2023-2024,Zeina Korban,Otorhinolaryngology - Head and Neck Surgery,3678,11.45,,11/17/2016,"Otolaryngology, Head & Neck surgery"
+aa107,Cycle 2024-2025,Abdallah Adra,Obstetrics and Gynecology,270,27.78,,7/1/2011,Obstetrics and Gynecology
+aa22,Cycle 2024-2025,Asma Arabi,Endocrinology,1582,96.76,,7/1/2011,Internal Medicine
+aa232,Cycle 2024-2025,Ali Amine,Neurosurgery,429,83.18,,10/17/2023,Surgery
+ab00,Cycle 2024-2025,Abdul Rahman Bizri,Infectious Diseases,644,59.66,1,7/1/2011,Internal Medicine
+ab29,Cycle 2024-2025,Ahmad Beydoun,Neurology,1157,53.28,,7/1/2011,Neurology
+ab58,Cycle 2024-2025,Alaa Bou Ghannam,Ophthalmology,3576,38.02,,9/13/2017,Ophthalmology
+abualfa,Cycle 2024-2025,Ali Abu-Alfa,Nephrology,1407,45.45,1,7/1/2011,Internal Medicine
+ae67,Cycle 2024-2025,Albert El Hajj,Urology,3505,62.06,5,7/9/2013,Surgery
+agkibbi,Cycle 2024-2025,Abdul Ghani Kibbi,Dermatology,1453,33.95,,7/1/2011,Dermatology
+ah111,Cycle 2024-2025,Antoine Hanna,Dentofacial,370,NULL,,1/13/2015,Dentofacial Medicine
+ah51,Cycle 2024-2025,Ahmad Husari,Pulmonary and Critical Care,2026,18.32,,7/1/2011,Internal Medicine
+ah77,Cycle 2024-2025,Abdullatif Hamdan,Otorhinolaryngology - Head and Neck Surgery,817,58.27,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+ahannoun,Cycle 2024-2025,Antoine Hannoun,Obstetrics and Gynecology,1459,24.97,,7/1/2011,Obstetrics and Gynecology
+ai12,Cycle 2024-2025,Amir Ibrahim,Plastic Surgery,2579,35.39,1,8/26/2014,Surgery
+ai18,Cycle 2024-2025,Ali Ismail,Pediatrics and Adolescent Medicine,438,58.76,,7/8/2014,Pediatrics and Adolescent Medicine
+ak27,Cycle 2024-2025,Ali Khalil,Obstetrics and Gynecology,NULL,NULL,1,7/1/2011,Obstetrics and Gynecology
+am43,Cycle 2024-2025,Anthony Macari,Dentofacial,3227,95.44,,7/1/2011,Dentofacial Medicine
+an21,Cycle 2024-2025,Anwar Nassar,Obstetrics and Gynecology,2758,24.63,1,7/1/2011,Obstetrics and Gynecology
+ar20,Cycle 2024-2025,Abdallah Rebeiz,Cardiology,4647,19.59,,7/1/2011,Internal Medicine
+as04,Cycle 2024-2025,Ali Shamsuddin,Hematology-Oncology,1780,75.95,,7/1/2011,Internal Medicine
+as08,Cycle 2024-2025,Ala' Sharara,Gastroenterology,1191,27.74,1,7/1/2011,Internal Medicine
+as25,Cycle 2024-2025,Assaad Soweid,Gastroenterology,897,34.52,2,7/1/2011,Internal Medicine
+at01,Cycle 2024-2025,Ahmad Tayim,Orthopaedic Surgery,4806,9.58,1,7/1/2011,Surgery
+at35,Cycle 2024-2025,Arafat Tfayli,Hematology-Oncology,1872,33.1,1,7/1/2011,Internal Medicine
+ataher,Cycle 2024-2025,Ali Taher,Hematology-Oncology,789,36.62,1,7/1/2011,Internal Medicine
+az22,Cycle 2024-2025,Ahmad Zaghal,Pediatric Surgery Service,46,21.61,,8/9/2017,Surgery
+az51,Cycle 2024-2025,Aline El-Zakhem,Infectious Diseases,416,50.71,,4/11/2014,Internal Medicine
+ba47,Cycle 2024-2025,Bernard Abi-Saleh,Cardiology,1515,30.31,,7/26/2011,Internal Medicine
+bazarbac,Cycle 2024-2025,Ali Bazarbachi,Hematology-Oncology,2000,50.64,2,7/1/2012,Internal Medicine
+bb12,Cycle 2024-2025,Bassel Bachir,Urology,1737,42.33,,1/14/2016,Surgery
+bk01,Cycle 2024-2025,Beatrice Khater,Family Medicine,1368,27.22,,7/1/2011,Family Medicine
+bk03,Cycle 2024-2025,Brigitte Khoury,Psychiatry,381,72.91,,7/1/2011,Psychiatry
+bndean,Cycle 2024-2025,Baha' Noureddin,Ophthalmology,4672,20.21,,7/1/2011,Ophthalmology
+brsaab,Cycle 2024-2025,Bassem Saab,Family Medicine,1136,22.93,,7/1/2011,Family Medicine
+bs05,Cycle 2024-2025,Bernard Sagherian,Orthopaedic Surgery,1413,21.67,1,7/1/2011,Surgery
+bt08,Cycle 2024-2025,Bassem Tanios,Nephrology and Hypertension,24,25.33,,7/20/2015,Internal Medicine
+by04,Cycle 2024-2025,Bassem Youssef,Radiation Oncology ,1378,39.88,,7/17/2012,Radiation Oncology 
+ca12,Cycle 2024-2025,Christiane Al-Haddad,Ophthalmology,2422,32.83,,7/1/2011,Ophthalmology
+ca61,Cycle 2024-2025,Carine Anka,Pediatrics and Adolescent Medicine,730,48.04,1,6/11/2024,Pediatrics and Adolescent Medicine
+cm69,Cycle 2024-2025,Christian Pierre Makary,Dentofacial,586,75.4,,12/21/2021,Dentofacial Medicine
+cm74,Cycle 2024-2025,Chadi Murr,Plastic Surgery,203,67.89,,9/12/2023,Surgery
+cs56,Cycle 2024-2025,Carine Sakr,Family Medicine,445,24.04,,1/12/2018,Family Medicine
+da115,Cycle 2024-2025,Dinah Ayna,Psychiatry,863,64.3,,1/21/2020,Psychiatry
+dc09,Cycle 2024-2025,Dina Chamsy,Obstetrics and Gynecology,2970,38.75,,8/26/2014,Obstetrics and Gynecology
+dg00,Cycle 2024-2025,Walid Gharzuddine,Cardiology,783,24.31,,7/1/2011,Internal Medicine
+dh85,Cycle 2024-2025,Dima Habanjar,Pediatrics and Adolescent Medicine,293,18.38,,8/8/2023,Pediatrics and Adolescent Medicine
+dk01,Cycle 2024-2025,Nadim Kanj,Pulmonary and Critical Care,739,13.22,,7/1/2011,Internal Medicine
+dn17,Cycle 2024-2025,Dolly Noun,Pediatrics and Adolescent Medicine,620,240.26,,9/19/2018,Pediatrics and Adolescent Medicine
+dr16,Cycle 2024-2025,Diala Romani,Pediatrics and Adolescent Medicine,NULL,18.58,,3/5/2015,Pediatrics
+ds03,Cycle 2024-2025,Durriyya Sinno,Pediatrics and Adolescent Medicine,NULL,41.01,,7/1/2011,Pediatrics and Adolescent Medicine
+ds07,Cycle 2024-2025,Diana Rahme,Family Medicine,685,35.48,,7/1/2011,Family Medicine
+ds45,Cycle 2024-2025,Dana Saade,Dermatology,1232,55.63,,10/1/2018,Dermatology
+ea27,Cycle 2024-2025,Elie Alam,Otorhinolaryngology - Head and Neck Surgery,2374,9.03,,1/14/2020,"Otolaryngology, Head & Neck surgery"
+eb22,Cycle 2024-2025,Evelyne Baroud,Psychiatry,798,37.74,,9/20/2022,Psychiatry
+eb34,Cycle 2024-2025,Elie Bechara,Pediatrics and Adolescent Medicine,587,153.84,,12/21/2021,Pediatrics and Adolescent Medicine
+eg10,Cycle 2024-2025,Elias Ghossoub,Psychiatry,889,35.26,,9/1/2019,Psychiatry
+eh11,Cycle 2024-2025,Elie Hobeika,Obstetrics and Gynecology,973,26.7,,1/14/2014,Obstetrics and Gynecology
+es25,Cycle 2024-2025,Eman Sbaity,General Surgery,398,43.16,3,7/8/2014,Surgery
+fa02,Cycle 2024-2025,Firass Abiad,General Surgery,141,61.18,,7/1/2011,Surgery
+fbitar,Cycle 2024-2025,Fadi Bitar,Pediatrics and Adolescent Medicine,1576,204.25,,7/1/2012,Pediatrics and Adolescent Medicine
+fc24,Cycle 2024-2025,Fatme Charafeddine,Pediatrics and Adolescent Medicine,249,121.59,,11/12/2019,Pediatrics and Adolescent Medicine
+fd21,Cycle 2024-2025,Fady Daniel,Gastroenterology,1342,61.12,,12/1/2014,Internal Medicine
+fh16,Cycle 2024-2025,Fady Haddad,Vascular Surgery,1747,77.53,1,7/1/2011,Surgery
+fk01,Cycle 2024-2025,Faysal El- Kak,Obstetrics and Gynecology,129,26.6,,4/16/2013,Obstetrics and Gynecology
+fk30,Cycle 2024-2025,Firas Kreidieh,Hematology-Oncology,1636,42.95,1,9/12/2023,Internal Medicine
+fm38,Cycle 2024-2025,Fadi Maalouf,Psychiatry,1516,125.6,,7/1/2011,Psychiatry
+fm79,Cycle 2024-2025,Fawzi Maalouf,Pediatrics and Adolescent Medicine,787,30.25,,8/9/2017,Pediatrics and Adolescent Medicine
+fmourad,Cycle 2024-2025,Fadi Mourad,Gastroenterology,1571,43.58,,7/1/2011,Internal Medicine
+fs88,Cycle 2024-2025,Fadi Sawaya,Cardiology,2021,25.43,1,1/23/2017,Internal Medicine
+ft10,Cycle 2024-2025,Farid Talih,Psychiatry,2013,52.6,,7/1/2011,Psychiatry
+fz05,Cycle 2024-2025,Fuad Ziyadeh,Nephrology,32,28.05,,7/1/2011,Internal Medicine
+ga03,Cycle 2024-2025,Ghassan Al-Awar,Infectious Diseases,375,74.98,,7/1/2011,Internal Medicine
+ga17,Cycle 2024-2025,George Abi Saad,General Surgery,743,39.81,,7/1/2011,Surgery
+ga60,Cycle 2024-2025,Ghassan Abu-Sitta,Plastic Surgery,443,59.67,,7/1/2011,Surgery
+ga62,Cycle 2024-2025,Georges Assaf,Family Medicine,1339,36.1,,9/13/2017,Family Medicine
+ga66,Cycle 2024-2025,Gilbert Abou Dagher,Emergency Medicine,NULL,NULL,1,2/1/2012,Emergency Medicine
+gd15,Cycle 2024-2025,Gabriel Dunya,Otorhinolaryngology - Head and Neck Surgery,427,9.19,,4/16/2024,"Otolaryngology, Head & Neck surgery"
+gdbaibo,Cycle 2024-2025,Ghassan Dbaibo,Pediatrics and Adolescent Medicine,1606,71.47,3,7/1/2011,Pediatrics and Adolescent Medicine
+gf01,Cycle 2024-2025,Ghada El-Hajj Fuleihan,Endocrinology,8,33.17,,7/1/2011,Internal Medicine
+gg02,Cycle 2024-2025,Ghina Ghazeeri,Obstetrics and Gynecology,6904,80.2,1,7/1/2011,Obstetrics and Gynecology
+gi14,Cycle 2024-2025,Ghina Ismail,Psychiatry,305,57.86,,8/11/2014,Psychiatry
+gj15,Cycle 2024-2025,Georges Juvelekian,Pulmonary and Critical Care,343,41.33,,3/12/2024,Internal Medicine
+gk08,Cycle 2024-2025,Ghattas Khoury,General Surgery,72,82.64,,7/1/2011,Surgery
+gk44,Cycle 2024-2025,Ghassan Khairallah,Family Medicine,121,12.35,,8/15/2024,Family Medicine
+gm33,Cycle 2024-2025,Grace Maalouf,Family Medicine,1210,35.36,,7/1/2011,Family Medicine
+gskaf,Cycle 2024-2025,Ghassan Skaf,Neurosurgery,1233,78.72,2,7/1/2011,Surgery
+gz05,Cycle 2024-2025,George Zaytoun,Otorhinolaryngology - Head and Neck Surgery,3041,10.61,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+ha157,Cycle 2024-2025,Hazem Assi,Hematology-Oncology,1948,44.51,,6/9/2014,Internal Medicine
+hb93,Cycle 2024-2025,Hisham Bou Fakhreddine,Pulmonary and Critical Care,249,13.41,1,9/8/2020,Internal Medicine
+hd01,Cycle 2024-2025,Habib Dakik,Cardiology,1903,35.46,2,7/1/2011,Internal Medicine
+hd17,Cycle 2024-2025,Houssein Darwish,Neurosurgery,2578,74.8,1,3/1/2018,Surgery
+hd32,Cycle 2024-2025,Hassan Domiati,Neurology,1552,50.46,,7/13/2021,Neurology
+hm09,Cycle 2024-2025,Hicham Moukaddam,Diagnostic Radiology,NULL,NULL,1,2/14/2018,Diagnostic Radiology
+hm127,Cycle 2024-2025,Hiba Moukadem,Hematology-Oncology,1302,57.18,,6/18/2019,Internal Medicine
+hm95,Cycle 2024-2025,Hoda Metni Rafie,Dentofacial,653,21,,1/13/2015,Dentofacial Medicine
+hs06,Cycle 2024-2025,Haytham Salti,Vitreo-Retinal surgery,45,21.57,,7/1/2011,Surgery
+hs114,Cycle 2024-2025,Hala Ishak,Family Medicine,1649,27.05,,8/18/2020,Family Medicine
+ht31,Cycle 2024-2025,Hala Tfayli,Pediatrics and Adolescent Medicine,2844,78.19,,7/1/2011,Pediatrics and Adolescent Medicine
+ia41,Cycle 2024-2025,Iman Abou Dalle,Hematology-Oncology,762,54.9,3,9/16/2019,Internal Medicine
+ib08,Cycle 2024-2025,Imad Bou Akl,Pulmonary and Critical Care,1045,12.11,,7/1/2011,Internal Medicine
+in11,Cycle 2024-2025,Imad Nahl‚,Orthopaedic Surgery,882,41.9,1,7/9/2024,Surgery
+iu00,Cycle 2024-2025,Ihab Usta,Obstetrics and Gynecology,2075,30.65,1,7/1/2011,Obstetrics and Gynecology
+iuthman,Cycle 2024-2025,Imad Uthman,"Allergy, Immunology & Rheumatology",1883,23.05,,7/1/2011,Internal Medicine
+ja19,Cycle 2024-2025,Jaber Abbas,General Surgery,NULL,NULL,2,7/1/2011,Surgery
+ja46,Cycle 2024-2025,Jumana Antoun,Family Medicine,1654,41.35,,7/1/2011,Family Medicine
+ja58,Cycle 2024-2025,Jihane Abou Rahal,Dermatology,1208,48.3,,1/1/2017,Dermatology
+je46,Cycle 2024-2025,Jean El-Cheikh,Hematology-Oncology,1028,60.68,,4/23/2015,Internal Medicine
+jg03,Cycle 2024-2025,Joseph Ghafari,Dentofacial,4175,61.68,,7/1/2011,Dentofacial Medicine
+jg41,Cycle 2024-2025,Jeremiah Gendy,Corneal/Refractive Surgery,17,NULL,,8/1/2024,Surgery
+jh34,Cycle 2024-2025,Jamal Hoballah,Vascular Surgery,1178,83.48,,7/1/2011,Surgery
+jkhattar,Cycle 2024-2025,Joe Khattar,Family Medicine,1555,35.07,,7/1/2011,Family Medicine
+jm88,Cycle 2024-2025,Jihane Moukhaiber,Pediatrics and Adolescent Medicine,109,68.85,,7/13/2021,Pediatrics and Adolescent Medicine
+jr01,Cycle 2024-2025,Jibrail Razzouk,Family Medicine,1634,59.56,,7/1/2011,Family Medicine
+js62,Cycle 2024-2025,Joanna Saade,Ophthalmology,2566,53.17,,9/13/2017,Ophthalmology
+js73,Cycle 2024-2025,Johnny Salameh,Neurology,2,48,,10/13/2015,Neurology
+ju00,Cycle 2024-2025,Jinan Usta,Family Medicine,1096,51.28,,7/1/2011,Family Medicine
+kayunis,Cycle 2024-2025,Khalid Yunis,Pediatrics and Adolescent Medicine,625,60.21,,7/1/2011,Pediatrics and Adolescent Medicine
+kb02,Cycle 2024-2025,Kassem Barada,Gastroenterology,1064,62.64,,7/1/2011,Internal Medicine
+ke27,Cycle 2024-2025,Katia El Taoum,Pediatrics and Adolescent Medicine,NULL,44.42,,12/1/2017,Pediatrics and Adolescent Medicine
+kf19,Cycle 2024-2025,Karim Farah,Emergency Medicine,NULL,NULL,1,9/11/2012,Emergency Medicine
+kkaram,Cycle 2024-2025,Karam Karam,Obstetrics and Gynecology,219,58.58,1,7/1/2011,Obstetrics and Gynecology
+kt18,Cycle 2024-2025,Kristel Tabet,Dentofacial,220,105.5,,10/12/2021,Dentofacial Medicine
+kz12,Cycle 2024-2025,Kinan Zeno,Dentofacial,1098,63,,2/12/2019,Dentofacial Medicine
+la55,Cycle 2024-2025,Leyla Akoury-Dirani,Psychiatry,838,31.82,,7/1/2011,Psychiatry
+lc12,Cycle 2024-2025,Lama Charafeddine,Pediatrics and Adolescent Medicine,700,49.45,,7/1/2011,Pediatrics and Adolescent Medicine
+lf00,Cycle 2024-2025,Layla Farhood,Psychiatry,365,43.94,,7/1/2011,Psychiatry
+lh54,Cycle 2024-2025,Lara Hilal,Radiation Oncology ,254,39.47,,10/12/2021,Radiation Oncology 
+lh68,Cycle 2024-2025,Laith Haddad,Pediatrics and Adolescent Medicine,357,31.61,,9/12/2023,Pediatrics and Adolescent Medicine
+ma322,Cycle 2024-2025,Makram Ammoury,Dentofacial,542,NULL,,2/12/2019,Dentofacial Medicine
+ma56,Cycle 2024-2025,Miguel Abboud,Pediatrics and Adolescent Medicine,730,233.3,,7/1/2011,Pediatrics and Adolescent Medicine
+ma718,Cycle 2024-2025,Maher Abdessater,Urology,109,29.38,,11/1/2024,Surgery
+ma81,Cycle 2024-2025,Mariam Arabi,Pediatrics and Adolescent Medicine,1219,46.65,,7/1/2011,Pediatrics and Adolescent Medicine
+mb112,Cycle 2024-2025,Maya Bizri,Psychiatry,59,20.95,,2/20/2019,Psychiatry
+mb178,Cycle 2024-2025,Marc Barakat,Psychiatry,590,37.82,,6/14/2018,Psychiatry
+mb30,Cycle 2024-2025,Mohammad Bulbul,Urology,1,131,3,7/1/2011,Surgery
+mc39,Cycle 2024-2025,Marlene Chakhtoura,Endocrinology,1231,74.08,,7/20/2016,Internal Medicine
+md00,Cycle 2024-2025,Majida Daouk,Nephrology,378,32.06,1,7/1/2011,Internal Medicine
+me141,Cycle 2024-2025,Michelle El Chekie,Dentofacial,167,NULL,,12/21/2021,Dentofacial Medicine
+mg46,Cycle 2024-2025,Mario Ghanem,Family Medicine,1434,23.07,,7/1/2011,Family Medicine
+mh246,Cycle 2024-2025,Mona Hnaini,Pediatric Neurology,120,18.53,,2/21/2023,Neurology
+mh45,Cycle 2024-2025,Maher Hussein,General Surgery,NULL,NULL,1,7/1/2011,Surgery
+mi24,Cycle 2024-2025,Mohamad Itani,Dentofacial,73,8.5,,7/1/2011,Dentofacial Medicine
+mk04,Cycle 2024-2025,Maurice Khoury,Cardiology,1621,33.16,1,7/1/2011,Internal Medicine
+mk104,Cycle 2024-2025,Mazen Kurban,Dermatology,2550,23.77,,7/1/2011,Dermatology
+mk12,Cycle 2024-2025,Mohamad Khalifeh,General Surgery,1498,42.97,2,7/1/2011,Surgery
+ml16,Cycle 2024-2025,Mustapha El Lakis,General Surgery,576,37.74,,1/9/2024,Surgery
+mm116,Cycle 2024-2025,Mira Merashli,"Allergy, Immunology & Rheumatology",914,43.63,,9/16/2016,Internal Medicine
+mm128,Cycle 2024-2025,Marc Mourad,Otorhinolaryngology - Head and Neck Surgery,2342,12.63,,5/10/2022,"Otolaryngology, Head & Neck surgery"
+mn04,Cycle 2024-2025,Mona Nabulsi,Pediatrics and Adolescent Medicine,NULL,36.19,,7/1/2011,Pediatrics and Adolescent Medicine
+mn103,Cycle 2024-2025,Mohamad Nasser Eddine,Orthopaedic Surgery,2998,69.21,,2/1/2023,Surgery
+mn12,Cycle 2024-2025,Marwan Najjar,Neurosurgery,1644,62.14,2,7/1/2011,Surgery
+mn36,Cycle 2024-2025,Mona Nasrallah,Endocrinology,2002,48.36,,7/1/2011,Internal Medicine
+mn40,Cycle 2024-2025,Marianne Majdalani Nimah,Pediatrics and Adolescent Medicine,1376,23.24,,7/1/2011,Pediatrics and Adolescent Medicine
+mo08,Cycle 2024-2025,Mona Osman,Family Medicine,2449,24.26,,7/1/2011,Family Medicine
+mobeid,Cycle 2024-2025,Mounir Obeid,Cardiothoracic Surgery,54,199.23,,7/1/2011,Surgery
+mr39,Cycle 2024-2025,Maya Romani,Family Medicine,2322,63.62,,3/1/2012,Family Medicine
+mr48,Cycle 2024-2025,Marwan Refaat,Cardiology,1299,38.04,1,8/1/2012,Internal Medicine
+ms00,Cycle 2024-2025,Mahmoud Shoucair,Endocrinology,2892,47.05,,7/1/2011,Internal Medicine
+ms446,Cycle 2024-2025,Malek Safa,Hematology-Oncology,101,15.29,,10/1/2024,Internal Medicine
+mt123,Cycle 2024-2025,Maroon Tohmeh,General Surgery,31,19.31,,10/1/2024,Surgery
+na161,Cycle 2024-2025,Nada Afeiche,Orthodontics,5,NULL,,10/8/2013,Dentofacial Medicine
+na46,Cycle 2024-2025,Naji Abou Chebel,Dentofacial,90,NULL,,7/1/2011,Dentofacial Medicine
+nb24,Cycle 2024-2025,Nazem Bassil,General IM & Geriatrics,445,39.07,,9/14/2021,Internal Medicine
+nc16,Cycle 2024-2025,Nada Chedid,Dentofacial,65,19,,7/1/2011,Dentofacial Medicine
+nd55,Cycle 2024-2025,Nadia Tina Dandan,Psychiatry,610,38.92,,11/9/2021,Psychiatry
+ne06,Cycle 2024-2025,Nabil ElKhoury,Obstetrics and Gynecology,495,41.05,,5/10/2022,Obstetrics and Gynecology
+ne117,Cycle 2024-2025,Noelle El Asmar,Gastroenterology,476,53.84,,4/1/2022,Internal Medicine
+ne23,Cycle 2024-2025,Najla Lakkis,Family Medicine,1095,76.85,,7/1/2011,Family Medicine
+ne42,Cycle 2024-2025,Nabil El-Ayoubi,Neurology,1422,41.63,,7/11/2017,Neurology
+ngrubeiz,Cycle 2024-2025,Nelly Rubeiz,Dermatology,2990,30.12,,7/1/2011,Dermatology
+nk159,Cycle 2024-2025,Nadine Kamel,Dentofacial,1685,55.3,,6/14/2022,Dentofacial Medicine
+nm68,Cycle 2024-2025,Nisrine Makarem,Family Medicine,1730,36.74,,7/9/2013,Family Medicine
+nm90,Cycle 2024-2025,Nour Moukalled,Hematology-Oncology,983,49.55,,2/8/2022,Internal Medicine
+nr00,Cycle 2024-2025,Nesrine Rizk,Infectious Diseases,440,67.57,,7/1/2012,Internal Medicine
+ns01,Cycle 2024-2025,Nabil Sharara,Family Medicine,443,32.55,,7/1/2011,Family Medicine
+ns23,Cycle 2024-2025,Nagi El-Saghir,Hematology-Oncology,1435,70.75,1,7/1/2011,Internal Medicine
+ny12,Cycle 2024-2025,Nadine Yazbeck,Pediatrics and Adolescent Medicine,NULL,28.82,1,7/1/2011,Pediatrics and Adolescent Medicine
+ny31,Cycle 2024-2025,Nour Youssef,Pediatrics and Adolescent Medicine,NULL,57.94,,7/11/2023,Pediatrics
+oa09,Cycle 2024-2025,Ossama Abbas,Dermatology,1945,23.05,,7/1/2011,Dermatology
+pa10,Cycle 2024-2025,Patrick Anhoury,Dentofacial,130,NULL,,7/1/2011,Dentofacial Medicine
+pb05,Cycle 2024-2025,Pierre Bou Khalil,Pulmonary and Critical Care,851,12.33,1,7/1/2011,Internal Medicine
+pf09,Cycle 2024-2025,Pamela Farah,General IM & Geriatrics,42,24.62,,7/1/2022,Internal Medicine
+pk06,Cycle 2024-2025,Pascale Karam,Pediatrics and Adolescent Medicine,NULL,36.76,,7/1/2011,Pediatrics and Adolescent Medicine
+ps04,Cycle 2024-2025,Pierre Sfeir,Cardiothoracic Surgery,555,40.3,1,7/1/2011,Surgery
+ra102,Cycle 2024-2025,Reem Abdallah,Obstetrics and Gynecology,1646,45.62,2,8/20/2015,Obstetrics and Gynecology
+ra110,Cycle 2024-2025,Randa Barazi,Otorhinolaryngology - Head and Neck Surgery,2330,8.82,,9/1/2013,"Otolaryngology, Head & Neck surgery"
+ra169,Cycle 2024-2025,Ramzi Alameddine,Ophthalmology,2479,53.09,,8/18/2016,Ophthalmology
+rb148,Cycle 2024-2025,Raphah Borghol,Pediatrics and Adolescent Medicine,559,168.67,,7/13/2021,Pediatrics and Adolescent Medicine
+rb50,Cycle 2024-2025,Rose-Mary Boustany,Pediatrics and Adolescent Medicine,625,57.39,1,7/1/2011,Pediatrics and Adolescent Medicine
+re112,Cycle 2024-2025,Rachelle El Helou,Pediatrics and Adolescent Medicine,NULL,NULL,1,1/1/2018,Pediatrics
+rh00,Cycle 2024-2025,Rashid Haidar,Orthopaedic Surgery,6156,94.53,,7/1/2011,Surgery
+rh01,Cycle 2024-2025,Randa Haddad,Ophthalmology,2159,37.6,,7/1/2011,Ophthalmology
+rh08,Cycle 2024-2025,Rima Hanna Wakim,Pediatrics and Adolescent Medicine,1829,48.89,,7/1/2011,Pediatrics and Adolescent Medicine
+rh110,Cycle 2024-2025,Ramzi Hajjar,General IM & Geriatrics,176,44.48,3,7/1/2011,Internal Medicine
+rh46,Cycle 2024-2025,Rola Hamam,Ophthalmology,2529,78.19,2,7/1/2011,Ophthalmology
+rh52,Cycle 2024-2025,Ramzi Haddad,Dentofacial,2512,364.53,,7/1/2011,Dentofacial Medicine
+rk224,Cycle 2024-2025,Rita Khoury,Psychiatry,965,51.69,,9/20/2022,Psychiatry
+rk244,Cycle 2024-2025,Rida Kassem,Orthopaedic Surgery,763,15.5,,NULL,Surgery
+rkhauli,Cycle 2024-2025,Raja Khauli,Urology,1318,46.99,,7/1/2011,Surgery
+rn05,Cycle 2024-2025,Rami Nasr,Urology,2654,38.31,2,7/1/2011,Surgery
+rn76,Cycle 2024-2025,Rakan Nassereldine,Vascular Surgery,731,90.08,,11/9/2021,Surgery
+rs01,Cycle 2024-2025,Raja Sawaya,Neurology,3313,55.84,1,7/1/2011,Neurology
+rs17,Cycle 2024-2025,Roger Sfeir,Vascular Surgery,230,40.5,,7/1/2011,Surgery
+ry30,Cycle 2024-2025,Rana Yamout,General IM & Geriatrics,90,48.89,2,6/14/2018,Internal Medicine
+rz24,Cycle 2024-2025,Randa Zeidan,Family Medicine,2387,28.76,,7/1/2011,Family Medicine
+sa11,Cycle 2024-2025,Shady Awwad,Ophthalmology,3994,89.72,,7/1/2011,Ophthalmology
+sa223,Cycle 2024-2025,Sandrine Atallah,Obstetrics and Gynecology,69,NULL,,4/15/2016,Ob/Gyn
+sa37,Cycle 2024-2025,Samir Akel,Pediatric Surgery Service,636,80.15,1,7/1/2011,Surgery
+salam,Cycle 2024-2025,Samir Alam,Cardiology,1487,18.6,,7/1/2011,Internal Medicine
+sarnaout,Cycle 2024-2025,Mohamad Samir Arnaout,Cardiology,953,19.23,,7/1/2011,Internal Medicine
+sb60,Cycle 2024-2025,Samia Badr,Family Medicine,1811,25.09,,7/1/2011,Family Medicine
+sd08,Cycle 2024-2025,Samer Dibe,General Surgery,1229,31.68,1,11/1/2012,Surgery
+sd65,Cycle 2024-2025,Samer Doughan,General Surgery,2376,61.41,3,3/5/2015,Surgery
+sfatweh,Cycle 2024-2025,Samir Atweh,Neurology,1398,41.2,,7/1/2011,Neurology
+sg29,Cycle 2024-2025,Saro Ghougassian,Dentofacial,355,NULL,,7/1/2011,Dentofacial Medicine
+sh95,Cycle 2024-2025,Sani Hlais,Family Medicine,1594,44.33,,7/1/2011,Family Medicine
+sk11,Cycle 2024-2025,Souha Kanj-Sharara,Infectious Diseases,974,45.96,,7/1/2011,Internal Medicine
+sk159,Cycle 2024-2025,Sarah Khafaja,Pediatric Infectious Diseases,9,23.33,,9/12/2023,Internal Medicine
+sk205,Cycle 2024-2025,Simone Khalifeh,Pediatrics and Adolescent Medicine,395,49.76,,5/10/2022,Pediatrics and Adolescent Medicine
+sk88,Cycle 2024-2025,Samia Khoury,Neurology,595,12.45,,7/1/2011,Neurology
+sl03,Cycle 2024-2025,Suhayl Lakkis,Orthopaedic Surgery,NULL,NULL,1,7/1/2011,Surgery
+sm03,Cycle 2024-2025,Samar Muwakkit,Pediatrics and Adolescent Medicine,454,129.81,,7/1/2011,Pediatrics and Adolescent Medicine
+sm04,Cycle 2024-2025,Sami Moukheiber,Family Medicine,713,52.51,1,7/1/2011,Family Medicine
+sm104,Cycle 2024-2025,Samir Mallat,Nephrology,2233,42.55,,7/1/2011,Internal Medicine
+smroueh,Cycle 2024-2025,Salman Mroueh,Pediatrics and Adolescent Medicine,NULL,21.31,,7/1/2011,Pediatrics and Adolescent Medicine
+sr55,Cycle 2024-2025,Salim Rahhal,General Surgery,64,43.08,,4/13/2021,Surgery
+ss15,Cycle 2024-2025,Said Saghieh,Orthopaedic Surgery,4222,44.28,1,7/1/2011,Surgery
+ss19,Cycle 2024-2025,Sami Sanjad,Pediatric Nephrology,NULL,32.16,,7/1/2011,Internal Medicine
+st29,Cycle 2024-2025,Sally Temraz,Hematology-Oncology,1753,49.55,1,7/1/2011,Internal Medicine
+sz01,Cycle 2024-2025,Salah Zeineldine,Pulmonary and Critical Care,1037,19.53,,7/1/2011,Internal Medicine
+tb14,Cycle 2024-2025,Tony Bazi,Obstetrics and Gynecology,689,27.37,,7/1/2011,Obstetrics and Gynecology
+te04,Cycle 2024-2025,Toufic Eid,Radiation Oncology ,641,46.56,,7/1/2011,Radiation Oncology 
+th44,Cycle 2024-2025,Tarek El Halabi,Neurology,1070,50.07,,7/1/2022,Neurology
+ts18,Cycle 2024-2025,Tarek Sunna,Neurosurgery,42,65.75,,7/1/2018,Surgery
+um00,Cycle 2024-2025,Umayya Musharafieh,Family Medicine,1198,64.46,,7/1/2011,Family Medicine
+vm01,Cycle 2024-2025,Vicky Massoud,Oculoplastics/Orbital/Lacrimal surgery,182,20.98,,10/13/2015,Surgery
+vm03,Cycle 2024-2025,Vicky Massoud,Ophthalmology,26,26.2,,NULL,Ophthalmology
+wajdik,Cycle 2024-2025,Wajdi Khaddaj,Family Medicine,2435,43.43,2,7/1/2011,Family Medicine
+wchalhoub,Cycle 2024-2025,Wissam Chalhoub,Family Medicine,1218,27.4,1,11/11/2014,Family Medicine
+wk40,Cycle 2024-2025,Wajiha Jurdi Kheir,Ophthalmology,2832,78.47,,9/1/2019,Ophthalmology
+wm00,Cycle 2024-2025,Walid Medawar,Nephrology,3795,26.9,1,7/1/2011,Internal Medicine
+wn13,Cycle 2024-2025,Wassim Nasreddine,Neurology,1085,33.16,,1/8/2013,Neurology
+ws11,Cycle 2024-2025,Wael Shamseddeen,Psychiatry,1779,50.36,,10/18/2017,Psychiatry
+yb11,Cycle 2024-2025,Youssef Bakhach,Plastic Surgery,774,62.83,5,2/6/2012,Surgery
+yh00,Cycle 2024-2025,Yusef Hazimeh,Endocrinology,1482,54.21,,7/1/2024,Internal Medicine
+yj10,Cycle 2024-2025,Yehya Jassar,Cardiothoracic Surgery,10,6,,11/9/2021,Surgery
+yp00,Cycle 2024-2025,Yasmine Papas,General Surgery,198,27.96,,7/9/2024,Surgery
+ys22,Cycle 2024-2025,Yasser Shaib,Gastroenterology,777,45.37,1,5/21/2015,Internal Medicine
+za47,Cycle 2024-2025,Zeina Ayoub,Radiation Oncology ,703,59.79,,4/12/2018,Radiation Oncology 
+zb00,Cycle 2024-2025,Ziad Bashshur,Ophthalmology,3360,103.65,,7/1/2011,Ophthalmology
+zb21,Cycle 2024-2025,Ziad Bulbul,Pediatrics and Adolescent Medicine,532,67.56,,10/2/2015,Pediatrics and Adolescent Medicine
+zc27,Cycle 2024-2025,Zeina El Chemali,Neurology,42,20.63,,5/9/2023,Neurology
+zg08,Cycle 2024-2025,Ziyad Ghazzal,Cardiology,628,34.86,,7/1/2011,Internal Medicine
+zk10,Cycle 2024-2025,Zeina Kanafani,Infectious Diseases,273,81.19,1,7/1/2011,Internal Medicine
+zk27,Cycle 2024-2025,Zeina Korban,Otorhinolaryngology - Head and Neck Surgery,3592,11.3,,11/17/2016,"Otolaryngology, Head & Neck surgery"
+zt01,Cycle 2024-2025,Zuhayr Tabbarah,Infectious Diseases,NULL,NULL,2,7/1/2011,Internal Medicine
