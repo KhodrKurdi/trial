@@ -197,8 +197,21 @@ def clean_question_col(col):
     if c.startswith("Fillout Date"): return "fillout_date"
     if c.startswith("Q2_Comments"):  return "comments"
     if not c.startswith("Q1_"):      return c
+    # Normalize newlines that BLUE Explorance embeds in column headers
+    c = re.sub(r"[\r\n]+", " ", c)
+    c = re.sub(r"\s+", " ", c).strip()
     m = re.search(r"_(.*?)_First Scale", c)
-    core = m.group(1) if m else c
+    if not m:
+        core = c
+    else:
+        full = m.group(1).strip()
+        # Strip BLUE Explorance form header: everything up to and including ], MD or [S$LN]
+        cleaned = re.sub(r"^.*?\[S\$LN\],?\s*(?:MD)?\s*_?\s*", "", full).strip().strip("_").strip()
+        core = cleaned if cleaned else full
+    # If it's a long sentence, take first 7 words for the key
+    words = core.split()
+    if len(words) > 7:
+        core = " ".join(words[:7]).rstrip(".,;:")
     core = core.lower()
     core = re.sub(r"[^a-z0-9]+", "_", core).strip("_")
     return f"q_{core}"
@@ -207,6 +220,12 @@ def clean_headers(df):
     df = df.copy()
     df.columns = [clean_question_col(c) for c in df.columns]
     return df
+
+def q_display_label(q_key):
+    """Convert q_ snake_case key to a readable display label for charts."""
+    label = q_key.replace("q_", "").replace("_", " ").title()
+    # Truncate to ~40 chars for chart readability
+    return label[:42] + "…" if len(label) > 42 else label
 
 def map_ratings(df):
     df = df.copy()
@@ -1795,7 +1814,7 @@ with tab5:
             if q_cols_all:
                 q_rows = []
                 for q in q_cols_all:
-                    row = {"Question": q.replace("q_","").replace("_"," ").title()}
+                    row = {"Question": q_display_label(q)}
                     for yr in years_avail:
                         yr_df_q = raw_d[raw_d["year"] == yr]
                         if "raters_group" in yr_df_q.columns:
@@ -2085,7 +2104,7 @@ with tab5:
                     if q_cols_p and selected_phys:
                         phys_q_rows = []
                         for q in q_cols_p:
-                            row_q = {"Question": q.replace("q_","").replace("_"," ").title()}
+                            row_q = {"Question": q_display_label(q)}
                             for yr in years_avail:
                                 yr_phys_df = raw_d[(raw_d["physician_id"]==selected_phys) & (raw_d["year"]==yr)]
                                 if "raters_group" in yr_phys_df.columns:
