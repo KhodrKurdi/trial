@@ -1465,6 +1465,100 @@ with tab4:
                 <div class="metric-value">{empty_count:,}</div>
                 <div class="metric-sub">{empty_pct:.1f}% — no response provided</div>
             </div>''', unsafe_allow_html=True)
+
+        # ── Before vs After filtering chart ───────────────────────────────────
+        st.markdown("<br>", unsafe_allow_html=True)
+        with st.expander("📊 Before vs After Filtering — Raw Sentiment Distribution", expanded=False):
+            st.markdown("Sentiment scored on **all** comments including no-contact and empty ones, before any filtering was applied.")
+
+            # Score raw comments with VADER (include no-info ones)
+            all_sent_unfiltered = all_sent_raw[
+                all_sent_raw["comments"].notna() &
+                (all_sent_raw["comments"].astype(str).str.strip() != "")
+            ].copy()
+
+            if not all_sent_unfiltered.empty and "compound" not in all_sent_unfiltered.columns:
+                results_raw = all_sent_unfiltered["comments"].astype(str).apply(
+                    lambda t: score_vader(t)
+                )
+                all_sent_unfiltered = pd.concat(
+                    [all_sent_unfiltered, pd.DataFrame(results_raw.tolist(), index=all_sent_unfiltered.index)],
+                    axis=1
+                )
+            elif "compound" not in all_sent_unfiltered.columns:
+                all_sent_unfiltered["sentiment"] = "NEUTRAL"
+
+            if not all_sent_unfiltered.empty and "sentiment" in all_sent_unfiltered.columns:
+                total_raw_s = len(all_sent_unfiltered)
+                neg_raw = (all_sent_unfiltered["sentiment"] == "NEGATIVE").sum()
+                pos_raw = (all_sent_unfiltered["sentiment"] == "POSITIVE").sum()
+                neu_raw = (all_sent_unfiltered["sentiment"] == "NEUTRAL").sum()
+
+                # After filtering (meaningful only)
+                all_sent_temp = all_sent_raw[~no_info_mask & ~empty_mask].copy()
+                total_clean_s = len(all_sent_temp)
+
+                fig_bva, (ax_b, ax_a) = plt.subplots(1, 2, figsize=(10, 4))
+                cats  = ["Negative", "Neutral", "Positive"]
+                cols  = ["#e53e3e", "#9ca3af", "#38a169"]
+
+                # Before
+                before_vals = [
+                    neg_raw / total_raw_s * 100 if total_raw_s > 0 else 0,
+                    neu_raw / total_raw_s * 100 if total_raw_s > 0 else 0,
+                    pos_raw / total_raw_s * 100 if total_raw_s > 0 else 0,
+                ]
+                bars_b = ax_b.bar(cats, before_vals, color=cols, alpha=0.85, edgecolor="white", linewidth=1.5, width=0.5)
+                for bar, val in zip(bars_b, before_vals):
+                    ax_b.text(bar.get_x()+bar.get_width()/2, bar.get_height()+0.5, f"{val:.1f}%",
+                              ha="center", fontsize=11, fontweight="700", color="#1a365d")
+                ax_b.set_title(f"BEFORE Filtering\n({total_raw_s:,} non-empty comments)", fontsize=11, fontweight="bold", color="#1a365d")
+                ax_b.set_ylabel("% of Comments", fontsize=10)
+                ax_b.set_ylim(0, max(before_vals) * 1.25 + 5)
+                ax_b.grid(axis="y", alpha=0.3, linestyle="--")
+                ax_b.set_facecolor("white"); fig_bva.patch.set_facecolor("white")
+                ax_b.spines["top"].set_visible(False); ax_b.spines["right"].set_visible(False)
+
+                # After — use already-scored meaningful comments
+                if "sentiment" in all_sent_raw.columns:
+                    sent_clean = all_sent_raw[~no_info_mask & ~empty_mask]
+                    neg_clean = (sent_clean["sentiment"] == "NEGATIVE").sum()
+                    pos_clean = (sent_clean["sentiment"] == "POSITIVE").sum()
+                    neu_clean = (sent_clean["sentiment"] == "NEUTRAL").sum()
+                else:
+                    neg_clean = pos_clean = neu_clean = 0
+
+                after_vals = [
+                    neg_clean / total_clean_s * 100 if total_clean_s > 0 else 0,
+                    neu_clean / total_clean_s * 100 if total_clean_s > 0 else 0,
+                    pos_clean / total_clean_s * 100 if total_clean_s > 0 else 0,
+                ]
+                bars_a = ax_a.bar(cats, after_vals, color=cols, alpha=0.85, edgecolor="white", linewidth=1.5, width=0.5)
+                for bar, val in zip(bars_a, after_vals):
+                    ax_a.text(bar.get_x()+bar.get_width()/2, bar.get_height()+0.5, f"{val:.1f}%",
+                              ha="center", fontsize=11, fontweight="700", color="#1a365d")
+                ax_a.set_title(f"AFTER Filtering\n({total_clean_s:,} meaningful comments)", fontsize=11, fontweight="bold", color="#1a365d")
+                ax_a.set_ylabel("% of Comments", fontsize=10)
+                ax_a.set_ylim(0, max(after_vals) * 1.25 + 5)
+                ax_a.grid(axis="y", alpha=0.3, linestyle="--")
+                ax_a.set_facecolor("white")
+                ax_a.spines["top"].set_visible(False); ax_a.spines["right"].set_visible(False)
+
+                plt.tight_layout()
+                st.pyplot(fig_bva, use_container_width=True)
+                plt.close()
+
+                # Summary comparison table
+                comp_df = pd.DataFrame({
+                    "Category":        ["Negative", "Neutral", "Positive"],
+                    "Before (%)":      [f"{v:.1f}%" for v in before_vals],
+                    "After (%)":       [f"{v:.1f}%" for v in after_vals],
+                    "Difference":      [f"{a-b:+.1f}pp" for b, a in zip(before_vals, after_vals)],
+                })
+                st.dataframe(comp_df, use_container_width=True, hide_index=True)
+
+                st.caption(f"Filtering removed {no_info_count:,} no-contact comments ({no_info_pct:.1f}%) and {empty_count:,} empty fields ({empty_pct:.1f}%) before VADER scoring.")
+
         st.markdown("<br>", unsafe_allow_html=True)
 
         # Filter noise comments for sentiment analysis
