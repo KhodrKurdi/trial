@@ -188,7 +188,9 @@ RATING_SCALE = {
 def clean_question_col(col):
     if not isinstance(col, str): return col
     c = col.strip()
-    c = (c.replace("â€™","'").replace("â€¦","...").replace("\r"," ").replace("\n"," "))
+    # Normalize ALL whitespace and encoding first — must happen before Q1_ check
+    c = c.replace("\r\n"," ").replace("\r"," ").replace("\n"," ")
+    c = c.replace("â€™","'").replace("â€¦","...")
     c = re.sub(r"\s+", " ", c).strip()
     if c == "Subject ID":            return "physician_id"
     if c == "Raters Group":          return "raters_group"
@@ -197,21 +199,18 @@ def clean_question_col(col):
     if c.startswith("Fillout Date"): return "fillout_date"
     if c.startswith("Q2_Comments"):  return "comments"
     if not c.startswith("Q1_"):      return c
-    # Normalize newlines that BLUE Explorance embeds in column headers
-    c = re.sub(r"[\r\n]+", " ", c)
-    c = re.sub(r"\s+", " ", c).strip()
     m = re.search(r"_(.*?)_First Scale", c)
     if not m:
         core = c
     else:
         full = m.group(1).strip()
-        # Strip BLUE Explorance form header: everything up to and including ], MD or [S$LN]
+        # Strip BLUE Explorance form header containing [S$FN]/[S$LN] placeholders
         cleaned = re.sub(r"^.*?\[S\$LN\],?\s*(?:MD)?\s*_?\s*", "", full).strip().strip("_").strip()
         core = cleaned if cleaned else full
-    # If it's a long sentence, take first 7 words for the key
+    # For long sentence questions, use first 6 words as key
     words = core.split()
-    if len(words) > 7:
-        core = " ".join(words[:7]).rstrip(".,;:")
+    if len(words) > 6:
+        core = " ".join(words[:6]).rstrip(".,;:(")
     core = core.lower()
     core = re.sub(r"[^a-z0-9]+", "_", core).strip("_")
     return f"q_{core}"
@@ -224,8 +223,18 @@ def clean_headers(df):
 def q_display_label(q_key):
     """Convert q_ snake_case key to a readable display label for charts."""
     label = q_key.replace("q_", "").replace("_", " ").title()
-    # Truncate to ~40 chars for chart readability
-    return label[:42] + "…" if len(label) > 42 else label
+    return label[:52] + "…" if len(label) > 52 else label
+
+def q_full_label(col_raw):
+    """Extract full question sentence from raw BLUE Explorance column header."""
+    import re as _re
+    c = col_raw.strip().replace("\r\n"," ").replace("\r"," ").replace("\n"," ")
+    c = _re.sub(r"\s+", " ", c).strip()
+    m = _re.search(r"_(.*?)_First Scale", c)
+    if not m: return col_raw
+    full = m.group(1).strip()
+    cleaned = _re.sub(r"^.*?\[S\$LN\],?\s*(?:MD)?\s*_?\s*", "", full).strip().strip("_").strip()
+    return cleaned if cleaned else full
 
 def map_ratings(df):
     df = df.copy()
@@ -562,7 +571,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.4"):
+def load_from_github(urls, min_f, threshold, _version="v5.5"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -608,7 +617,7 @@ with st.spinner("Loading data from GitHub and running VADER sentiment analysis..
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.4"
+        _version="v5.5"
     )
 
 # Build combined physician table from available departments
@@ -1814,7 +1823,7 @@ with tab5:
             if q_cols_all:
                 q_rows = []
                 for q in q_cols_all:
-                    row = {"Question": q_display_label(q)}
+                    row = {"Question": q_display_label(q), "_full": q_full_label(q)}
                     for yr in years_avail:
                         yr_df_q = raw_d[raw_d["year"] == yr]
                         if "raters_group" in yr_df_q.columns:
@@ -2104,7 +2113,7 @@ with tab5:
                     if q_cols_p and selected_phys:
                         phys_q_rows = []
                         for q in q_cols_p:
-                            row_q = {"Question": q_display_label(q)}
+                            row_q = {"Question": q_display_label(q), "_full": q_full_label(q)}
                             for yr in years_avail:
                                 yr_phys_df = raw_d[(raw_d["physician_id"]==selected_phys) & (raw_d["year"]==yr)]
                                 if "raters_group" in yr_phys_df.columns:
@@ -2314,7 +2323,7 @@ with tab6:
     st.markdown('<div class="section-header">🏢 Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.4"):
+    def load_indicators(url, _version="v5.5"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2341,7 +2350,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.4")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.5")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -2832,7 +2841,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.4") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.5") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
