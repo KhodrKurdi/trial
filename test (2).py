@@ -1398,9 +1398,49 @@ with tab4:
     if not sent_frames:
         st.info("No comment data available. Upload behaviour survey CSVs to enable sentiment analysis.")
     else:
-        all_sent = pd.concat(sent_frames, ignore_index=True)
-        # Filter noise comments from display
-        all_sent = all_sent[~all_sent["comments"].astype(str).apply(_is_no_info)].copy()
+        all_sent_raw = pd.concat(sent_frames, ignore_index=True)
+
+        # ── No-comment / no-meaningful-comment stats ──────────────────────────
+        total_raw_comments   = len(all_sent_raw)
+        no_info_mask         = all_sent_raw["comments"].astype(str).apply(_is_no_info)
+        empty_mask           = all_sent_raw["comments"].isna() | (all_sent_raw["comments"].astype(str).str.strip() == "")
+        no_info_count        = no_info_mask.sum()
+        empty_count          = empty_mask.sum()
+        meaningful_count     = (~no_info_mask & ~empty_mask).sum()
+        no_info_pct          = no_info_count / total_raw_comments * 100 if total_raw_comments > 0 else 0
+        empty_pct            = empty_count  / total_raw_comments * 100 if total_raw_comments > 0 else 0
+        meaningful_pct       = meaningful_count / total_raw_comments * 100 if total_raw_comments > 0 else 0
+
+        st.markdown('<div class="section-header">📊 Comment Coverage Overview</div>', unsafe_allow_html=True)
+        cov1, cov2, cov3, cov4 = st.columns(4)
+        with cov1:
+            st.markdown(f'''<div class="metric-card neutral">
+                <div class="metric-label">Total Comment Fields</div>
+                <div class="metric-value">{total_raw_comments:,}</div>
+                <div class="metric-sub">all survey responses</div>
+            </div>''', unsafe_allow_html=True)
+        with cov2:
+            st.markdown(f'''<div class="metric-card success">
+                <div class="metric-label">Meaningful Comments</div>
+                <div class="metric-value">{meaningful_count:,}</div>
+                <div class="metric-sub">{meaningful_pct:.1f}% — scored by VADER</div>
+            </div>''', unsafe_allow_html=True)
+        with cov3:
+            st.markdown(f'''<div class="metric-card warning">
+                <div class="metric-label">No-Contact Comments</div>
+                <div class="metric-value">{no_info_count:,}</div>
+                <div class="metric-sub">{no_info_pct:.1f}% — e.g. "N/A", "Not working with"</div>
+            </div>''', unsafe_allow_html=True)
+        with cov4:
+            st.markdown(f'''<div class="metric-card neutral">
+                <div class="metric-label">Empty / Blank</div>
+                <div class="metric-value">{empty_count:,}</div>
+                <div class="metric-sub">{empty_pct:.1f}% — no response provided</div>
+            </div>''', unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Filter noise comments for sentiment analysis
+        all_sent = all_sent_raw[~no_info_mask & ~empty_mask].copy()
 
         # Project + Department + Division filters
         t4f1, t4f2, t4f3 = st.columns(3)
@@ -1748,6 +1788,57 @@ with tab5:
             st.markdown("**Year-over-Year Summary Table**")
             st.dataframe(trend_df, use_container_width=True, hide_index=True)
 
+            # ── Question-by-Question Analysis ────────────────────────────────
+            st.markdown("---")
+            st.markdown('<div class="section-header">📝 Question-by-Question Analysis</div>', unsafe_allow_html=True)
+            q_cols_all = [c for c in raw_d.columns if c.startswith("q_")]
+            if q_cols_all:
+                q_rows = []
+                for q in q_cols_all:
+                    row = {"Question": q.replace("q_","").replace("_"," ").title()}
+                    for yr in years_avail:
+                        yr_df_q = raw_d[raw_d["year"] == yr]
+                        if "raters_group" in yr_df_q.columns:
+                            yr_df_q = yr_df_q[yr_df_q["raters_group"] != "Faculty Self-Evaluation"]
+                        vals = pd.to_numeric(yr_df_q[q], errors="coerce").dropna()
+                        row[str(yr)] = round(vals.mean(), 3) if len(vals) > 0 else np.nan
+                    yr_vals_q = [row[str(y)] for y in years_avail if not pd.isna(row.get(str(y), np.nan))]
+                    row["Trend"] = (f"▲ {yr_vals_q[-1]-yr_vals_q[0]:+.3f}" if len(yr_vals_q)>=2 and yr_vals_q[-1]>yr_vals_q[0]
+                                   else f"▼ {yr_vals_q[-1]-yr_vals_q[0]:+.3f}" if len(yr_vals_q)>=2 and yr_vals_q[-1]<yr_vals_q[0]
+                                   else "—")
+                    q_rows.append(row)
+                q_df = pd.DataFrame(q_rows).sort_values(str(years_avail[-1]) if years_avail else "Question")
+
+                # Heatmap-style bar chart per question
+                fig_q, ax_q = plt.subplots(figsize=(10, max(4, len(q_cols_all)*0.45)))
+                x_q = np.arange(len(q_rows))
+                width_q = 0.8 / max(len(years_avail),1)
+                colors_q = ["#2b7bc8","#6366f1","#38a169"]
+                for i, yr in enumerate(years_avail):
+                    vals_q = [r.get(str(yr), np.nan) for r in q_rows]
+                    bars_q = ax_q.barh(
+                        x_q - (len(years_avail)-1)*width_q/2 + i*width_q,
+                        vals_q, height=width_q*0.85,
+                        color=colors_q[i % len(colors_q)], alpha=0.85, label=str(yr)
+                    )
+                ax_q.set_yticks(x_q)
+                ax_q.set_yticklabels([r["Question"] for r in q_rows], fontsize=9)
+                ax_q.set_xlabel("Average Score (0–4)", fontsize=10, color="#64748b")
+                ax_q.set_title(f"{trend_dept} — Average Score per Question by Year", fontsize=11, fontweight="bold", color="#1a365d")
+                ax_q.axvline(3.0, color="#f59e0b", linestyle="--", linewidth=1, alpha=0.6, label="Score 3.0")
+                ax_q.set_xlim(0, 4.2)
+                ax_q.legend(fontsize=9, loc="lower right")
+                ax_q.grid(axis="x", alpha=0.25, linestyle="--")
+                ax_q.set_facecolor("white"); fig_q.patch.set_facecolor("white")
+                plt.tight_layout()
+                st.pyplot(fig_q, use_container_width=True)
+                plt.close()
+
+                st.markdown("**Question Averages by Year**")
+                st.dataframe(q_df.reset_index(drop=True), use_container_width=True, hide_index=True,
+                    column_config={str(yr): st.column_config.ProgressColumn(
+                        str(yr), min_value=0, max_value=4, format="%.3f") for yr in years_avail})
+
         # ── INDIVIDUAL PHYSICIAN VIEW ─────────────────────────────────────────
         else:
             phys_raw = raw_d[raw_d["physician_id"] == selected_phys].copy()
@@ -1986,6 +2077,85 @@ with tab5:
                         {**yr_fmt, "Overall Avg": lambda x: f"{x:.3f}" if pd.notna(x) else "—"}
                     )
                     st.dataframe(styled, use_container_width=True, hide_index=True)
+
+                    # ── Question-by-Question for this physician ───────────────
+                    st.markdown("---")
+                    st.markdown('<div class="section-header">📝 Question-by-Question Analysis</div>', unsafe_allow_html=True)
+                    q_cols_p = [c for c in raw_d.columns if c.startswith("q_")]
+                    if q_cols_p and selected_phys:
+                        phys_q_rows = []
+                        for q in q_cols_p:
+                            row_q = {"Question": q.replace("q_","").replace("_"," ").title()}
+                            for yr in years_avail:
+                                yr_phys_df = raw_d[(raw_d["physician_id"]==selected_phys) & (raw_d["year"]==yr)]
+                                if "raters_group" in yr_phys_df.columns:
+                                    yr_phys_df = yr_phys_df[yr_phys_df["raters_group"] != "Faculty Self-Evaluation"]
+                                vals_p = pd.to_numeric(yr_phys_df[q], errors="coerce").dropna()
+                                row_q[str(yr)] = round(vals_p.mean(), 3) if len(vals_p) > 0 else np.nan
+                                # Department avg for this question this year
+                                yr_all_df = raw_d[raw_d["year"]==yr]
+                                if "raters_group" in yr_all_df.columns:
+                                    yr_all_df = yr_all_df[yr_all_df["raters_group"] != "Faculty Self-Evaluation"]
+                                dept_vals = pd.to_numeric(yr_all_df[q], errors="coerce").dropna()
+                                row_q[f"Dept {yr}"] = round(dept_vals.mean(), 3) if len(dept_vals) > 0 else np.nan
+                            yr_vals_p = [row_q[str(y)] for y in years_avail if not pd.isna(row_q.get(str(y), np.nan))]
+                            row_q["Trend"] = (f"▲ {yr_vals_p[-1]-yr_vals_p[0]:+.3f}" if len(yr_vals_p)>=2 and yr_vals_p[-1]>yr_vals_p[0]
+                                             else f"▼ {yr_vals_p[-1]-yr_vals_p[0]:+.3f}" if len(yr_vals_p)>=2 and yr_vals_p[-1]<yr_vals_p[0]
+                                             else "—")
+                            phys_q_rows.append(row_q)
+
+                        # Grouped bar: physician vs dept per question per year
+                        fig_pq, ax_pq = plt.subplots(figsize=(10, max(4, len(q_cols_p)*0.5)))
+                        x_pq = np.arange(len(phys_q_rows))
+                        bar_w = 0.35
+                        colors_pq = {"phys": "#2b7bc8", "dept": "#e2e8f0"}
+                        # Use last available year for comparison
+                        last_yr = years_avail[-1]
+                        phys_vals_pq = [r.get(str(last_yr), np.nan) for r in phys_q_rows]
+                        dept_vals_pq = [r.get(f"Dept {last_yr}", np.nan) for r in phys_q_rows]
+                        ax_pq.barh(x_pq + bar_w/2, phys_vals_pq, height=bar_w, color="#2b7bc8", alpha=0.9, label=f"{selected_phys} ({last_yr})")
+                        ax_pq.barh(x_pq - bar_w/2, dept_vals_pq, height=bar_w, color="#94a3b8", alpha=0.7, label=f"Dept Avg ({last_yr})")
+                        ax_pq.set_yticks(x_pq)
+                        ax_pq.set_yticklabels([r["Question"] for r in phys_q_rows], fontsize=9)
+                        ax_pq.set_xlabel("Average Score (0–4)", fontsize=10, color="#64748b")
+                        ax_pq.set_title(f"{selected_phys} — Question Scores vs. Department Average ({last_yr})", fontsize=11, fontweight="bold", color="#1a365d")
+                        ax_pq.set_xlim(0, 4.4)
+                        ax_pq.axvline(3.0, color="#f59e0b", linestyle="--", linewidth=1, alpha=0.6, label="Score 3.0")
+                        ax_pq.legend(fontsize=9, loc="lower right")
+                        ax_pq.grid(axis="x", alpha=0.25, linestyle="--")
+                        ax_pq.set_facecolor("white"); fig_pq.patch.set_facecolor("white")
+                        plt.tight_layout()
+                        st.pyplot(fig_pq, use_container_width=True)
+                        plt.close()
+
+                        # Trend line chart per question (physician only)
+                        if len(years_avail) >= 2:
+                            fig_qt, ax_qt = plt.subplots(figsize=(10, max(4, len(q_cols_p)*0.4)))
+                            cmap = plt.cm.get_cmap("tab10", len(phys_q_rows))
+                            for i, row_q in enumerate(phys_q_rows):
+                                yr_scores_q = [(yr, row_q[str(yr)]) for yr in years_avail if not pd.isna(row_q.get(str(yr), np.nan))]
+                                if len(yr_scores_q) >= 2:
+                                    xs, ys = zip(*yr_scores_q)
+                                    ax_qt.plot(xs, ys, marker="o", linewidth=1.5, markersize=5,
+                                               color=cmap(i), label=row_q["Question"], alpha=0.85)
+                            ax_qt.set_xticks(years_avail)
+                            ax_qt.set_xlabel("Year", fontsize=10)
+                            ax_qt.set_ylabel("Avg Score (0–4)", fontsize=10)
+                            ax_qt.set_title(f"{selected_phys} — Question Score Trends Over Time", fontsize=11, fontweight="bold", color="#1a365d")
+                            ax_qt.legend(fontsize=7, bbox_to_anchor=(1.01, 1), loc="upper left")
+                            ax_qt.set_ylim(0, 4.2)
+                            ax_qt.grid(alpha=0.25, linestyle="--")
+                            ax_qt.set_facecolor("white"); fig_qt.patch.set_facecolor("white")
+                            plt.tight_layout()
+                            st.pyplot(fig_qt, use_container_width=True)
+                            plt.close()
+
+                        st.markdown(f"**Question Scores — {selected_phys} vs. Department Avg**")
+                        disp_cols = ["Question"] + [str(yr) for yr in years_avail] + ["Trend"]
+                        q_disp_df = pd.DataFrame(phys_q_rows)[disp_cols]
+                        st.dataframe(q_disp_df.reset_index(drop=True), use_container_width=True, hide_index=True,
+                            column_config={str(yr): st.column_config.ProgressColumn(
+                                str(yr), min_value=0, max_value=4, format="%.3f") for yr in years_avail})
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
