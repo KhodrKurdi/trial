@@ -1466,20 +1466,7 @@ with tab4:
             empty_count = no_info_count = 0
             meaningful_count = total_raw_comments
 
-        # Debug expander — shows raw counts per project to verify
-        with st.expander("🔍 Debug — Raw comment counts per project", expanded=False):
-            for dn in available_depts:
-                raw_dn, _, _ = data[dn]
-                if raw_dn is not None:
-                    total_rows = len(raw_dn)
-                    has_comments = "comments" in raw_dn.columns
-                    if has_comments:
-                        c = raw_dn["comments"]
-                        n_empty = int((c.isna() | (c.astype(str).str.strip() == "") | (c.astype(str).str.strip().str.lower() == "nan")).sum())
-                        n_filled = total_rows - n_empty
-                        st.write(f"**{dn}**: {total_rows:,} total rows | {n_filled:,} have text | {n_empty:,} empty/NaN | columns: {list(raw_dn.columns[:8])}")
-                    else:
-                        st.write(f"**{dn}**: {total_rows:,} rows — NO comments column found | columns: {list(raw_dn.columns[:8])}")
+
 
         # Combined non-meaningful = empty + no-info
         non_meaningful_count = empty_count + no_info_count
@@ -1493,44 +1480,45 @@ with tab4:
         empty_mask    = all_sent_raw["comments"].isna() | (all_sent_raw["comments"].astype(str).str.strip() == "")
 
         st.markdown('<div class="section-header">📊 Comment Coverage Overview</div>', unsafe_allow_html=True)
+        st.caption(f"Based on {total_raw_comments:,} total evaluation forms submitted across all projects and years.")
 
         # Row 1 — headline numbers
         cov1, cov2, cov3 = st.columns(3)
         with cov1:
             st.markdown(f'''<div class="metric-card neutral">
-                <div class="metric-label">Total Comment Fields</div>
+                <div class="metric-label">Total Evaluation Forms</div>
                 <div class="metric-value">{total_raw_comments:,}</div>
-                <div class="metric-sub">all survey responses across all years</div>
+                <div class="metric-sub">submitted across all projects and years</div>
             </div>''', unsafe_allow_html=True)
         with cov2:
             st.markdown(f'''<div class="metric-card success">
                 <div class="metric-label">✅ Meaningful Comments</div>
                 <div class="metric-value">{meaningful_count:,}</div>
-                <div class="metric-sub">{meaningful_pct:.1f}% of all fields — scored by VADER</div>
+                <div class="metric-sub">{meaningful_pct:.1f}% of forms — scored by VADER</div>
             </div>''', unsafe_allow_html=True)
         with cov3:
             st.markdown(f'''<div class="metric-card danger">
-                <div class="metric-label">❌ No Comment / Non-Meaningful</div>
+                <div class="metric-label">❌ No Meaningful Comment</div>
                 <div class="metric-value">{non_meaningful_count:,}</div>
-                <div class="metric-sub">{non_meaningful_pct:.1f}% of all fields — excluded from sentiment</div>
+                <div class="metric-sub">{non_meaningful_pct:.1f}% of forms — left blank or non-informative</div>
             </div>''', unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
         # Row 2 — breakdown of non-meaningful
-        st.markdown("**Breakdown of Non-Meaningful Comment Fields**")
+        st.markdown("**Breakdown — Why {non_meaningful_count:,} forms had no meaningful comment:**".format(non_meaningful_count=non_meaningful_count))
         br1, br2, br3 = st.columns(3)
         with br1:
             st.markdown(f'''<div class="metric-card neutral">
-                <div class="metric-label">Empty / Blank</div>
+                <div class="metric-label">Left Blank / Empty</div>
                 <div class="metric-value">{empty_count:,}</div>
-                <div class="metric-sub">{empty_pct:.1f}% — no text entered at all</div>
+                <div class="metric-sub">{empty_pct:.1f}% of all forms — no text entered</div>
             </div>''', unsafe_allow_html=True)
         with br2:
             st.markdown(f'''<div class="metric-card warning">
-                <div class="metric-label">No-Contact Responses</div>
+                <div class="metric-label">Non-Informative Response</div>
                 <div class="metric-value">{no_info_count:,}</div>
-                <div class="metric-sub">{no_info_pct:.1f}% — e.g. "N/A", "Not working with him"</div>
+                <div class="metric-sub">{no_info_pct:.1f}% of all forms — e.g. "N/A", ".", "Not working with"</div>
             </div>''', unsafe_allow_html=True)
         with br3:
             # Donut chart showing the split
