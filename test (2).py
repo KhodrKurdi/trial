@@ -1461,40 +1461,80 @@ with tab4:
             empty_count = no_info_count = 0
             meaningful_count = total_raw_comments
 
-        no_info_pct      = no_info_count    / total_raw_comments * 100 if total_raw_comments > 0 else 0
-        empty_pct        = empty_count      / total_raw_comments * 100 if total_raw_comments > 0 else 0
-        meaningful_pct   = meaningful_count / total_raw_comments * 100 if total_raw_comments > 0 else 0
+        # Combined non-meaningful = empty + no-info
+        non_meaningful_count = empty_count + no_info_count
+        non_meaningful_pct   = non_meaningful_count / total_raw_comments * 100 if total_raw_comments > 0 else 0
+        no_info_pct          = no_info_count    / total_raw_comments * 100 if total_raw_comments > 0 else 0
+        empty_pct            = empty_count      / total_raw_comments * 100 if total_raw_comments > 0 else 0
+        meaningful_pct       = meaningful_count / total_raw_comments * 100 if total_raw_comments > 0 else 0
 
         # Keep masks aligned to all_sent_raw for filtering below
         no_info_mask  = all_sent_raw["comments"].astype(str).apply(_is_no_info)
         empty_mask    = all_sent_raw["comments"].isna() | (all_sent_raw["comments"].astype(str).str.strip() == "")
 
         st.markdown('<div class="section-header">📊 Comment Coverage Overview</div>', unsafe_allow_html=True)
-        cov1, cov2, cov3, cov4 = st.columns(4)
+
+        # Row 1 — headline numbers
+        cov1, cov2, cov3 = st.columns(3)
         with cov1:
             st.markdown(f'''<div class="metric-card neutral">
                 <div class="metric-label">Total Comment Fields</div>
                 <div class="metric-value">{total_raw_comments:,}</div>
-                <div class="metric-sub">all survey responses</div>
+                <div class="metric-sub">all survey responses across all years</div>
             </div>''', unsafe_allow_html=True)
         with cov2:
             st.markdown(f'''<div class="metric-card success">
-                <div class="metric-label">Meaningful Comments</div>
+                <div class="metric-label">✅ Meaningful Comments</div>
                 <div class="metric-value">{meaningful_count:,}</div>
-                <div class="metric-sub">{meaningful_pct:.1f}% — scored by VADER</div>
+                <div class="metric-sub">{meaningful_pct:.1f}% of all fields — scored by VADER</div>
             </div>''', unsafe_allow_html=True)
         with cov3:
-            st.markdown(f'''<div class="metric-card warning">
-                <div class="metric-label">No-Contact Comments</div>
-                <div class="metric-value">{no_info_count:,}</div>
-                <div class="metric-sub">{no_info_pct:.1f}% — e.g. "N/A", "Not working with"</div>
+            st.markdown(f'''<div class="metric-card danger">
+                <div class="metric-label">❌ No Comment / Non-Meaningful</div>
+                <div class="metric-value">{non_meaningful_count:,}</div>
+                <div class="metric-sub">{non_meaningful_pct:.1f}% of all fields — excluded from sentiment</div>
             </div>''', unsafe_allow_html=True)
-        with cov4:
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Row 2 — breakdown of non-meaningful
+        st.markdown("**Breakdown of Non-Meaningful Comment Fields**")
+        br1, br2, br3 = st.columns(3)
+        with br1:
             st.markdown(f'''<div class="metric-card neutral">
                 <div class="metric-label">Empty / Blank</div>
                 <div class="metric-value">{empty_count:,}</div>
-                <div class="metric-sub">{empty_pct:.1f}% — no response provided</div>
+                <div class="metric-sub">{empty_pct:.1f}% — no text entered at all</div>
             </div>''', unsafe_allow_html=True)
+        with br2:
+            st.markdown(f'''<div class="metric-card warning">
+                <div class="metric-label">No-Contact Responses</div>
+                <div class="metric-value">{no_info_count:,}</div>
+                <div class="metric-sub">{no_info_pct:.1f}% — e.g. "N/A", "Not working with him"</div>
+            </div>''', unsafe_allow_html=True)
+        with br3:
+            # Donut chart showing the split
+            fig_cov, ax_cov = plt.subplots(figsize=(3, 2.5))
+            sizes_cov  = [meaningful_count, empty_count, no_info_count]
+            colors_cov = ["#38a169", "#94a3b8", "#f59e0b"]
+            labels_cov = [f"Meaningful\n{meaningful_pct:.1f}%",
+                          f"Empty\n{empty_pct:.1f}%",
+                          f"No-Contact\n{no_info_pct:.1f}%"]
+            wedges, _ = ax_cov.pie(sizes_cov, colors=colors_cov, startangle=90,
+                                    wedgeprops=dict(width=0.55, edgecolor="white", linewidth=1.5))
+            for i, (wedge, label) in enumerate(zip(wedges, labels_cov)):
+                angle = (wedge.theta2 + wedge.theta1) / 2
+                x = 1.3 * np.cos(np.radians(angle))
+                y = 1.3 * np.sin(np.radians(angle))
+                ax_cov.text(x, y, label, ha="center", va="center",
+                            fontsize=7, fontweight="700", color=colors_cov[i])
+            ax_cov.text(0, 0, f"{total_raw_comments:,}\nfields", ha="center", va="center",
+                        fontsize=8, fontweight="700", color="#1a365d")
+            ax_cov.set_title("Comment Coverage", fontsize=9, fontweight="bold", color="#1a365d", pad=4)
+            fig_cov.patch.set_facecolor("white")
+            plt.tight_layout()
+            st.pyplot(fig_cov, use_container_width=True)
+            plt.close()
 
         # ── Before vs After filtering chart ───────────────────────────────────
         st.markdown("<br>", unsafe_allow_html=True)
