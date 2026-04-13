@@ -1429,15 +1429,39 @@ with tab4:
         all_sent_raw = pd.concat(sent_frames, ignore_index=True)
 
         # ── No-comment / no-meaningful-comment stats ──────────────────────────
-        total_raw_comments   = len(all_sent_raw)
-        no_info_mask         = all_sent_raw["comments"].astype(str).apply(_is_no_info)
-        empty_mask           = all_sent_raw["comments"].isna() | (all_sent_raw["comments"].astype(str).str.strip() == "")
-        no_info_count        = no_info_mask.sum()
-        empty_count          = empty_mask.sum()
-        meaningful_count     = (~no_info_mask & ~empty_mask).sum()
-        no_info_pct          = no_info_count / total_raw_comments * 100 if total_raw_comments > 0 else 0
-        empty_pct            = empty_count  / total_raw_comments * 100 if total_raw_comments > 0 else 0
-        meaningful_pct       = meaningful_count / total_raw_comments * 100 if total_raw_comments > 0 else 0
+        # Use RAW survey dataframes (before run_sentiment filtering) for true totals
+        raw_comment_frames = []
+        for dn in available_depts:
+            raw_dn, _, _ = data[dn]
+            if raw_dn is not None and "comments" in raw_dn.columns:
+                rdf = raw_dn[["physician_id","comments","year"]].copy() if "year" in raw_dn.columns else raw_dn[["physician_id","comments"]].copy()
+                # Exclude self-evaluations — same as pipeline
+                if "raters_group" in raw_dn.columns:
+                    rdf = rdf[raw_dn["raters_group"] != "Faculty Self-Evaluation"]
+                raw_comment_frames.append(rdf)
+
+        if raw_comment_frames:
+            raw_comments_df      = pd.concat(raw_comment_frames, ignore_index=True)
+            total_raw_comments   = len(raw_comments_df)
+            empty_mask_r         = raw_comments_df["comments"].isna() | (raw_comments_df["comments"].astype(str).str.strip() == "")
+            no_info_mask_r       = (~empty_mask_r) & raw_comments_df["comments"].astype(str).apply(_is_no_info)
+            meaningful_mask_r    = (~empty_mask_r) & (~no_info_mask_r)
+            empty_count          = int(empty_mask_r.sum())
+            no_info_count        = int(no_info_mask_r.sum())
+            meaningful_count     = int(meaningful_mask_r.sum())
+        else:
+            total_raw_comments   = len(all_sent_raw)
+            empty_count          = 0
+            no_info_count        = 0
+            meaningful_count     = total_raw_comments
+
+        no_info_pct      = no_info_count    / total_raw_comments * 100 if total_raw_comments > 0 else 0
+        empty_pct        = empty_count      / total_raw_comments * 100 if total_raw_comments > 0 else 0
+        meaningful_pct   = meaningful_count / total_raw_comments * 100 if total_raw_comments > 0 else 0
+
+        # Keep masks aligned to all_sent_raw for filtering below
+        no_info_mask  = all_sent_raw["comments"].astype(str).apply(_is_no_info)
+        empty_mask    = all_sent_raw["comments"].isna() | (all_sent_raw["comments"].astype(str).str.strip() == "")
 
         st.markdown('<div class="section-header">📊 Comment Coverage Overview</div>', unsafe_allow_html=True)
         cov1, cov2, cov3, cov4 = st.columns(4)
@@ -1471,22 +1495,25 @@ with tab4:
         with st.expander("📊 Before vs After Filtering — Raw Sentiment Distribution", expanded=False):
             st.markdown("Sentiment scored on **all** comments including no-contact and empty ones, before any filtering was applied.")
 
-            # Score raw comments with VADER (include no-info ones)
-            all_sent_unfiltered = all_sent_raw[
-                all_sent_raw["comments"].notna() &
-                (all_sent_raw["comments"].astype(str).str.strip() != "")
-            ].copy()
+            # Score raw comments with VADER (include no-info ones) from actual raw survey data
+            raw_bva_frames = []
+            for dn in available_depts:
+                raw_dn, _, _ = data[dn]
+                if raw_dn is not None and "comments" in raw_dn.columns:
+                    tmp = raw_dn.copy()
+                    if "raters_group" in tmp.columns:
+                        tmp = tmp[tmp["raters_group"] != "Faculty Self-Evaluation"]
+                    tmp = tmp[tmp["comments"].notna() & (tmp["comments"].astype(str).str.strip() != "")].copy()
+                    raw_bva_frames.append(tmp)
 
-            if not all_sent_unfiltered.empty and "compound" not in all_sent_unfiltered.columns:
-                results_raw = all_sent_unfiltered["comments"].astype(str).apply(
-                    lambda t: score_vader(t)
-                )
+            all_sent_unfiltered = pd.concat(raw_bva_frames, ignore_index=True) if raw_bva_frames else pd.DataFrame()
+
+            if not all_sent_unfiltered.empty:
+                results_raw = all_sent_unfiltered["comments"].astype(str).apply(lambda t: score_vader(t))
                 all_sent_unfiltered = pd.concat(
                     [all_sent_unfiltered, pd.DataFrame(results_raw.tolist(), index=all_sent_unfiltered.index)],
                     axis=1
                 )
-            elif "compound" not in all_sent_unfiltered.columns:
-                all_sent_unfiltered["sentiment"] = "NEUTRAL"
 
             if not all_sent_unfiltered.empty and "sentiment" in all_sent_unfiltered.columns:
                 total_raw_s = len(all_sent_unfiltered)
@@ -1494,9 +1521,8 @@ with tab4:
                 pos_raw = (all_sent_unfiltered["sentiment"] == "POSITIVE").sum()
                 neu_raw = (all_sent_unfiltered["sentiment"] == "NEUTRAL").sum()
 
-                # After filtering (meaningful only)
-                all_sent_temp = all_sent_raw[~no_info_mask & ~empty_mask].copy()
-                total_clean_s = len(all_sent_temp)
+                # After filtering (meaningful only — already scored in all_sent_raw)
+                total_clean_s = meaningful_count
 
                 fig_bva, (ax_b, ax_a) = plt.subplots(1, 2, figsize=(10, 4))
                 cats  = ["Negative", "Neutral", "Positive"]
