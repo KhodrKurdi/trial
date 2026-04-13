@@ -413,13 +413,21 @@ _NO_INFO_PREFIXES = (
 )
 _NO_INFO_EXACT = {
     "d/a","n/a","na","n.a","n.a.","-","--","---","none","nil",
-    ".","..","...","no comment","no comments","no interaction",
-    "no interactions","not applicable","not available","no opportunity"
+    ".","..","...","....","no comment","no comments","no interaction",
+    "no interactions","not applicable","not available","no opportunity",
+    "/","//","x","xx","xxx","0","1","2","3","4","5",
+    "same","same as above","see above","as above","nothing","nothing to add",
+    "nothing to report","all good","all is good","all fine",
 }
 
 def _is_no_info(text):
     t = str(text).strip().lower().rstrip(".,;:!?/ ")
     if t in _NO_INFO_EXACT:
+        return True
+    # Pure punctuation / symbols / single characters
+    if len(t) <= 2:
+        return True
+    if re.match(r'^[^a-z0-9]+$', t):
         return True
     if any(t.startswith(p) for p in _NO_INFO_PREFIXES):
         return True
@@ -571,7 +579,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.5"):
+def load_from_github(urls, min_f, threshold, _version="v5.6"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -617,7 +625,7 @@ with st.spinner("Loading data from GitHub and running VADER sentiment analysis..
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.5"
+        _version="v5.6"
     )
 
 # Build combined physician table from available departments
@@ -1429,31 +1437,29 @@ with tab4:
         all_sent_raw = pd.concat(sent_frames, ignore_index=True)
 
         # ── No-comment / no-meaningful-comment stats ──────────────────────────
-        # Use RAW survey dataframes (before run_sentiment filtering) for true totals
+        # Use RAW survey dataframes (before ANY filtering) for true totals
+        # Include ALL respondents (including self-evals) to show full picture
         raw_comment_frames = []
         for dn in available_depts:
             raw_dn, _, _ = data[dn]
             if raw_dn is not None and "comments" in raw_dn.columns:
-                rdf = raw_dn[["physician_id","comments","year"]].copy() if "year" in raw_dn.columns else raw_dn[["physician_id","comments"]].copy()
-                # Exclude self-evaluations — same as pipeline
-                if "raters_group" in raw_dn.columns:
-                    rdf = rdf[raw_dn["raters_group"] != "Faculty Self-Evaluation"]
-                raw_comment_frames.append(rdf)
+                raw_comment_frames.append(raw_dn[["comments"]].copy())
 
         if raw_comment_frames:
-            raw_comments_df      = pd.concat(raw_comment_frames, ignore_index=True)
-            total_raw_comments   = len(raw_comments_df)
-            empty_mask_r         = raw_comments_df["comments"].isna() | (raw_comments_df["comments"].astype(str).str.strip() == "")
-            no_info_mask_r       = (~empty_mask_r) & raw_comments_df["comments"].astype(str).apply(_is_no_info)
-            meaningful_mask_r    = (~empty_mask_r) & (~no_info_mask_r)
-            empty_count          = int(empty_mask_r.sum())
-            no_info_count        = int(no_info_mask_r.sum())
-            meaningful_count     = int(meaningful_mask_r.sum())
+            raw_comments_df    = pd.concat(raw_comment_frames, ignore_index=True)
+            total_raw_comments = len(raw_comments_df)
+            _c = raw_comments_df["comments"]
+            _c_str = _c.astype(str).str.strip()
+            empty_mask_r     = _c.isna() | (_c_str == "") | (_c_str == "nan")
+            no_info_mask_r   = (~empty_mask_r) & _c.astype(str).apply(_is_no_info)
+            meaningful_mask_r = (~empty_mask_r) & (~no_info_mask_r)
+            empty_count      = int(empty_mask_r.sum())
+            no_info_count    = int(no_info_mask_r.sum())
+            meaningful_count = int(meaningful_mask_r.sum())
         else:
-            total_raw_comments   = len(all_sent_raw)
-            empty_count          = 0
-            no_info_count        = 0
-            meaningful_count     = total_raw_comments
+            total_raw_comments = len(all_sent_raw)
+            empty_count = no_info_count = 0
+            meaningful_count = total_raw_comments
 
         no_info_pct      = no_info_count    / total_raw_comments * 100 if total_raw_comments > 0 else 0
         empty_pct        = empty_count      / total_raw_comments * 100 if total_raw_comments > 0 else 0
@@ -2443,7 +2449,7 @@ with tab6:
     st.markdown('<div class="section-header">🏢 Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.5"):
+    def load_indicators(url, _version="v5.6"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2470,7 +2476,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.5")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.6")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -2961,7 +2967,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.5") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.6") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
