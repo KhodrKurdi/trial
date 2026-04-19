@@ -14,101 +14,99 @@ warnings.filterwarnings("ignore")
 # ─── PAGE CONFIG ─────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="AUBMC Physician Performance Dashboard",
-    page_icon="🏥",
+    page_icon=None,
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # ─── AUBMC BRAND THEME ───────────────────────────────────────────────────────
-# Palette: Navy #1a365d | AUBMC Blue #2b7bc8 | Sky #e8f4fd | White #ffffff
+# Palette: Navy #1a365d | AUBMC Blue #2b7bc8 | White #ffffff | Light #f7f8fa
 st.markdown("""
 <style>
     /* ── Global ── */
     .stApp, .main, [data-testid="stAppViewContainer"] {
-        background-color: #f0f6fc !important;
-        font-family: 'Segoe UI', system-ui, sans-serif;
+        background-color: #f7f8fa !important;
+        font-family: 'Segoe UI', -apple-system, system-ui, sans-serif;
     }
-    [data-testid="stHeader"]  { background-color: #f0f6fc !important; }
+    [data-testid="stHeader"]  { background-color: #f7f8fa !important; }
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
     header[data-testid="stHeader"] { height: 0 !important; min-height: 0 !important; }
-    .block-container { padding-top: 2rem !important; max-width: 1200px !important; }
+    .block-container { padding-top: 1.5rem !important; max-width: 1240px !important; }
 
     /* ── Metric Cards ── */
     .metric-card {
-        background: white;
-        border-radius: 12px;
-        padding: 20px 24px;
-        box-shadow: 0 2px 12px rgba(43,123,200,0.10);
-        border-left: 4px solid #2b7bc8;
+        background: #ffffff;
+        border-radius: 4px;
+        padding: 18px 20px;
+        border: 1px solid #e4e7ec;
+        border-left: 3px solid #1a365d;
         margin-bottom: 8px;
-        transition: box-shadow 0.2s;
     }
-    .metric-card:hover { box-shadow: 0 4px 20px rgba(43,123,200,0.18); }
-    .metric-card.warning { border-left-color: #f59e0b; box-shadow: 0 2px 12px rgba(245,158,11,0.10); }
-    .metric-card.danger  { border-left-color: #e53e3e; box-shadow: 0 2px 12px rgba(229,62,62,0.10); }
-    .metric-card.success { border-left-color: #38a169; box-shadow: 0 2px 12px rgba(56,161,105,0.10); }
-    .metric-card.neutral { border-left-color: #6b7280; }
-    .metric-label { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-    .metric-value { font-size: 34px; font-weight: 800; color: #1a365d; line-height: 1.15; }
-    .metric-sub   { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+    .metric-card.warning { border-left-color: #b45309; }
+    .metric-card.danger  { border-left-color: #991b1b; }
+    .metric-card.success { border-left-color: #166534; }
+    .metric-card.neutral { border-left-color: #4b5563; }
+    .metric-label { font-size: 10px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+    .metric-value { font-size: 28px; font-weight: 700; color: #111827; line-height: 1.2; margin-top: 4px; }
+    .metric-sub   { font-size: 11px; color: #9ca3af; margin-top: 4px; }
 
     /* ── Section Headers ── */
     .section-header {
-        font-size: 17px; font-weight: 700; color: #1a365d;
-        border-left: 4px solid #2b7bc8;
-        padding: 6px 0 6px 14px;
-        margin-bottom: 18px; margin-top: 4px;
-        background: linear-gradient(90deg, rgba(43,123,200,0.06) 0%, transparent 100%);
-        border-radius: 0 6px 6px 0;
+        font-size: 13px; font-weight: 600; color: #374151;
+        text-transform: uppercase; letter-spacing: 0.08em;
+        border-bottom: 1px solid #e4e7ec;
+        padding-bottom: 8px;
+        margin-bottom: 16px; margin-top: 8px;
     }
 
     /* ── Pills ── */
-    .pill-red    { background:#fff0f0; color:#c53030; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid #fed7d7; }
-    .pill-yellow { background:#fffbeb; color:#b7791f; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid #fef3c7; }
-    .pill-green  { background:#f0fff4; color:#276749; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid #c6f6d5; }
-    .pill-grey   { background:#f1f5f9; color:#475569; padding:3px 11px; border-radius:999px; font-size:12px; font-weight:700; border:1px solid #e2e8f0; }
+    .pill-red    { background:#fef2f2; color:#991b1b; padding:2px 10px; border-radius:3px; font-size:11px; font-weight:600; border:1px solid #fecaca; }
+    .pill-yellow { background:#fffbeb; color:#92400e; padding:2px 10px; border-radius:3px; font-size:11px; font-weight:600; border:1px solid #fde68a; }
+    .pill-green  { background:#f0fdf4; color:#166534; padding:2px 10px; border-radius:3px; font-size:11px; font-weight:600; border:1px solid #bbf7d0; }
+    .pill-grey   { background:#f9fafb; color:#374151; padding:2px 10px; border-radius:3px; font-size:11px; font-weight:600; border:1px solid #d1d5db; }
 
     /* ── Tabs ── */
     div[data-testid="stSidebarNav"] { display: none; }
     .stTabs [data-baseweb="tab-list"] {
-        gap: 4px;
-        background: white !important;
-        border-radius: 12px 12px 0 0;
-        padding: 6px 6px 0 6px;
-        border-bottom: 2px solid #2b7bc8;
-        box-shadow: 0 2px 8px rgba(43,123,200,0.08);
+        gap: 0px;
+        background: #ffffff !important;
+        border-radius: 0;
+        padding: 0;
+        border-bottom: 2px solid #e4e7ec;
     }
     .stTabs [data-baseweb="tab"] {
         background: transparent !important;
-        border-radius: 8px 8px 0 0;
-        font-weight: 600; font-size: 13px;
-        color: #64748b !important;
-        padding: 8px 16px !important;
-        transition: all 0.15s;
+        border-radius: 0;
+        font-weight: 500; font-size: 13px;
+        color: #6b7280 !important;
+        padding: 10px 20px !important;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
     }
     .stTabs [data-baseweb="tab"]:hover {
-        background: #e8f4fd !important;
-        color: #2b7bc8 !important;
+        background: #f9fafb !important;
+        color: #111827 !important;
     }
     .stTabs [aria-selected="true"] {
-        background: #2b7bc8 !important;
-        color: white !important;
-        font-weight: 700 !important;
+        background: transparent !important;
+        color: #1a365d !important;
+        font-weight: 600 !important;
+        border-bottom: 2px solid #1a365d !important;
     }
 
     /* ── Comment Cards ── */
     .comment-card {
-        background: white; border-radius: 10px; padding: 14px 18px;
-        margin-bottom: 10px; border-left: 3px solid #cbd5e0;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        background: white; border-radius: 3px; padding: 12px 16px;
+        margin-bottom: 8px; border-left: 3px solid #d1d5db;
+        border: 1px solid #e4e7ec; border-left: 3px solid #d1d5db;
     }
-    .comment-card.neg { border-left-color: #e53e3e; background: #fff8f8; }
-    .comment-card.pos { border-left-color: #38a169; background: #f8fff9; }
-    .comment-card.neu { border-left-color: #cbd5e0; }
+    .comment-card.neg { border-left-color: #991b1b; background: #fef9f9; }
+    .comment-card.pos { border-left-color: #166534; background: #f9fefb; }
+    .comment-card.neu { border-left-color: #d1d5db; }
 
     /* ── Chat messages — force dark text ── */
-    [data-testid="stChatMessage"] { background: white !important; border-radius: 12px !important; }
+    [data-testid="stChatMessage"] { background: white !important; border-radius: 4px !important; border: 1px solid #e4e7ec; }
     [data-testid="stChatMessage"] p,
     [data-testid="stChatMessage"] li,
     [data-testid="stChatMessage"] td,
@@ -132,20 +130,20 @@ st.markdown("""
 
     /* ── Streamlit native ── */
     .stMetric {
-        background: white; border-radius: 10px; padding: 14px 16px;
-        box-shadow: 0 1px 6px rgba(43,123,200,0.08);
+        background: white; border-radius: 4px; padding: 14px 16px;
+        border: 1px solid #e4e7ec;
     }
-    .stMetric label { color: #64748b !important; font-size: 12px !important; font-weight: 600 !important; }
-    .stMetric [data-testid="stMetricValue"] { color: #1a365d !important; font-weight: 700 !important; }
-    div[data-testid="stDataFrame"] { background: white; border-radius: 10px; box-shadow: 0 1px 6px rgba(43,123,200,0.08); }
-    .stSelectbox label, .stSlider label, .stRadio label { color: #1a365d !important; font-weight: 600 !important; font-size: 13px !important; }
-    .stSelectbox > div > div { background: white !important; color: #1a365d !important; border-color: #bfdbfe !important; border-radius: 8px !important; }
-    h1 { color: #1a365d !important; font-weight: 800 !important; }
-    h2, h3 { color: #1a365d !important; font-weight: 700 !important; }
+    .stMetric label { color: #6b7280 !important; font-size: 11px !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stMetric [data-testid="stMetricValue"] { color: #111827 !important; font-weight: 700 !important; }
+    div[data-testid="stDataFrame"] { background: white; border-radius: 4px; border: 1px solid #e4e7ec; }
+    .stSelectbox label, .stSlider label, .stRadio label { color: #374151 !important; font-weight: 500 !important; font-size: 13px !important; }
+    .stSelectbox > div > div { background: white !important; color: #111827 !important; border-color: #d1d5db !important; border-radius: 4px !important; }
+    h1 { color: #111827 !important; font-weight: 700 !important; font-size: 22px !important; }
+    h2, h3 { color: #1f2937 !important; font-weight: 600 !important; }
     p, li { color: #374151; }
     .stMarkdown p { color: #374151; }
     hr { border-color: #e2e8f0 !important; }
-    .stAlert { background: white !important; border-radius: 10px !important; }
+    .stAlert { background: white !important; border-radius: 4px !important; }
     [data-testid="stInfo"]    { background: #eff6ff !important; border-color: #2b7bc8 !important; }
     [data-testid="stWarning"] { background: #fffbeb !important; border-color: #f59e0b !important; }
     [data-testid="stError"]   { background: #fff5f5 !important; border-color: #e53e3e !important; }
@@ -155,27 +153,25 @@ st.markdown("""
 
     /* ── Division Cards (Tab 6) ── */
     .div-card {
-        background: white; border-radius: 14px; padding: 20px 24px;
-        box-shadow: 0 2px 12px rgba(43,123,200,0.09);
-        border-top: 4px solid #2b7bc8; margin-bottom: 14px;
-        transition: box-shadow 0.2s, transform 0.15s;
+        background: white; border-radius: 4px; padding: 18px 22px;
+        border: 1px solid #e4e7ec;
+        border-top: 3px solid #1a365d; margin-bottom: 12px;
     }
-    .div-card:hover { box-shadow: 0 6px 22px rgba(43,123,200,0.16); transform: translateY(-1px); }
-    .div-card.alert { border-top-color: #e53e3e; }
-    .div-card.warn  { border-top-color: #f59e0b; }
-    .div-name  { font-size: 15px; font-weight: 700; color: #1a365d; margin-bottom: 14px; line-height: 1.3; }
-    .div-stats { display: flex; gap: 20px; flex-wrap: wrap; }
-    .div-stat  { font-size: 12px; color: #64748b; line-height: 1.8; }
-    .div-stat span { font-weight: 800; color: #1a365d; font-size: 16px; display: block; }
+    .div-card.alert { border-top-color: #991b1b; }
+    .div-card.warn  { border-top-color: #b45309; }
+    .div-name  { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 12px; line-height: 1.4; }
+    .div-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+    .div-stat  { font-size: 11px; color: #6b7280; line-height: 1.8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .div-stat span { font-weight: 700; color: #111827; font-size: 20px; display: block; letter-spacing: 0; text-transform: none; }
 
     /* ── Dept Banner ── */
     .dept-banner {
-        background: linear-gradient(135deg, #1a365d 0%, #2b7bc8 100%);
-        border-radius: 12px; padding: 18px 24px; margin-bottom: 16px;
+        background: #1a365d;
+        border-radius: 4px; padding: 16px 22px; margin-bottom: 16px;
         color: white;
     }
-    .dept-banner-name { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
-    .dept-banner-stats { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+    .dept-banner-name { font-size: 16px; font-weight: 600; letter-spacing: 0; }
+    .dept-banner-stats { font-size: 12px; opacity: 0.75; margin-top: 4px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -508,9 +504,9 @@ def add_risk(phys_df):
     return df
 
 def risk_pill(score):
-    if score >= 3:   return '<span class="pill-red">⚠ Priority</span>'
-    if score >= 1:   return '<span class="pill-yellow">👁 Monitor</span>'
-    return '<span class="pill-green">✓ Clear</span>'
+    if score >= 3:   return '<span class="pill-red">Priority</span>'
+    if score >= 1:   return '<span class="pill-yellow">Monitor</span>'
+    return '<span class="pill-green">Clear</span>'
 
 def process_dept(df_raw, dept_name, threshold=-0.05, min_f=1):
     df = clean_headers(df_raw)
@@ -579,7 +575,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.6"):
+def load_from_github(urls, min_f, threshold, _version="v5.7"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -620,12 +616,12 @@ def load_from_github(urls, min_f, threshold, _version="v5.6"):
     }
 
 # ── PROCESS DATA ─────────────────────────────────────────────────────────────
-with st.spinner("Loading data from GitHub and running VADER sentiment analysis..."):
+with st.spinner("Loading data..."):
     data = load_from_github(
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.6"
+        _version="v5.7"
     )
 
 # Build combined physician table from available departments
@@ -719,20 +715,20 @@ def apply_dept_div_filter(df, dept, div):
 
 # ─── TABS ────────────────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "📋 Summary",
-    "🎯 Flagged",
-    "📊 Scores",
-    "💬 Sentiment",
-    "📈 Trends",
-    "🏢 Dept & Div",
-    "🤖 Ask MC"
+    "Summary",
+    "Risk Register",
+    "Score Analysis",
+    "Sentiment",
+    "Trends",
+    "Departments",
+    "Ask MC"
 ])
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TAB 1 — EXECUTIVE SUMMARY
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab1:
-    st.markdown('<div class="section-header">🔑 Key Performance Indicators</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Key Performance Indicators</div>', unsafe_allow_html=True)
 
     # Project + Department + Division filters
     t1f1, t1f2, t1f3 = st.columns(3)
@@ -794,7 +790,7 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Risk Score — big and prominent ───────────────────────────────────────
-    st.markdown('<div class="section-header">🎯 Risk Score Breakdown</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Risk Score Breakdown</div>', unsafe_allow_html=True)
     risk_vals = [
         int((t1_phys["risk_score"] == 0).sum()),
         int(t1_phys["risk_score"].between(1, 2).sum()),
@@ -825,7 +821,7 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Department Risk Comparison ────────────────────────────────────────────
-    st.markdown('<div class="section-header">🏥 Department Risk Comparison</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Department Risk Comparison</div>', unsafe_allow_html=True)
 
     dept_risk_rows = []
     for dept in available_depts:
@@ -875,7 +871,7 @@ with tab1:
     col_left, col_right = st.columns([1.6, 1])
 
     with col_left:
-        st.markdown('<div class="section-header">⚠️ Top Physicians Needing Attention</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Physicians Requiring Attention</div>', unsafe_allow_html=True)
         top_flagged = (
             t1_phys[t1_phys["risk_score"] >= 1]
             .sort_values(["risk_score", "avg_behavior_score"], ascending=[False, True])
@@ -888,7 +884,7 @@ with tab1:
                 rs = int(fp["risk_score"])
                 bg     = "#fef2f2" if rs >= 3 else "#fffbeb"
                 border = "#e53e3e" if rs >= 3 else "#f59e0b"
-                label  = "⚠ Priority" if rs >= 3 else "👁 Monitor"
+                label  = "Priority" if rs >= 3 else "Monitor"
                 flags  = []
                 if fp.get("low_iqr_outlier", False): flags.append("IQR")
                 if fp.get("low_z_outlier",   False): flags.append("Z")
@@ -910,7 +906,7 @@ with tab1:
                 </div>""", unsafe_allow_html=True)
 
     with col_right:
-        st.markdown('<div class="section-header">💬 Sentiment Snapshot</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Sentiment Snapshot</div>', unsafe_allow_html=True)
 
         # Gather all sentiment data
         all_sent_frames = []
@@ -1001,40 +997,40 @@ with tab1:
 # TAB 2 — FLAGGED PHYSICIANS
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab2:
-    st.markdown('<div class="section-header">🎯 Physician Risk Register</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Physician Risk Register</div>', unsafe_allow_html=True)
 
     # ── Methodology definitions ───────────────────────────────────────────────
     _mdef_col, _mdef_btn = st.columns([4, 1])
     with _mdef_col:
         pass
     with _mdef_btn:
-        with st.popover("📖 Method Definitions"):
+        with st.popover("Method Definitions"):
             st.markdown("""
-**🔵 IQR Lower Fence**
+**IQR Lower Fence**
 Flags physicians below Q1 − 1.5×IQR. Robust, non-parametric, resistant to extreme values.
 
 ---
 
-**🟣 Z-Score (≤ −2)**
+**Z-Score (≤ −2)**
 Flags physicians more than 2 standard deviations below the group mean (~2.3% of population).
 
 ---
 
-**🟠 Bottom 10% (P10)**
+**Bottom 10% (P10)**
 Flags the lowest-scoring 10% regardless of absolute value. Always flags exactly 10% of the group.
 
 ---
 
-**🔴 Negative Sentiment (VADER)**
+**Negative Sentiment (VADER)**
 Flags physicians with any 2025 peer comment scoring compound ≤ −0.05 using VADER + medical lexicon.
 
 ---
 
-**⚠️ Composite Risk Score (0–4)**
+**Composite Risk Score (0–4)**
 Sum of all 4 flags:
-- **0** = Clear ✓
-- **1–2** = Monitor 👁
-- **3–4** = Priority ⚠️
+- **0** = Clear
+- **1–2** = Monitor
+- **3–4** = Priority (Immediate Review)
 """)
 
     col_f1, col_f2, col_f3 = st.columns(3)
@@ -1115,7 +1111,7 @@ Sum of all 4 flags:
 
     # ── Physician deep-dive ───────────────────────────────────────────────────
     st.markdown("---")
-    st.markdown('<div class="section-header">🔍 Individual Physician Deep-Dive</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Individual Physician Deep-Dive</div>', unsafe_allow_html=True)
 
     # Row 1: Project + Year
     dd1, dd2 = st.columns(2)
@@ -1203,13 +1199,13 @@ Sum of all 4 flags:
             dc5, dc6, dc7, dc8 = st.columns(4)
             with dc5: st.metric("Z-Score", f"{row.get('z_score', 0):.2f}")
             with dc6:
-                iqr_dd = "🔴 YES" if row.get("low_iqr_outlier", False) else "🟢 No"
+                iqr_dd = "Yes" if row.get("low_iqr_outlier", False) else "No"
                 st.metric("IQR Outlier", iqr_dd)
             with dc7:
                 neg_r = row.get("negative_ratio", np.nan)
                 st.metric("Neg. Comment Ratio", f"{neg_r:.1%}" if pd.notna(neg_r) else "—")
             with dc8:
-                neg_s = "🔴 YES" if row.get("negative_outlier", False) else "🟢 No"
+                neg_s = "Yes" if row.get("negative_outlier", False) else "No"
                 st.metric("Neg. Sentiment", neg_s)
 
             # Comments — filter by year if selected
@@ -1226,17 +1222,17 @@ Sum of all 4 flags:
                         (phys_comments["compound"] <= -0.05)
                     ]
                     if not hidden_neg.empty:
-                        st.warning(f"⚠️ Negative sentiment flag is triggered by {len(hidden_neg)} non-informative comment(s) being scored (e.g. 'Not working with him'). These are excluded from display but were scored before filtering. Consider clearing the cache to recompute.")
+                        st.warning(f"Note: Negative sentiment flag is triggered by {len(hidden_neg)} non-informative comment(s) being scored (e.g. 'Not working with him'). These are excluded from display but were scored before filtering. Consider clearing the cache to recompute.")
                     st.markdown(f"**Peer Comments** ({len(phys_comments_display)} total{yr_suffix}):")
                     for _, crow in phys_comments_display.sort_values("compound").iterrows():
                         css_class = "neg" if crow["sentiment"]=="NEGATIVE" else ("pos" if crow["sentiment"]=="POSITIVE" else "neu")
-                        emoji     = "🔴" if crow["sentiment"]=="NEGATIVE" else ("🟢" if crow["sentiment"]=="POSITIVE" else "⚪")
+                        sent_label = crow["sentiment"].capitalize()
                         year_str  = str(int(crow["year"])) if "year" in crow and pd.notna(crow.get("year")) else "—"
                         rater     = crow.get("raters_group","—")
                         st.markdown(f"""
                         <div class="comment-card {css_class}">
                             <div style="font-size:11px; color:#9ca3af; margin-bottom:6px">
-                                {emoji} <b>{crow["sentiment"]}</b> &nbsp;·&nbsp; Score: <b>{crow["compound"]:.3f}</b>
+                                <b>{sent_label}</b> &nbsp;·&nbsp; Score: <b>{crow["compound"]:.3f}</b>
                                 &nbsp;·&nbsp; Year: {year_str} &nbsp;·&nbsp; {rater}
                             </div>
                             <div style="font-size:14px; color:#374151">{crow["comments"]}</div>
@@ -1252,7 +1248,7 @@ Sum of all 4 flags:
 # TAB 3 — DEPARTMENT VIEW
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab3:
-    st.markdown('<div class="section-header">📊 Project-Level Analysis</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Project-Level Analysis</div>', unsafe_allow_html=True)
 
     dept_sel = st.selectbox("Select Project", available_depts, key="dept_view")
 
@@ -1420,7 +1416,7 @@ Sum of all 4 flags (0–4). Priority = 3 or 4.
 # TAB 4 — SENTIMENT EXPLORER
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab4:
-    st.markdown('<div class="section-header">💬 Sentiment Analysis</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Sentiment Analysis</div>', unsafe_allow_html=True)
 
     # Gather sentiment data across all departments
     sent_frames = []
@@ -1478,7 +1474,7 @@ with tab4:
         no_info_mask  = all_sent_raw["comments"].astype(str).apply(_is_no_info)
         empty_mask    = all_sent_raw["comments"].isna() | (all_sent_raw["comments"].astype(str).str.strip() == "")
 
-        st.markdown('<div class="section-header">📊 Comment Coverage Overview</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Comment Coverage</div>', unsafe_allow_html=True)
         st.caption(f"Based on {total_raw_comments:,} peer evaluation forms (self-evaluations excluded) across all projects and years. The VADER sentiment counts below may differ if Project/Department/Division filters are active.")
 
         # Row 1 — headline numbers
@@ -1491,13 +1487,13 @@ with tab4:
             </div>''', unsafe_allow_html=True)
         with cov2:
             st.markdown(f'''<div class="metric-card success">
-                <div class="metric-label">✅ Meaningful Comments</div>
+                <div class="metric-label">Meaningful Comments</div>
                 <div class="metric-value">{meaningful_count:,}</div>
                 <div class="metric-sub">{meaningful_pct:.1f}% of forms — scored by VADER</div>
             </div>''', unsafe_allow_html=True)
         with cov3:
             st.markdown(f'''<div class="metric-card danger">
-                <div class="metric-label">❌ No Meaningful Comment</div>
+                <div class="metric-label">No Meaningful Comment</div>
                 <div class="metric-value">{non_meaningful_count:,}</div>
                 <div class="metric-sub">{non_meaningful_pct:.1f}% of forms — left blank or non-informative</div>
             </div>''', unsafe_allow_html=True)
@@ -1553,7 +1549,7 @@ with tab4:
 
         # ── Before vs After filtering chart ───────────────────────────────────
         st.markdown("<br>", unsafe_allow_html=True)
-        with st.expander("📊 Before vs After Filtering — Raw Sentiment Distribution", expanded=False):
+        with st.expander("Before vs. After Filtering — Raw Sentiment Distribution", expanded=False):
             st.markdown("Sentiment scored on **all** comments including no-contact and empty ones, before any filtering was applied.")
 
             # Score raw comments with VADER (include no-info ones) from actual raw survey data
@@ -1680,19 +1676,19 @@ with tab4:
             </div>''', unsafe_allow_html=True)
         with sc2:
             st.markdown(f'''<div class="metric-card danger">
-                <div class="metric-label">🔴 Negative</div>
+                <div class="metric-label">Negative</div>
                 <div class="metric-value">{neg_c:,}</div>
                 <div class="metric-sub">{neg_c/total_c*100:.1f}% of comments</div>
             </div>''', unsafe_allow_html=True)
         with sc3:
             st.markdown(f'''<div class="metric-card success">
-                <div class="metric-label">🟢 Positive</div>
+                <div class="metric-label">Positive</div>
                 <div class="metric-value">{pos_c:,}</div>
                 <div class="metric-sub">{pos_c/total_c*100:.1f}% of comments</div>
             </div>''', unsafe_allow_html=True)
         with sc4:
             st.markdown(f'''<div class="metric-card">
-                <div class="metric-label">⚪ Neutral</div>
+                <div class="metric-label">Neutral</div>
                 <div class="metric-value">{neu_c:,}</div>
                 <div class="metric-sub">{neu_c/total_c*100:.1f}% of comments</div>
             </div>''', unsafe_allow_html=True)
@@ -1700,7 +1696,7 @@ with tab4:
         st.markdown("---")
 
         # ── Chart 1: Sentiment breakdown by department (stacked bar) ─────────
-        st.markdown('<div class="section-header">📊 Sentiment Breakdown by Department</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Sentiment Breakdown by Project</div>', unsafe_allow_html=True)
 
         dept_sent = (
             all_sent.groupby(["dept","sentiment"], as_index=False)
@@ -1756,7 +1752,7 @@ with tab4:
         st.markdown("---")
 
         # ── Chart 2: Yearly sentiment trend (2023-2025) ───────────────────────
-        st.markdown('<div class="section-header">📈 Yearly Sentiment Trend (2023–2025)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Yearly Sentiment Trend (2023–2025)</div>', unsafe_allow_html=True)
 
         tr1, tr2, tr3 = st.columns(3)
         with tr1:
@@ -1866,7 +1862,7 @@ with tab4:
 # TAB 5 — TRENDS (2023–2025)
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab5:
-    st.markdown('<div class="section-header">📈 Year-on-Year Trends (2023–2025)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Year-on-Year Trends (2023–2025)</div>', unsafe_allow_html=True)
 
     # ── Filters row 1: Project + View mode ──────────────────────────────────────
     tf1, tf2 = st.columns([1, 2])
@@ -1999,7 +1995,7 @@ with tab5:
 
             # ── Question-by-Question Analysis ────────────────────────────────
             st.markdown("---")
-            st.markdown('<div class="section-header">📝 Question-by-Question Analysis</div>', unsafe_allow_html=True)
+            st.markdown('<div class="section-header">Question-by-Question Analysis</div>', unsafe_allow_html=True)
             q_cols_all = [c for c in raw_d.columns if c.startswith("q_")]
             if q_cols_all:
                 q_rows = []
@@ -2289,7 +2285,7 @@ with tab5:
 
                     # ── Question-by-Question for this physician ───────────────
                     st.markdown("---")
-                    st.markdown('<div class="section-header">📝 Question-by-Question Analysis</div>', unsafe_allow_html=True)
+                    st.markdown('<div class="section-header">Question-by-Question Analysis</div>', unsafe_allow_html=True)
                     q_cols_p = [c for c in raw_d.columns if c.startswith("q_")]
                     if q_cols_p and selected_phys:
                         phys_q_rows = []
@@ -2501,10 +2497,10 @@ DIV_TO_DEPT = {
 
 
 with tab6:
-    st.markdown('<div class="section-header">🏢 Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.6"):
+    def load_indicators(url, _version="v5.7"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2531,7 +2527,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.6")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.7")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -2540,15 +2536,15 @@ with tab6:
         fc1, fc2, fc3 = st.columns(3)
         with fc1:
             cycles = ["All"] + sorted(ind_df["FiscalCycle"].dropna().unique().tolist(), reverse=True)                      if "FiscalCycle" in ind_df.columns else ["All"]
-            sel_cycle = st.selectbox("📅 Fiscal Cycle", cycles, key="ind_cycle")
+            sel_cycle = st.selectbox("Fiscal Cycle", cycles, key="ind_cycle")
         df_filt = ind_df if sel_cycle == "All" else ind_df[ind_df["FiscalCycle"] == sel_cycle]
         with fc2:
             dept_opts_t6 = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist())                            if "Department" in df_filt.columns else ["All Departments"]
-            sel_dept_t6 = st.selectbox("🏥 Department", dept_opts_t6, key="ind_dept_filter")
+            sel_dept_t6 = st.selectbox("Department", dept_opts_t6, key="ind_dept_filter")
         with fc3:
             df_for_div = df_filt if sel_dept_t6 == "All Departments" else df_filt[df_filt["Department"] == sel_dept_t6]
             div_opts_t6 = ["All Divisions"] + sorted(df_for_div["Division_norm"].dropna().unique().tolist())                           if "Division_norm" in df_for_div.columns else ["All Divisions"]
-            sel_div_t6 = st.selectbox("🔬 Division", div_opts_t6, key="ind_div_filter")
+            sel_div_t6 = st.selectbox("Division", div_opts_t6, key="ind_div_filter")
 
         # Apply filters — df_view is used by ALL sections below
         df_view = df_filt.copy()
@@ -2586,7 +2582,7 @@ with tab6:
         # SECTION 1 — OVERVIEW (dept-level when All, physician-level when filtered)
         # ══════════════════════════════════════════════════════════════════════
         is_filtered = (sel_dept_t6 != "All Departments") or (sel_div_t6 != "All Divisions")
-        section_title = "👤 Physicians in Selection" if is_filtered else "🏥 Department Overview"
+        section_title = "Physicians in Selection" if is_filtered else "Department Overview"
         st.markdown(f'<div class="section-header">{section_title}</div>', unsafe_allow_html=True)
 
         if is_filtered:
@@ -2735,7 +2731,7 @@ with tab6:
         # ══════════════════════════════════════════════════════════════════════
         # SECTION 2 — DIVISION DRILL-DOWN
         # ══════════════════════════════════════════════════════════════════════
-        st.markdown('<div class="section-header">🔬 Division Drill-Down</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Division Drill-Down</div>', unsafe_allow_html=True)
 
         dd1, dd2 = st.columns([1.5, 1])
         with dd1:
@@ -2779,7 +2775,7 @@ with tab6:
                                      ax3.patches):
                 fmt = f"{val:,}" if div_metric=="Clinic Visits" else (
                       f"{val:.1f}" if div_metric=="Avg Wait Time (min)" else str(int(val)))
-                warn = f"  ⚠ {int(cmp)}" if cmp>0 and div_metric!="Patient Complaints" else ""
+                warn = f"  (+{int(cmp)})" if cmp>0 and div_metric!="Patient Complaints" else ""
                 ax3.text(val+mx3*0.01, bar.get_y()+bar.get_height()/2,
                          fmt+warn, va="center", fontsize=9, fontweight="700",
                          color="#e53e3e" if cmp>0 else "#1a365d")
@@ -2816,7 +2812,7 @@ with tab6:
         # ══════════════════════════════════════════════════════════════════════
         # SECTION 3 — PHYSICIAN EXPLORER
         # ══════════════════════════════════════════════════════════════════════
-        st.markdown('<div class="section-header">👤 Physician Explorer</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Physician Explorer</div>', unsafe_allow_html=True)
 
         pe0, pe1, pe2 = st.columns(3)
         with pe0:
@@ -2863,8 +2859,8 @@ with tab6:
 # TAB 7 — AI ASSISTANT
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab7:
-    st.markdown('<div class="section-header">🤖 Ask MC — Your AUBMC Data Assistant</div>', unsafe_allow_html=True)
-    st.markdown("Ask MC anything about the physician performance data — risk flags, scores, sentiment, trends, and department comparisons.")
+    st.markdown('<div class="section-header">Ask MC — AI Data Assistant</div>', unsafe_allow_html=True)
+    st.markdown("Use the assistant below to query physician performance data using natural language.")
 
     # ── Build context summary from loaded data ────────────────────────────────
     @st.cache_data(show_spinner=False)
@@ -3022,7 +3018,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.6") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.7") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
@@ -3033,7 +3029,7 @@ with tab7:
     col_title, col_clear = st.columns([5, 1])
     with col_clear:
         if st.session_state.chat_history:
-            if st.button("🗑️ Clear", key="clear_chat"):
+            if st.button("Clear Chat", key="clear_chat"):
                 st.session_state.chat_history = []
                 st.rerun()
 
@@ -3082,7 +3078,7 @@ DATA CONTEXT:
                     import requests
                     api_key = st.secrets.get("ANTHROPIC_API_KEY", "")
                     if not api_key:
-                        answer = "⚠️ ANTHROPIC_API_KEY not found in Streamlit secrets."
+                        answer = "API key not configured. Please add ANTHROPIC_API_KEY to Streamlit secrets."
                     else:
                         response = requests.post(
                             "https://api.anthropic.com/v1/messages",
