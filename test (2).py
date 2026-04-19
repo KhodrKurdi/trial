@@ -354,10 +354,23 @@ _MEDICAL_LEXICON = {
         "bullying":         -2.8,
     "bully":            -2.5,
 
-    # Mild negatives (-0.5 to -1.5)
-                    "complaints":       -1.0,
+    # Mild negatives and soft concern terms VADER misses in mixed comments
+    "complaints":       -1.0,
     "complaint":        -1.0,
-                
+    "questioned":       -1.2,
+    "concerning":       -1.2,
+    "problematic":      -1.5,
+    "draining":         -1.8,
+    "borderline":       -0.9,
+    "challenging":      -0.7,
+    "hostile":          -2.3,
+    "dishonest":        -2.5,
+    "dishonesty":       -2.5,
+    "degrading":        -2.5,
+    "threatening":      -2.3,
+    "improve":          -0.5,
+    "improvement":      -0.5,
+
     # Positives (+1.5 to +2.5)
     "compassionate":    +2.5,
     "empathetic":       +2.5,
@@ -383,11 +396,20 @@ def score_vader(text, threshold=-0.05):
     try:
         s = vader.polarity_scores(str(text))
         c = s["compound"]
-        # Notebook uses standard VADER thresholds fixed at ±0.05
-        label = "POSITIVE" if c >= 0.05 else ("NEGATIVE" if c <= -0.05 else "NEUTRAL")
-        return {"compound": c, "sentiment": label}
+        # Override: if raw negative component is significant, flag as NEGATIVE
+        # regardless of compound — catches mixed comments where positive framing
+        # dilutes genuine criticism (e.g. "good surgeon but disrespectful")
+        if s["neg"] >= 0.08:
+            label = "NEGATIVE"
+        elif c >= 0.05:
+            label = "POSITIVE"
+        elif c <= -0.05:
+            label = "NEGATIVE"
+        else:
+            label = "NEUTRAL"
+        return {"compound": c, "neg": s["neg"], "pos": s["pos"], "sentiment": label}
     except:
-        return {"compound": 0.0, "sentiment": "NEUTRAL"}
+        return {"compound": 0.0, "neg": 0.0, "pos": 0.0, "sentiment": "NEUTRAL"}
 
 # Non-informative comment patterns — excluded from scoring and display
 _NO_INFO_PREFIXES = (
@@ -575,7 +597,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.7"):
+def load_from_github(urls, min_f, threshold, _version="v5.8"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -621,7 +643,7 @@ with st.spinner("Loading data..."):
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.7"
+        _version="v5.8"
     )
 
 # Build combined physician table from available departments
@@ -2500,7 +2522,7 @@ with tab6:
     st.markdown('<div class="section-header">Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.7"):
+    def load_indicators(url, _version="v5.8"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2527,7 +2549,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.7")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.8")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -3018,7 +3040,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.7") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.8") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
