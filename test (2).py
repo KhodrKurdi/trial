@@ -597,7 +597,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.8"):
+def load_from_github(urls, min_f, threshold, _version="v5.9"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -643,7 +643,7 @@ with st.spinner("Loading data..."):
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.8"
+        _version="v5.9"
     )
 
 # Build combined physician table from available departments
@@ -1296,12 +1296,121 @@ with tab3:
             phys_d, _, _ = add_outlier_flags(phys_d)
             phys_d = add_risk(phys_d)
 
-        d1, d2, d3, d4 = st.columns(4)
-        with d1: st.metric("Physicians", len(phys_d))
-        with d2: st.metric("Project Mean Score", f"{phys_d['avg_behavior_score'].mean():.3f}")
-        with d3: st.metric("IQR Outliers", int(phys_d["low_iqr_outlier"].sum()) if "low_iqr_outlier" in phys_d.columns else 0)
-        with d4: st.metric("Priority Flags", int((phys_d["risk_score"]>=3).sum()))
+        # ── Summary KPIs ──────────────────────────────────────────────────────
+        scores_t3  = phys_d["avg_behavior_score"].dropna()
+        n_total    = len(phys_d)
+        mean_t3    = scores_t3.mean()
+        Q1_t3, Q3_t3 = scores_t3.quantile(0.25), scores_t3.quantile(0.75)
+        IQR_t3     = Q3_t3 - Q1_t3
+        iqr_fence  = Q1_t3 - 1.5 * IQR_t3
+        z_thresh   = mean_t3 - 2 * (scores_t3.std(ddof=0) if scores_t3.std(ddof=0) > 0 else 1)
+        p10_thresh = scores_t3.quantile(0.10)
 
+        n_iqr  = int(phys_d["low_iqr_outlier"].sum()) if "low_iqr_outlier" in phys_d.columns else 0
+        n_z    = int(phys_d["low_z_outlier"].sum())   if "low_z_outlier"   in phys_d.columns else 0
+        n_p10  = int(phys_d["low_bottom10"].sum())    if "low_bottom10"    in phys_d.columns else 0
+        n_sent = int(phys_d["negative_outlier"].sum()) if "negative_outlier" in phys_d.columns else 0
+
+        d1, d2, d3, d4 = st.columns(4)
+        with d1: st.metric("Physicians", n_total)
+        with d2: st.metric("Mean Score", f"{mean_t3:.3f}")
+        with d3: st.metric("IQR Outliers", n_iqr)
+        with d4: st.metric("Priority (≥3 flags)", int((phys_d["risk_score"]>=3).sum()))
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ── Per-method cards with mini visualisation ───────────────────────
+        st.markdown('<div class="section-header">Outlier Detection Methods</div>', unsafe_allow_html=True)
+        mc1, mc2, mc3 = st.columns(3)
+
+        def method_card(ax_obj, scores, flagged_mask, threshold_val, threshold_label,
+                        color_flag, color_norm, title):
+            """Shared mini chart renderer for each outlier method card."""
+            flagged = scores[flagged_mask] if flagged_mask is not None else pd.Series(dtype=float)
+            normal  = scores[~flagged_mask] if flagged_mask is not None else scores
+            # Sorted scatter
+            sorted_scores = scores.sort_values().reset_index(drop=True)
+            sorted_flags  = flagged_mask.reindex(scores.sort_values().index).reset_index(drop=True) if flagged_mask is not None else pd.Series(False, index=sorted_scores.index)
+            colors = [color_flag if f else color_norm for f in sorted_flags]
+            ax_obj.scatter(range(len(sorted_scores)), sorted_scores, c=colors, s=22, alpha=0.85, zorder=3)
+            ax_obj.axhline(threshold_val, color=color_flag, linewidth=1.5, linestyle="--", alpha=0.9,
+                           label=threshold_label)
+            ax_obj.axhline(scores.mean(), color="#374151", linewidth=1, linestyle=":", alpha=0.6)
+            ax_obj.set_title(title, fontsize=9, fontweight="600", color="#111827", pad=4)
+            ax_obj.set_xlabel("Physicians (ranked)", fontsize=7, color="#6b7280")
+            ax_obj.set_ylabel("Avg Score", fontsize=7, color="#6b7280")
+            ax_obj.tick_params(labelsize=7, colors="#6b7280")
+            ax_obj.set_ylim(max(0, scores.min()-0.15), min(4.1, scores.max()+0.1))
+            ax_obj.grid(axis="y", alpha=0.2, linestyle="--")
+            ax_obj.spines["top"].set_visible(False)
+            ax_obj.spines["right"].set_visible(False)
+            ax_obj.set_facecolor("white")
+
+        # Card 1 — IQR
+        with mc1:
+            st.markdown(f"""<div class="metric-card danger">
+                <div class="metric-label">IQR Lower Fence</div>
+                <div class="metric-value">{n_iqr}</div>
+                <div class="metric-sub">Threshold: {iqr_fence:.3f} &nbsp;·&nbsp; {n_iqr/n_total*100:.1f}% of group</div>
+                <div class="metric-sub" style="margin-top:4px; font-size:10px; color:#6b7280;">
+                    Q1 − 1.5 × IQR &nbsp;|&nbsp; Q1={Q1_t3:.3f}, IQR={IQR_t3:.3f}
+                </div>
+            </div>""", unsafe_allow_html=True)
+            if "low_iqr_outlier" in phys_d.columns and len(scores_t3) >= 4:
+                fig_m1, ax_m1 = plt.subplots(figsize=(4, 2.8))
+                method_card(ax_m1, scores_t3,
+                            phys_d["low_iqr_outlier"].reindex(scores_t3.index).fillna(False).astype(bool),
+                            iqr_fence, f"Fence ({iqr_fence:.3f})",
+                            "#991b1b", "#2b7bc8", "IQR — Flagged Physicians")
+                fig_m1.patch.set_facecolor("white")
+                plt.tight_layout(pad=0.4)
+                st.pyplot(fig_m1, use_container_width=True)
+                plt.close()
+
+        # Card 2 — Z-Score
+        with mc2:
+            st.markdown(f"""<div class="metric-card warning">
+                <div class="metric-label">Z-Score ≤ −2</div>
+                <div class="metric-value">{n_z}</div>
+                <div class="metric-sub">Threshold: {z_thresh:.3f} &nbsp;·&nbsp; {n_z/n_total*100:.1f}% of group</div>
+                <div class="metric-sub" style="margin-top:4px; font-size:10px; color:#6b7280;">
+                    μ − 2σ &nbsp;|&nbsp; Mean={mean_t3:.3f}, σ={scores_t3.std(ddof=0):.3f}
+                </div>
+            </div>""", unsafe_allow_html=True)
+            if "low_z_outlier" in phys_d.columns and len(scores_t3) >= 4:
+                fig_m2, ax_m2 = plt.subplots(figsize=(4, 2.8))
+                method_card(ax_m2, scores_t3,
+                            phys_d["low_z_outlier"].reindex(scores_t3.index).fillna(False).astype(bool),
+                            z_thresh, f"μ−2σ ({z_thresh:.3f})",
+                            "#b45309", "#2b7bc8", "Z-Score — Flagged Physicians")
+                fig_m2.patch.set_facecolor("white")
+                plt.tight_layout(pad=0.4)
+                st.pyplot(fig_m2, use_container_width=True)
+                plt.close()
+
+        # Card 3 — Bottom 10%
+        with mc3:
+            st.markdown(f"""<div class="metric-card neutral">
+                <div class="metric-label">Bottom 10% (P10)</div>
+                <div class="metric-value">{n_p10}</div>
+                <div class="metric-sub">Threshold: {p10_thresh:.3f} &nbsp;·&nbsp; Always ≈10% of group</div>
+                <div class="metric-sub" style="margin-top:4px; font-size:10px; color:#6b7280;">
+                    10th percentile cutoff &nbsp;|&nbsp; P10={p10_thresh:.3f}
+                </div>
+            </div>""", unsafe_allow_html=True)
+            if "low_bottom10" in phys_d.columns and len(scores_t3) >= 4:
+                fig_m3, ax_m3 = plt.subplots(figsize=(4, 2.8))
+                method_card(ax_m3, scores_t3,
+                            phys_d["low_bottom10"].reindex(scores_t3.index).fillna(False).astype(bool),
+                            p10_thresh, f"P10 ({p10_thresh:.3f})",
+                            "#374151", "#2b7bc8", "Bottom 10% — Flagged Physicians")
+                fig_m3.patch.set_facecolor("white")
+                plt.tight_layout(pad=0.4)
+                st.pyplot(fig_m3, use_container_width=True)
+                plt.close()
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="section-header">Score Distribution</div>', unsafe_allow_html=True)
         col_l, col_r = st.columns(2)
 
         # IQR scatter plot
@@ -2522,7 +2631,7 @@ with tab6:
     st.markdown('<div class="section-header">Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.8"):
+    def load_indicators(url, _version="v5.9"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2549,7 +2658,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.8")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.9")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -3040,7 +3149,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.8") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.9") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
