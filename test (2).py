@@ -597,7 +597,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.11"):
+def load_from_github(urls, min_f, threshold, _version="v5.12"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -643,7 +643,7 @@ with st.spinner("Loading data..."):
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.11"
+        _version="v5.12"
     )
 
 # Build combined physician table from available departments
@@ -1316,13 +1316,6 @@ with tab3:
                     patch.set_facecolor(proj_data[dn]["color"])
                     patch.set_alpha(0.80)
 
-                # Jittered points
-                for pos, dn in zip(positions, depts_list):
-                    sc_arr = proj_data[dn]["sc"].values
-                    jitter = np.random.uniform(-0.15, 0.15, len(sc_arr))
-                    ax.scatter(pos + jitter, sc_arr, alpha=0.22, s=10,
-                               color=proj_data[dn]["color"], zorder=2)
-
                 # Threshold tick per project
                 off = 0.24
                 for pos, dn in zip(positions, depts_list):
@@ -1335,6 +1328,17 @@ with tab3:
                                 xy=(pos+off+0.04, t),
                                 fontsize=7, color=thresh_color,
                                 va="center", fontweight="600")
+
+                # Highlight only the outliers for this method
+                for pos, dn in zip(positions, depts_list):
+                    sc_arr = proj_data[dn]["sc"]
+                    t      = proj_data[dn][thresh_key]
+                    flagged = sc_arr[sc_arr < t] if thresh_key != "p10" else sc_arr[sc_arr <= t]
+                    if len(flagged) > 0:
+                        jitter = np.random.uniform(-0.12, 0.12, len(flagged))
+                        ax.scatter(pos + jitter, flagged.values,
+                                   color="#991b1b", s=30, zorder=6,
+                                   edgecolors="white", linewidths=0.6, alpha=0.9)
 
                 ax.set_xticks(positions)
                 ax.set_xticklabels(depts_list, fontsize=10, fontweight="600", color="#111827")
@@ -2757,7 +2761,7 @@ with tab6:
     st.markdown('<div class="section-header">Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.11"):
+    def load_indicators(url, _version="v5.12"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2784,7 +2788,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.11")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.12")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -3275,7 +3279,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.11") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.12") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
