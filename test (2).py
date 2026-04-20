@@ -1308,8 +1308,7 @@ with tab3:
                     medianprops=dict(color="white", linewidth=2.5),
                     whiskerprops=dict(color="#9ca3af", linewidth=1.1),
                     capprops=dict(color="#9ca3af", linewidth=1.3),
-                    flierprops=dict(marker="o", markerfacecolor="#991b1b",
-                                    markeredgecolor="none", markersize=4, alpha=0.65),
+                    flierprops=dict(marker="", markersize=0, alpha=0),
                     boxprops=dict(linewidth=0.8)
                 )
                 for patch, dn in zip(bp["boxes"], depts_list):
