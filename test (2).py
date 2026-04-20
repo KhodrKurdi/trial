@@ -597,7 +597,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.10"):
+def load_from_github(urls, min_f, threshold, _version="v5.11"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -643,7 +643,7 @@ with st.spinner("Loading data..."):
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.10"
+        _version="v5.11"
     )
 
 # Build combined physician table from available departments
@@ -1272,98 +1272,127 @@ Sum of all 4 flags:
 with tab3:
     st.markdown('<div class="section-header">Score Analysis — All Projects Overview</div>', unsafe_allow_html=True)
 
-    # ── Cross-project box plot overview ───────────────────────────────────────
+    # ── Cross-project overview: one box plot per method ─────────────────────
     if len(available_depts) >= 1:
-        fig_box, ax_box = plt.subplots(figsize=(11, 5))
 
-        box_data    = []
-        box_labels  = []
-        box_colors  = ["#1a365d", "#2b7bc8", "#4b5563"]
-        thresh_iqr  = {}
-        thresh_z    = {}
-        thresh_p10  = {}
+        # Pre-compute per-project stats
+        proj_data   = {}
+        box_colors  = {"AUBMC": "#1a365d", "ED": "#2b7bc8", "Pathology": "#4b5563"}
+        default_col = "#1a365d"
 
-        for i, dn in enumerate(available_depts):
+        for dn in available_depts:
             dp = all_phys[all_phys["department"] == dn] if "department" in all_phys.columns else all_phys
             if dp.empty or "avg_behavior_score" not in dp.columns: continue
             sc = dp["avg_behavior_score"].dropna()
             if len(sc) < 4: continue
-            box_data.append(sc.values)
-            box_labels.append(dn)
             Q1b = sc.quantile(0.25); Q3b = sc.quantile(0.75); IQRb = Q3b - Q1b
-            thresh_iqr[dn]  = Q1b - 1.5 * IQRb
-            thresh_z[dn]    = sc.mean() - 2 * sc.std(ddof=0)
-            thresh_p10[dn]  = sc.quantile(0.10)
+            proj_data[dn] = {
+                "sc":    sc,
+                "iqr":   Q1b - 1.5 * IQRb,
+                "z":     sc.mean() - 2 * sc.std(ddof=0),
+                "p10":   sc.quantile(0.10),
+                "color": box_colors.get(dn, default_col),
+            }
 
-        if box_data:
-            positions = list(range(1, len(box_data)+1))
-            bp = ax_box.boxplot(box_data, positions=positions, widths=0.45,
-                                patch_artist=True, notch=False,
-                                medianprops=dict(color="white", linewidth=2.5),
-                                whiskerprops=dict(color="#6b7280", linewidth=1.2),
-                                capprops=dict(color="#6b7280", linewidth=1.5),
-                                flierprops=dict(marker="o", markerfacecolor="#991b1b",
-                                                markeredgecolor="#991b1b", markersize=5, alpha=0.7),
-                                boxprops=dict(linewidth=1))
+        if proj_data:
+            depts_list = list(proj_data.keys())
+            positions  = list(range(1, len(depts_list)+1))
 
-            for patch, color in zip(bp["boxes"], box_colors[:len(box_data)]):
-                patch.set_facecolor(color)
-                patch.set_alpha(0.85)
+            def make_boxplot(thresh_key, thresh_label, thresh_color, thresh_ls, title, fig_label):
+                fig, ax = plt.subplots(figsize=(5.5, 4.2))
+                np.random.seed(42)
 
-            # Overlay individual data points (jittered)
-            np.random.seed(42)
-            for i, (sc_arr, pos) in enumerate(zip(box_data, positions)):
-                jitter = np.random.uniform(-0.18, 0.18, len(sc_arr))
-                ax_box.scatter(pos + jitter, sc_arr, alpha=0.3, s=12,
-                               color=box_colors[i % len(box_colors)], zorder=2)
+                bp = ax.boxplot(
+                    [proj_data[d]["sc"].values for d in depts_list],
+                    positions=positions, widths=0.42, patch_artist=True,
+                    medianprops=dict(color="white", linewidth=2.5),
+                    whiskerprops=dict(color="#9ca3af", linewidth=1.1),
+                    capprops=dict(color="#9ca3af", linewidth=1.3),
+                    flierprops=dict(marker="o", markerfacecolor="#991b1b",
+                                    markeredgecolor="none", markersize=4, alpha=0.65),
+                    boxprops=dict(linewidth=0.8)
+                )
+                for patch, dn in zip(bp["boxes"], depts_list):
+                    patch.set_facecolor(proj_data[dn]["color"])
+                    patch.set_alpha(0.80)
 
-            # Threshold lines per project (offset to align with box position)
-            offset = 0.26
-            for i, (dn, pos) in enumerate(zip(box_labels, positions)):
-                col = box_colors[i % len(box_colors)]
-                ax_box.plot([pos-offset, pos+offset], [thresh_iqr[dn]]*2,
-                            color="#991b1b", linewidth=1.8, linestyle="--", zorder=4,
-                            label="IQR Fence" if i == 0 else "")
-                ax_box.plot([pos-offset, pos+offset], [thresh_z[dn]]*2,
-                            color="#b45309", linewidth=1.8, linestyle=":",  zorder=4,
-                            label="Z-Score −2σ" if i == 0 else "")
-                ax_box.plot([pos-offset, pos+offset], [thresh_p10[dn]]*2,
-                            color="#374151", linewidth=1.8, linestyle="-.",  zorder=4,
-                            label="Bottom 10% (P10)" if i == 0 else "")
+                # Jittered points
+                for pos, dn in zip(positions, depts_list):
+                    sc_arr = proj_data[dn]["sc"].values
+                    jitter = np.random.uniform(-0.15, 0.15, len(sc_arr))
+                    ax.scatter(pos + jitter, sc_arr, alpha=0.22, s=10,
+                               color=proj_data[dn]["color"], zorder=2)
 
-            ax_box.set_xticks(positions)
-            ax_box.set_xticklabels(box_labels, fontsize=11, fontweight="600", color="#111827")
-            ax_box.set_ylabel("Average Behavioral Score (0–4)", fontsize=10, color="#374151")
-            ax_box.set_title("Score Distribution by Project — IQR, Z-Score and P10 Thresholds",
-                             fontsize=12, fontweight="600", color="#111827", pad=10)
-            ax_box.set_ylim(max(0, min(sc.min() for sc in box_data) - 0.2), 4.1)
-            ax_box.legend(fontsize=9, loc="lower right",
+                # Threshold tick per project
+                off = 0.24
+                for pos, dn in zip(positions, depts_list):
+                    t = proj_data[dn][thresh_key]
+                    ax.plot([pos-off, pos+off], [t, t],
+                            color=thresh_color, linewidth=2.2,
+                            linestyle=thresh_ls, zorder=5,
+                            label=thresh_label if pos == 1 else "")
+                    ax.annotate(f"{t:.2f}",
+                                xy=(pos+off+0.04, t),
+                                fontsize=7, color=thresh_color,
+                                va="center", fontweight="600")
+
+                ax.set_xticks(positions)
+                ax.set_xticklabels(depts_list, fontsize=10, fontweight="600", color="#111827")
+                ax.set_ylabel("Avg Behavioral Score (0–4)", fontsize=9, color="#374151")
+                ax.set_title(title, fontsize=10, fontweight="600", color="#111827", pad=8)
+                ax.set_ylim(
+                    max(0, min(proj_data[d]["sc"].min() for d in depts_list) - 0.25),
+                    4.1
+                )
+                ax.legend(fontsize=8, loc="lower right",
                           frameon=True, edgecolor="#e4e7ec", facecolor="white")
-            ax_box.grid(axis="y", alpha=0.25, linestyle="--")
-            ax_box.spines["top"].set_visible(False)
-            ax_box.spines["right"].set_visible(False)
-            ax_box.set_facecolor("white")
-            fig_box.patch.set_facecolor("white")
-            plt.tight_layout()
-            st.pyplot(fig_box, use_container_width=True)
-            plt.close()
+                ax.grid(axis="y", alpha=0.2, linestyle="--")
+                ax.spines["top"].set_visible(False)
+                ax.spines["right"].set_visible(False)
+                ax.set_facecolor("white")
+                fig.patch.set_facecolor("white")
+                plt.tight_layout(pad=0.8)
+                return fig
 
-            # Summary stats table below the box plot
+            ov1, ov2, ov3 = st.columns(3)
+            with ov1:
+                st.markdown("**IQR Lower Fence**")
+                st.caption("Below Q1 − 1.5 × IQR")
+                fig_ov1 = make_boxplot("iqr", "IQR Fence", "#991b1b", "--",
+                                       "IQR — Score Distribution", "iqr")
+                st.pyplot(fig_ov1, use_container_width=True); plt.close()
+
+            with ov2:
+                st.markdown("**Z-Score ≤ −2**")
+                st.caption("More than 2 SD below the mean")
+                fig_ov2 = make_boxplot("z", "Z −2σ threshold", "#b45309", ":",
+                                       "Z-Score — Score Distribution", "z")
+                st.pyplot(fig_ov2, use_container_width=True); plt.close()
+
+            with ov3:
+                st.markdown("**Bottom 10% (P10)**")
+                st.caption("Lowest-scoring 10% of each group")
+                fig_ov3 = make_boxplot("p10", "P10 threshold", "#374151", "-.",
+                                       "P10 — Score Distribution", "p10")
+                st.pyplot(fig_ov3, use_container_width=True); plt.close()
+
+            # Compact comparison table
+            st.markdown("<br>", unsafe_allow_html=True)
             summary_rows = []
-            for dn, sc_arr in zip(box_labels, box_data):
-                sc_s = pd.Series(sc_arr)
+            for dn in depts_list:
+                d = proj_data[dn]
+                sc_s = d["sc"]
                 summary_rows.append({
                     "Project":      dn,
                     "N":            len(sc_s),
                     "Mean":         f"{sc_s.mean():.3f}",
                     "Median":       f"{sc_s.median():.3f}",
-                    "Std":          f"{sc_s.std(ddof=0):.3f}",
-                    "IQR Fence":    f"{thresh_iqr[dn]:.3f}",
-                    "Z Threshold":  f"{thresh_z[dn]:.3f}",
-                    "P10":          f"{thresh_p10[dn]:.3f}",
-                    "IQR Flagged":  int((sc_s < thresh_iqr[dn]).sum()),
-                    "Z Flagged":    int((sc_s < thresh_z[dn]).sum()),
-                    "P10 Flagged":  int((sc_s <= thresh_p10[dn]).sum()),
+                    "IQR Fence":    f"{d['iqr']:.3f}",
+                    "IQR Flagged":  int((sc_s < d["iqr"]).sum()),
+                    "Z Threshold":  f"{d['z']:.3f}",
+                    "Z Flagged":    int((sc_s < d["z"]).sum()),
+                    "P10":          f"{d['p10']:.3f}",
+                    "P10 Flagged":  int((sc_s <= d["p10"]).sum()),
                 })
             st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
 
@@ -2728,7 +2757,7 @@ with tab6:
     st.markdown('<div class="section-header">Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.10"):
+    def load_indicators(url, _version="v5.11"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2755,7 +2784,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.10")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.11")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -3246,7 +3275,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.10") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.11") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
