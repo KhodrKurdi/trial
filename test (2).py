@@ -597,7 +597,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.12"):
+def load_from_github(urls, min_f, threshold, _version="v5.13"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -643,7 +643,7 @@ with st.spinner("Loading data..."):
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.12"
+        _version="v5.13"
     )
 
 # Build combined physician table from available departments
@@ -1343,10 +1343,13 @@ with tab3:
                 ax.set_xticklabels(depts_list, fontsize=10, fontweight="600", color="#111827")
                 ax.set_ylabel("Avg Behavioral Score (0–4)", fontsize=9, color="#374151")
                 ax.set_title(title, fontsize=10, fontweight="600", color="#111827", pad=8)
-                ax.set_ylim(
-                    max(0, min(proj_data[d]["sc"].min() for d in depts_list) - 0.25),
-                    4.1
-                )
+                # Anchor y-axis just below the lowest threshold — keeps outliers visible
+                # without wasting space down to the absolute minimum
+                min_thresh = min(proj_data[d][thresh_key] for d in depts_list)
+                all_sc     = pd.concat([proj_data[d]["sc"] for d in depts_list])
+                flagged_sc = all_sc[all_sc < min_thresh]
+                low_bound  = (flagged_sc.min() - 0.1) if len(flagged_sc) > 0 else (min_thresh - 0.2)
+                ax.set_ylim(max(0, low_bound), 4.1)
                 ax.legend(fontsize=8, loc="lower right",
                           frameon=True, edgecolor="#e4e7ec", facecolor="white")
                 ax.grid(axis="y", alpha=0.2, linestyle="--")
@@ -2760,7 +2763,7 @@ with tab6:
     st.markdown('<div class="section-header">Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.12"):
+    def load_indicators(url, _version="v5.13"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2787,7 +2790,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.12")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.13")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -3251,6 +3254,35 @@ with tab7:
                 lines.append(f"  {dept}: Priority={counts['Priority']}, Monitor={counts['Monitor']}, Clear={counts['Clear']} | Priority IDs: {fids}")
             lines.append("")
 
+        # ── DIVISION-LEVEL RISK SUMMARY ──────────────────────────────────────
+        if div_lookup:
+            lines.append("=" * 40)
+            lines.append("RISK SUMMARY BY CLINICAL DIVISION (specialty-level)")
+            lines.append("(Use this when asked about specific specialists, e.g. cardiologists, surgeons)")
+            lines.append("=" * 40)
+            div_risk = {}
+            for _, r in _all_phys.iterrows():
+                pid  = r["physician_id"]
+                dept = dept_lookup.get(pid, "Unknown")
+                div  = div_lookup.get(pid, dept)
+                if div not in div_risk:
+                    div_risk[div] = {"dept": dept, "Priority":0, "Monitor":0, "Clear":0,
+                                     "scores":[], "physicians":[]}
+                risk  = int(r.get("risk_score", 0))
+                score = r.get("avg_behavior_score", float("nan"))
+                name  = name_lookup.get(pid, pid)
+                entry = f"{name}(score={score:.3f},risk={risk})"
+                div_risk[div]["physicians"].append(entry)
+                div_risk[div]["scores"].append(score)
+                if risk >= 3:   div_risk[div]["Priority"] += 1
+                elif risk >= 1: div_risk[div]["Monitor"]  += 1
+                else:           div_risk[div]["Clear"]    += 1
+            for div, d in sorted(div_risk.items(), key=lambda x: str(x[0])):
+                avg_sc = sum(d["scores"]) / len(d["scores"]) if d["scores"] else 0
+                lines.append(f"  {div} (dept: {d['dept']}) | n={len(d['physicians'])} | avg_score={avg_sc:.3f} | Priority={d['Priority']}, Monitor={d['Monitor']}, Clear={d['Clear']}")
+                lines.append(f"    Physicians: {'; '.join(d['physicians'])}")
+            lines.append("")
+
         # ── CLINICAL INDICATORS (DEPARTMENTS & DIVISIONS) ─────────────────
         if _ind_df is not None and not _ind_df.empty:
             lines.append("=" * 40)
@@ -3278,7 +3310,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.12") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.13") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
@@ -3312,16 +3344,40 @@ with tab7:
 You help medical administrators and stakeholders understand physician performance data.
 
 CRITICAL — TERMINOLOGY YOU MUST FOLLOW:
-- When someone says "department", they mean the CLINICAL departments: Internal Medicine, Surgery, Ob/Gyn, Pediatrics, etc.
-- AUBMC, ED, and Pathology are NOT departments — they are PROJECT SURVEY GROUPS used in the behavior analysis.
-- IMPORTANT: Each physician in the survey data HAS a clinical Department and Division assigned via a lookup merge.
-  You CAN answer questions like "which department has the most priority physicians" or "show me Surgery physicians".
-  The Department and Division fields appear in the physician data lines below.
-- If someone asks about survey scores, outliers, or risk flags by department, look at the Department field in each physician line.
-- If someone asks about clinic visits, wait times, or patient complaints — use the indicators data section.
+- "Department" = clinical departments: Internal Medicine, Surgery, Ob/Gyn, Pediatrics, Neurology, etc.
+- "Division" = sub-unit within a department, e.g. Cardiology is a division of Internal Medicine,
+  General Surgery is a division of Surgery, Neonatology is a division of Pediatrics.
+- AUBMC, ED, and Pathology are NOT departments — they are SURVEY PROJECT GROUPS.
+- Every physician has both a Department AND a Division in the data below.
 
-Answer questions clearly, concisely, and accurately using ONLY the data provided below.
-Be direct and professional. Do not invent numbers not present in the data.
+HOW TO ANSWER DIVISION QUERIES (e.g. "worst cardiologist", "best surgeon"):
+1. The specialty/role named is likely a Division — search the Division field in the physician data.
+   e.g. "cardiologist" → look for Division = "Cardiology"
+   e.g. "surgeon" → look for Division containing "Surgery"
+   e.g. "neurologist" → look for Division = "Neurology"
+2. "Worst" = lowest avg_behavior_score OR highest risk score OR most flags.
+3. "Best" = highest avg_behavior_score AND lowest risk score.
+4. Always show: Name, Department, Division, Score, Risk level, Flags.
+5. If no exact match found, say which divisions ARE available and ask for clarification.
+
+HOW TO ANSWER RANKING QUERIES:
+- "Top N" or "Best N" → sort by avg_behavior_score DESCENDING, show top N.
+- "Bottom N" or "Worst N" → sort by avg_behavior_score ASCENDING, show bottom N.
+- Always filter by the requested department/division first, then rank within that group.
+
+AVAILABLE RISK FLAGS:
+- IQR = below IQR lower fence
+- Z = Z-score ≤ −2 (more than 2 SD below mean)
+- B10 = bottom 10% of their group
+- SENT = negative sentiment in peer comments
+- Risk score 0=Clear, 1-2=Monitor, 3-4=Priority
+
+SCORES are on a 0–4 scale. Higher is better.
+PERCENTILE: higher percentile = better performance (e.g. 95th = top performer).
+
+Answer clearly, concisely, and accurately using ONLY the data provided below.
+Be direct and professional. Do not invent data. If a physician or division is not found,
+say so explicitly and list what IS available.
 
 DATA CONTEXT:
 {context}
