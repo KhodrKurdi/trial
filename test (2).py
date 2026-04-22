@@ -25,10 +25,10 @@ st.markdown("""
 <style>
     /* ── Global ── */
     .stApp, .main, [data-testid="stAppViewContainer"] {
-        background-color: #f7f8fa !important;
+        background-color: #eef4fb !important;
         font-family: 'Segoe UI', -apple-system, system-ui, sans-serif;
     }
-    [data-testid="stHeader"]  { background-color: #f7f8fa !important; }
+    [data-testid="stHeader"]  { background-color: #eef4fb !important; }
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
     header[data-testid="stHeader"] { height: 0 !important; min-height: 0 !important; }
@@ -36,10 +36,10 @@ st.markdown("""
 
     /* ── Metric Cards ── */
     .metric-card {
-        background: #ffffff;
+        background: #f8fbff;
         border-radius: 4px;
         padding: 18px 20px;
-        border: 1px solid #e4e7ec;
+        border: 1px solid #d0e4f7;
         border-left: 3px solid #1a365d;
         margin-bottom: 8px;
     }
@@ -70,10 +70,10 @@ st.markdown("""
     div[data-testid="stSidebarNav"] { display: none; }
     .stTabs [data-baseweb="tab-list"] {
         gap: 0px;
-        background: #ffffff !important;
+        background: #dbeafe !important;
         border-radius: 0;
-        padding: 0;
-        border-bottom: 2px solid #e4e7ec;
+        padding: 0 8px;
+        border-bottom: 2px solid #1a365d;
     }
     .stTabs [data-baseweb="tab"] {
         background: transparent !important;
@@ -89,10 +89,10 @@ st.markdown("""
         color: #111827 !important;
     }
     .stTabs [aria-selected="true"] {
-        background: transparent !important;
+        background: #ffffff !important;
         color: #1a365d !important;
-        font-weight: 600 !important;
-        border-bottom: 2px solid #1a365d !important;
+        font-weight: 700 !important;
+        border-bottom: 3px solid #1a365d !important;
     }
 
     /* ── Comment Cards ── */
@@ -130,14 +130,14 @@ st.markdown("""
 
     /* ── Streamlit native ── */
     .stMetric {
-        background: white; border-radius: 4px; padding: 14px 16px;
-        border: 1px solid #e4e7ec;
+        background: #f8fbff; border-radius: 4px; padding: 14px 16px;
+        border: 1px solid #d0e4f7;
     }
     .stMetric label { color: #6b7280 !important; font-size: 11px !important; font-weight: 600 !important; text-transform: uppercase; letter-spacing: 0.05em; }
     .stMetric [data-testid="stMetricValue"] { color: #111827 !important; font-weight: 700 !important; }
-    div[data-testid="stDataFrame"] { background: white; border-radius: 4px; border: 1px solid #e4e7ec; }
+    div[data-testid="stDataFrame"] { background: #f8fbff; border-radius: 4px; border: 1px solid #d0e4f7; }
     .stSelectbox label, .stSlider label, .stRadio label { color: #374151 !important; font-weight: 500 !important; font-size: 13px !important; }
-    .stSelectbox > div > div { background: white !important; color: #111827 !important; border-color: #d1d5db !important; border-radius: 4px !important; }
+    .stSelectbox > div > div { background: #f8fbff !important; color: #111827 !important; border-color: #93c5fd !important; border-radius: 4px !important; }
     h1 { color: #111827 !important; font-weight: 700 !important; font-size: 22px !important; }
     h2, h3 { color: #1f2937 !important; font-weight: 600 !important; }
     p, li { color: #374151; }
@@ -597,7 +597,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.13"):
+def load_from_github(urls, min_f, threshold, _version="v5.14"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -643,7 +643,7 @@ with st.spinner("Loading data..."):
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.13"
+        _version="v5.14"
     )
 
 # Build combined physician table from available departments
@@ -2763,7 +2763,7 @@ with tab6:
     st.markdown('<div class="section-header">Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.13"):
+    def load_indicators(url, _version="v5.14"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2790,7 +2790,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.13")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.14")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -3310,36 +3310,42 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.13") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.14") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
+    if "_mc_pending" not in st.session_state:
+        st.session_state["_mc_pending"] = False
 
-    # Clear button at top right
+    # Clear button
     col_title, col_clear = st.columns([5, 1])
     with col_clear:
         if st.session_state.chat_history:
             if st.button("Clear Chat", key="clear_chat"):
                 st.session_state.chat_history = []
+                st.session_state["_mc_pending"] = False
                 st.rerun()
 
-    # Chat container — display full history
+    # Render full conversation history
     for msg in st.session_state.chat_history:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # Input at bottom
+    # Input box — always at bottom
     user_input = st.chat_input("Ask MC about physicians, scores, sentiment, flags...")
 
     if user_input:
-        # Add user message to history and display it
+        # Save user message, flag API call needed, rerun so history shows first
         st.session_state.chat_history.append({"role": "user", "content": user_input})
-        with st.chat_message("user"):
-            st.markdown(user_input)
+        st.session_state["_mc_pending"] = True
+        st.rerun()
 
-        # Build system prompt with live data context
+    # After rerun: history rendered above, now call API for the pending message
+    if st.session_state["_mc_pending"]:
+        st.session_state["_mc_pending"] = False
+
         system_prompt = f"""You are MC, an AI data assistant for the AUBMC Physician Performance Dashboard.
 You help medical administrators and stakeholders understand physician performance data.
 
@@ -3382,12 +3388,10 @@ say so explicitly and list what IS available.
 DATA CONTEXT:
 {context}
 """
-        # Build message history for API (all turns)
-        messages = []
-        for h in st.session_state.chat_history:
-            messages.append({"role": h["role"], "content": h["content"]})
 
-        # Call Anthropic API and display response
+        messages = [{"role": h["role"], "content": h["content"]}
+                    for h in st.session_state.chat_history]
+
         with st.chat_message("assistant"):
             with st.spinner("MC is thinking..."):
                 try:
@@ -3416,10 +3420,10 @@ DATA CONTEXT:
                             answer = result["content"][0]["text"]
                         else:
                             err = result.get("error", {}).get("message", "Unknown error")
-                            answer = f"Sorry, I couldn't get a response. ({err})"
+                            answer = f"Sorry, I could not get a response. ({err})"
                 except Exception as e:
                     answer = f"Connection error: {str(e)}"
-
             st.markdown(answer)
-        # Add assistant response to history
+
         st.session_state.chat_history.append({"role": "assistant", "content": answer})
+        st.rerun()
