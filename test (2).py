@@ -843,7 +843,7 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Department Risk Comparison ────────────────────────────────────────────
-    st.markdown('<div class="section-header">Project Risk Comparison</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Department Risk Comparison</div>', unsafe_allow_html=True)
 
     dept_risk_rows = []
     for dept in available_depts:
@@ -997,7 +997,7 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Department Summary Table ──────────────────────────────────────────────
-    st.markdown('<div class="section-header">Project Summary</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Department Summary</div>', unsafe_allow_html=True)
     summary_rows = []
     for dept in available_depts:
         _, phys, _ = data[dept]
@@ -2263,7 +2263,7 @@ with tab5:
             if q_cols_all:
                 q_rows = []
                 for q in q_cols_all:
-                    row = {"Question": q_display_label(q), "_full": q_full_label(q)}
+                    row = {"Question": q_full_label(q)[:55] + ("…" if len(q_full_label(q)) > 55 else "")}
                     for yr in years_avail:
                         yr_df_q = raw_d[raw_d["year"] == yr]
                         if "raters_group" in yr_df_q.columns:
@@ -2276,6 +2276,7 @@ with tab5:
                                    else "—")
                     q_rows.append(row)
                 q_df = pd.DataFrame(q_rows).sort_values(str(years_avail[-1]) if years_avail else "Question")
+                q_df = q_df[[c for c in q_df.columns if c != "_full"]]
 
                 # Heatmap-style bar chart per question
                 fig_q, ax_q = plt.subplots(figsize=(10, max(4, len(q_cols_all)*0.45)))
@@ -2295,7 +2296,7 @@ with tab5:
                 ax_q.set_title(f"{trend_dept} — Average Score per Question by Year", fontsize=11, fontweight="bold", color="#1a365d")
                 ax_q.axvline(3.0, color="#f59e0b", linestyle="--", linewidth=1, alpha=0.6, label="Score 3.0")
                 ax_q.set_xlim(0, 4.2)
-                ax_q.legend(fontsize=9, loc="lower right")
+                ax_q.legend(fontsize=8, loc="upper left", frameon=True, edgecolor="#e4e7ec", facecolor="white")
                 ax_q.grid(axis="x", alpha=0.25, linestyle="--")
                 ax_q.set_facecolor("white"); fig_q.patch.set_facecolor("white")
                 plt.tight_layout()
@@ -2553,7 +2554,7 @@ with tab5:
                     if q_cols_p and selected_phys:
                         phys_q_rows = []
                         for q in q_cols_p:
-                            row_q = {"Question": q_display_label(q), "_full": q_full_label(q)}
+                            row_q = {"Question": q_full_label(q)[:55] + ("…" if len(q_full_label(q)) > 55 else "")}
                             for yr in years_avail:
                                 yr_phys_df = raw_d[(raw_d["physician_id"]==selected_phys) & (raw_d["year"]==yr)]
                                 if "raters_group" in yr_phys_df.columns:
@@ -2589,7 +2590,7 @@ with tab5:
                         ax_pq.set_title(f"{selected_phys} — Question Scores vs. Department Average ({last_yr})", fontsize=11, fontweight="bold", color="#1a365d")
                         ax_pq.set_xlim(0, 4.4)
                         ax_pq.axvline(3.0, color="#f59e0b", linestyle="--", linewidth=1, alpha=0.6, label="Score 3.0")
-                        ax_pq.legend(fontsize=9, loc="lower right")
+                        ax_pq.legend(fontsize=8, loc="upper left", frameon=True, edgecolor="#e4e7ec", facecolor="white")
                         ax_pq.grid(axis="x", alpha=0.25, linestyle="--")
                         ax_pq.set_facecolor("white"); fig_pq.patch.set_facecolor("white")
                         plt.tight_layout()
@@ -2610,7 +2611,7 @@ with tab5:
                             ax_qt.set_xlabel("Year", fontsize=10)
                             ax_qt.set_ylabel("Avg Score (0–4)", fontsize=10)
                             ax_qt.set_title(f"{selected_phys} — Question Score Trends Over Time", fontsize=11, fontweight="bold", color="#1a365d")
-                            ax_qt.legend(fontsize=7, bbox_to_anchor=(1.01, 1), loc="upper left")
+                            ax_qt.legend(fontsize=7, loc="lower right", ncol=2, frameon=True, edgecolor="#e4e7ec", facecolor="white", framealpha=0.9)
                             ax_qt.set_ylim(0, 4.2)
                             ax_qt.grid(alpha=0.25, linestyle="--")
                             ax_qt.set_facecolor("white"); fig_qt.patch.set_facecolor("white")
