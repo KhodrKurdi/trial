@@ -843,7 +843,7 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Department Risk Comparison ────────────────────────────────────────────
-    st.markdown('<div class="section-header">Department Risk Comparison</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Project Risk Comparison</div>', unsafe_allow_html=True)
 
     dept_risk_rows = []
     for dept in available_depts:
