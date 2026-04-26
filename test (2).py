@@ -3250,7 +3250,13 @@ with tab7:
                     trend_str = f"+{trend_val:.3f}" if trend_val > 0 else f"{trend_val:.3f}"
                 else:
                     trend_str = "n/a"
-                lines.append(f"    {pid} | {name} | {dept} | {div} | 2023={s2023} | 2024={s2024} | 2025={s2025} | trend={trend_str} | score={r['avg_behavior_score']:.3f} | percentile={pct:.0f}th | risk={int(r['risk_score'])} | sentiment={compound_str} | neg_ratio={neg_ratio_str} | flags=[{flags}]")
+                risk_int = int(r['risk_score'])
+                if risk_int >= 1:
+                    # Priority/Monitor — full detail
+                    lines.append(f"    {pid} | {name} | {dept} | {div} | 2023={s2023} | 2024={s2024} | 2025={s2025} | trend={trend_str} | score={r['avg_behavior_score']:.3f} | percentile={pct:.0f}th | risk={risk_int} | sentiment={compound_str} | flags=[{flags}]")
+                else:
+                    # Clear — compact (score + trend only)
+                    lines.append(f"    {pid} | {name} | {dept} | {div} | score={r['avg_behavior_score']:.3f} | trend={trend_str} | risk=0 | flags=none")
             lines.append("")
 
         # Also add a department-level risk summary for quick lookup
@@ -3303,7 +3309,10 @@ with tab7:
             for div, d in sorted(div_risk.items(), key=lambda x: str(x[0])):
                 avg_sc = sum(d["scores"]) / len(d["scores"]) if d["scores"] else 0
                 lines.append(f"  {div} (dept: {d['dept']}) | n={len(d['physicians'])} | avg_score={avg_sc:.3f} | Priority={d['Priority']}, Monitor={d['Monitor']}, Clear={d['Clear']}")
-                lines.append(f"    Physicians: {'; '.join(d['physicians'])}")
+                # Only list Priority/Monitor physicians to keep context compact
+                flagged_phys = [p for p in d["physicians"] if ",risk=1)" in p or ",risk=2)" in p or ",risk=3)" in p or ",risk=4)" in p]
+                if flagged_phys:
+                    lines.append(f"    Flagged: {'; '.join(flagged_phys[:10])}")
             lines.append("")
 
         # ── CLINICAL INDICATORS (DEPARTMENTS & DIVISIONS) ─────────────────
@@ -3432,11 +3441,11 @@ DATA CONTEXT:
                             },
                             json={
                                 "model": "claude-haiku-4-5-20251001",
-                                "max_tokens": 4096,
+                                "max_tokens": 1500,
                                 "system": system_prompt,
                                 "messages": messages,
                             },
-                            timeout=30
+                            timeout=60
                         )
                         result = response.json()
                         if "content" in result and result["content"]:
