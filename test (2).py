@@ -2552,7 +2552,7 @@ with tab5:
                     if q_cols_p and selected_phys:
                         phys_q_rows = []
                         for q in q_cols_p:
-                            row_q = {"Question": q_full_label(q)[:55] + ("…" if len(q_full_label(q)) > 55 else "")}
+                            row_q = {"Question": q_full_label(q)}
                             for yr in years_avail:
                                 yr_phys_df = raw_d[(raw_d["physician_id"]==selected_phys) & (raw_d["year"]==yr)]
                                 if "raters_group" in yr_phys_df.columns:
@@ -2611,7 +2611,7 @@ with tab5:
                                             yr_pts = [(yr, row_q[str(yr)]) for yr in years_avail
                                                       if not pd.isna(row_q.get(str(yr), np.nan))]
                                             xs, ys = zip(*yr_pts)
-                                            fig_sp, ax_sp = plt.subplots(figsize=(2.8, 1.8))
+                                            fig_sp, ax_sp = plt.subplots(figsize=(2.8, 2.4))
                                             trend_col = "#991b1b" if ys[-1] < ys[0] else "#166534"
                                             ax_sp.plot(xs, ys, marker="o", linewidth=2, markersize=5,
                                                        color=trend_col, solid_capstyle="round")
@@ -2623,8 +2623,17 @@ with tab5:
                                             ax_sp.set_xticks(list(xs))
                                             ax_sp.set_xticklabels([str(y) for y in xs], fontsize=7)
                                             ax_sp.set_ylim(max(0, min(ys)-0.3), min(4.2, max(ys)+0.3))
-                                            ax_sp.set_title(row_q["Question"][:32]+"…" if len(row_q["Question"])>32 else row_q["Question"],
-                                                            fontsize=7.5, fontweight="600", color="#1a365d", pad=3)
+                                            # Wrap full sentence into 2 lines at word boundary
+                                            _qlbl = row_q["Question"]
+                                            if len(_qlbl) > 38:
+                                                _mid = _qlbl[:38].rfind(" ")
+                                                if _mid == -1: _mid = 38
+                                                _line2 = _qlbl[_mid+1:]
+                                                if len(_line2) > 38:
+                                                    _line2 = _line2[:35] + "…"
+                                                _qlbl = _qlbl[:_mid] + "\n" + _line2
+                                            ax_sp.set_title(_qlbl, fontsize=7, fontweight="600",
+                                                            color="#1a365d", pad=3)
                                             ax_sp.tick_params(labelleft=False, left=False)
                                             for sp in ax_sp.spines.values(): sp.set_visible(False)
                                             ax_sp.set_facecolor("white"); fig_sp.patch.set_facecolor("white")
