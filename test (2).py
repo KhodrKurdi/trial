@@ -750,7 +750,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
 # TAB 1 — EXECUTIVE SUMMARY
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab1:
-    st.markdown('<div class="section-header">Key Performance Indicators</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Key Performance Indicators 2025</div>', unsafe_allow_html=True)
 
     # Project + Department + Division filters
     t1f1, t1f2, t1f3 = st.columns(3)
