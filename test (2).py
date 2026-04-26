@@ -597,7 +597,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.14"):
+def load_from_github(urls, min_f, threshold, _version="v5.15"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -643,7 +643,7 @@ with st.spinner("Loading data..."):
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.14"
+        _version="v5.15"
     )
 
 # Build combined physician table from available departments
@@ -1092,9 +1092,9 @@ Sum of all 4 flags:
     display_cols = {
         "physician_id":       "Physician ID",
         "department":         "Project",
+        "Department":         "Department",
+        "Division":           "Division",
         "avg_behavior_score": "Avg Score",
-        "n_forms":            "Evaluations",
-        "z_score":            "Z-Score",
         "low_iqr_outlier":    "IQR Flag",
         "low_z_outlier":      "Z-Flag",
         "low_bottom10":       "Bottom 10%",
@@ -1105,8 +1105,6 @@ Sum of all 4 flags:
     show_df.columns = [display_cols[c] for c in show_df.columns]
     if "Avg Score" in show_df.columns:
         show_df["Avg Score"] = show_df["Avg Score"].round(3)
-    if "Z-Score" in show_df.columns:
-        show_df["Z-Score"] = show_df["Z-Score"].round(2)
     if "Neg. Ratio" in show_df.columns:
         show_df["Neg. Ratio"] = show_df["Neg. Ratio"].apply(lambda x: f"{x:.1%}" if pd.notna(x) else "—")
     if "Avg Compound" in show_df.columns:
@@ -2597,27 +2595,42 @@ with tab5:
                         st.pyplot(fig_pq, use_container_width=True)
                         plt.close()
 
-                        # Trend line chart per question (physician only)
+                        # Trend sparklines — one small chart per question (clean, not noisy)
                         if len(years_avail) >= 2:
-                            fig_qt, ax_qt = plt.subplots(figsize=(10, max(4, len(q_cols_p)*0.4)))
-                            cmap = plt.cm.get_cmap("tab10", len(phys_q_rows))
-                            for i, row_q in enumerate(phys_q_rows):
-                                yr_scores_q = [(yr, row_q[str(yr)]) for yr in years_avail if not pd.isna(row_q.get(str(yr), np.nan))]
-                                if len(yr_scores_q) >= 2:
-                                    xs, ys = zip(*yr_scores_q)
-                                    ax_qt.plot(xs, ys, marker="o", linewidth=1.5, markersize=5,
-                                               color=cmap(i), label=row_q["Question"], alpha=0.85)
-                            ax_qt.set_xticks(years_avail)
-                            ax_qt.set_xlabel("Year", fontsize=10)
-                            ax_qt.set_ylabel("Avg Score (0–4)", fontsize=10)
-                            ax_qt.set_title(f"{selected_phys} — Question Score Trends Over Time", fontsize=11, fontweight="bold", color="#1a365d")
-                            ax_qt.legend(fontsize=7, loc="lower right", ncol=2, frameon=True, edgecolor="#e4e7ec", facecolor="white", framealpha=0.9)
-                            ax_qt.set_ylim(0, 4.2)
-                            ax_qt.grid(alpha=0.25, linestyle="--")
-                            ax_qt.set_facecolor("white"); fig_qt.patch.set_facecolor("white")
-                            plt.tight_layout()
-                            st.pyplot(fig_qt, use_container_width=True)
-                            plt.close()
+                            st.markdown("**Score Trend per Question (2023–2025)**")
+                            # Filter to questions that actually have data in 2+ years
+                            valid_rows = [r for r in phys_q_rows
+                                          if sum(1 for yr in years_avail if not pd.isna(r.get(str(yr), np.nan))) >= 2]
+                            if valid_rows:
+                                n_cols_sp = 3
+                                rows_sp   = [valid_rows[i:i+n_cols_sp] for i in range(0, len(valid_rows), n_cols_sp)]
+                                for row_group in rows_sp:
+                                    sp_cols = st.columns(n_cols_sp)
+                                    for col_idx, row_q in enumerate(row_group):
+                                        with sp_cols[col_idx]:
+                                            yr_pts = [(yr, row_q[str(yr)]) for yr in years_avail
+                                                      if not pd.isna(row_q.get(str(yr), np.nan))]
+                                            xs, ys = zip(*yr_pts)
+                                            fig_sp, ax_sp = plt.subplots(figsize=(2.8, 1.8))
+                                            trend_col = "#991b1b" if ys[-1] < ys[0] else "#166534"
+                                            ax_sp.plot(xs, ys, marker="o", linewidth=2, markersize=5,
+                                                       color=trend_col, solid_capstyle="round")
+                                            ax_sp.fill_between(xs, ys, min(ys)-0.05, alpha=0.08, color=trend_col)
+                                            for x_pt, y_pt in zip(xs, ys):
+                                                ax_sp.annotate(f"{y_pt:.2f}", (x_pt, y_pt),
+                                                               textcoords="offset points", xytext=(0,6),
+                                                               ha="center", fontsize=7, color="#374151")
+                                            ax_sp.set_xticks(list(xs))
+                                            ax_sp.set_xticklabels([str(y) for y in xs], fontsize=7)
+                                            ax_sp.set_ylim(max(0, min(ys)-0.3), min(4.2, max(ys)+0.3))
+                                            ax_sp.set_title(row_q["Question"][:32]+"…" if len(row_q["Question"])>32 else row_q["Question"],
+                                                            fontsize=7.5, fontweight="600", color="#1a365d", pad=3)
+                                            ax_sp.tick_params(labelleft=False, left=False)
+                                            for sp in ax_sp.spines.values(): sp.set_visible(False)
+                                            ax_sp.set_facecolor("white"); fig_sp.patch.set_facecolor("white")
+                                            plt.tight_layout(pad=0.3)
+                                            st.pyplot(fig_sp, use_container_width=True)
+                                            plt.close()
 
                         st.markdown(f"**Question Scores — {selected_phys} vs. Department Avg**")
                         disp_cols = ["Question"] + [str(yr) for yr in years_avail] + ["Trend"]
@@ -2764,7 +2777,7 @@ with tab6:
     st.markdown('<div class="section-header">Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.14"):
+    def load_indicators(url, _version="v5.15"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2791,7 +2804,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.14")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.15")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -3311,7 +3324,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.14") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.15") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
