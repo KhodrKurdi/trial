@@ -3086,24 +3086,25 @@ with tab6:
                     plt.tight_layout(); st.pyplot(fig, use_container_width=True); plt.close()
                 with dc2:
                     fig2, ax2 = plt.subplots(figsize=(7, max(3.5, len(dept_sum)*0.5)))
-                    c2 = ["#e53e3e" if r > dept_sum["Rate"].quantile(0.75) and r > 0
-                          else "#f59e0b" if r > 0 else "#38a169"
-                          for r in dept_sum["Rate"]]
-                    bars2 = ax2.barh(dept_sum["Department"], dept_sum["Rate"],
+                    max_c = dept_sum["Total_Complaints"].max() or 1
+                    c2 = ["#e53e3e" if v > dept_sum["Total_Complaints"].quantile(0.75) and v > 0
+                          else "#f59e0b" if v > 0 else "#38a169"
+                          for v in dept_sum["Total_Complaints"]]
+                    bars2 = ax2.barh(dept_sum["Department"], dept_sum["Total_Complaints"],
                                      color=c2, edgecolor="white", linewidth=0.5, height=0.6, alpha=0.88)
-                    for bar, val in zip(bars2, dept_sum["Rate"]):
-                        ax2.text(val + 0.003, bar.get_y()+bar.get_height()/2,
-                                 f"{val:.2f}%", va="center", fontsize=9, fontweight="700", color="#1a365d")
-                    ax2.set_xlabel("Complaints per 100 Visits", fontsize=10, color="#64748b")
-                    ax2.set_title("Complaint Rate by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
+                    for bar, val in zip(bars2, dept_sum["Total_Complaints"]):
+                        ax2.text(val + max_c*0.015, bar.get_y()+bar.get_height()/2,
+                                 f"{int(val):,}", va="center", fontsize=9, fontweight="700", color="#1a365d")
+                    ax2.set_xlabel("Total Patient Complaints", fontsize=10, color="#64748b")
+                    ax2.set_title("Total Complaints by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
                     ax2.tick_params(colors="#64748b", labelsize=9)
                     for sp in ax2.spines.values(): sp.set_edgecolor("#e2e8f0")
                     ax2.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
                     ax2.set_facecolor("white"); fig2.patch.set_facecolor("white")
                     ax2.legend(handles=[
                         mpatches.Patch(color="#38a169", alpha=0.88, label="No complaints"),
-                        mpatches.Patch(color="#f59e0b", alpha=0.88, label="Low rate"),
-                        mpatches.Patch(color="#e53e3e", alpha=0.88, label="High rate"),
+                        mpatches.Patch(color="#f59e0b", alpha=0.88, label="Low"),
+                        mpatches.Patch(color="#e53e3e", alpha=0.88, label="High"),
                     ], fontsize=8, loc="lower right", framealpha=0.9)
                     plt.tight_layout(); st.pyplot(fig2, use_container_width=True); plt.close()
 
