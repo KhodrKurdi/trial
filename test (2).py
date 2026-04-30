@@ -597,7 +597,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.18"):
+def load_from_github(urls, min_f, threshold, _version="v5.19"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -649,7 +649,7 @@ with st.spinner("Loading data..."):
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.18"
+        _version="v5.19"
     )
 
 # Build combined physician table from available departments
@@ -703,41 +703,38 @@ if not physician_lookup.empty:
     all_phys["Division"] = all_phys["Division"].fillna(all_phys["Department"])
 else:
     all_phys["FullName"]   = ""
-    # ── Anonymization mappings (built once at load time) ──────────────────
-    all_phys["_AnonCode"]  = ["PHY-" + str(i+1).zfill(3) for i in range(len(all_phys))]
-
-    # Physician ID → PHY-XXX
-    unique_ids   = all_phys["physician_id"].unique()
-    _id_anon_map = {pid: f"PHY-{i+1:03d}" for i, pid in enumerate(sorted(unique_ids))}
-    all_phys["_AnonID"] = all_phys["physician_id"].map(_id_anon_map)
-
-    # Department → DEPT-A, DEPT-B ...
-    unique_depts  = sorted([d for d in all_phys["Department"].dropna().unique()])
-    _dept_anon_map = {d: f"DEPT-{chr(65+i)}" for i, d in enumerate(unique_depts)}
-    all_phys["_AnonDept"] = all_phys["Department"].map(_dept_anon_map)
-
-    # Division → DIV-01, DIV-02 ...
-    unique_divs   = sorted([d for d in all_phys["Division"].dropna().unique()])
-    _div_anon_map = {d: f"DIV-{i+1:02d}" for i, d in enumerate(unique_divs)}
-    all_phys["_AnonDiv"] = all_phys["Division"].map(_div_anon_map)
-
-    # Project (department survey group) → PROJECT-1, PROJECT-2, PROJECT-3
-    unique_projs  = sorted([d for d in all_phys["department"].dropna().unique()])
-    _proj_anon_map = {d: f"PROJECT-{i+1}" for i, d in enumerate(unique_projs)}
-    all_phys["_AnonProj"] = all_phys["department"].map(_proj_anon_map)
-
-    # ── Apply anonymization immediately if toggle is ON ───────────────────
-    if ANONYMIZE:
-        all_phys["FullName"]       = all_phys["_AnonCode"]
-        all_phys["Physician Name"] = all_phys["_AnonCode"]
-        all_phys["physician_id"]   = all_phys["_AnonID"]
-        all_phys["Department"]     = all_phys["_AnonDept"].fillna("DEPT-?")
-        all_phys["Division"]       = all_phys["_AnonDiv"].fillna("DIV-?")
-        all_phys["department"]     = all_phys["_AnonProj"].fillna("PROJECT-?")
-    else:
-        all_phys["Physician Name"] = all_phys["FullName"].fillna(all_phys["_AnonID"])
     all_phys["Department"] = ""
     all_phys["Division"]   = ""
+
+# ── Build anonymization maps (always — regardless of lookup) ─────────────────
+all_phys["_AnonCode"] = ["PHY-" + str(i+1).zfill(3) for i in range(len(all_phys))]
+
+unique_ids     = all_phys["physician_id"].unique()
+_id_anon_map   = {pid: f"PHY-{i+1:03d}" for i, pid in enumerate(sorted(unique_ids))}
+all_phys["_AnonID"] = all_phys["physician_id"].map(_id_anon_map)
+
+unique_depts   = sorted([d for d in all_phys["Department"].dropna().unique() if d])
+_dept_anon_map = {d: f"DEPT-{chr(65+i)}" for i, d in enumerate(unique_depts)}
+all_phys["_AnonDept"] = all_phys["Department"].map(_dept_anon_map).fillna("DEPT-?")
+
+unique_divs    = sorted([d for d in all_phys["Division"].dropna().unique() if d])
+_div_anon_map  = {d: f"DIV-{i+1:02d}" for i, d in enumerate(unique_divs)}
+all_phys["_AnonDiv"] = all_phys["Division"].map(_div_anon_map).fillna("DIV-?")
+
+unique_projs   = sorted([d for d in all_phys["department"].dropna().unique() if d])
+_proj_anon_map = {d: f"PROJECT-{i+1}" for i, d in enumerate(unique_projs)}
+all_phys["_AnonProj"] = all_phys["department"].map(_proj_anon_map).fillna("PROJECT-?")
+
+# ── Apply anonymization now if toggle is ON ───────────────────────────────────
+if ANONYMIZE:
+    all_phys["FullName"]       = all_phys["_AnonCode"]
+    all_phys["Physician Name"] = all_phys["_AnonCode"]
+    all_phys["physician_id"]   = all_phys["_AnonID"]
+    all_phys["Department"]     = all_phys["_AnonDept"]
+    all_phys["Division"]       = all_phys["_AnonDiv"]
+    all_phys["department"]     = all_phys["_AnonProj"]
+else:
+    all_phys["Physician Name"] = all_phys["FullName"].fillna(all_phys["physician_id"])
 
 
 
@@ -2827,7 +2824,7 @@ with tab6:
     st.markdown('<div class="section-header">Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.18"):
+    def load_indicators(url, _version="v5.19"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2854,7 +2851,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.18")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.19")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -3385,7 +3382,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.18") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.19") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
