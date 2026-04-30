@@ -749,18 +749,27 @@ except Exception:
 
 _dept_div_map = build_dept_map(_ind_raw, physician_lookup)
 
-# Apply to all_phys
+# Apply to all_phys — use all available sources
 all_phys["_key"]       = all_phys["physician_id"].astype(str).str.strip().str.lower()
 all_phys["Department"] = all_phys["_key"].map(lambda x: _dept_div_map.get(x, ("", ""))[0])
 all_phys["Division"]   = all_phys["_key"].map(lambda x: _dept_div_map.get(x, ("", ""))[1])
-all_phys["Division"]   = all_phys["Division"].where(all_phys["Division"] != "", all_phys["Department"])
+
+# Also try matching via "department" column (survey group tag) as last resort
+all_phys["Division"]   = all_phys["Division"].where(
+    all_phys["Division"].astype(str).str.strip() != "", all_phys["Department"])
+
+# Physicians with no department match → label clearly
+all_phys["Department"] = all_phys["Department"].replace("", "Unassigned")
+all_phys["Division"]   = all_phys["Division"].replace("", all_phys["Department"])
 all_phys["FullName"]   = all_phys["physician_id"]  # suppress real names
 all_phys = all_phys.drop(columns=["_key"], errors="ignore")
 
-_dept_mapped = all_phys["Department"].notna().sum()
-_dept_filled = (all_phys["Department"] != "").sum()
+_dept_filled = (all_phys["Department"] != "Unassigned").sum()
+_total       = len(all_phys)
 if _dept_filled == 0:
-    st.warning("⚠️ Department/Division data not loaded — check indicators or lookup CSV paths.")
+    st.warning("⚠️ No Department/Division data found — check that your indicators and lookup CSV paths are correct in GITHUB_URLS.")
+elif _dept_filled < _total:
+    st.info(f"ℹ️ {_total - _dept_filled} of {_total} physicians have no department match — they will show as 'Unassigned'. Check lookup and indicators CSV coverage.")
 
 
 # ─── MAIN HEADER ─────────────────────────────────────────────────────────────
