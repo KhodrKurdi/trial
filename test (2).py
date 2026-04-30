@@ -3065,7 +3065,8 @@ with tab6:
                 dept_sum["Avg_Wait"]         = dept_sum["Avg_Wait"].round(1) if "Avg_Wait" in dept_sum.columns else 0
                 dept_sum["Rate"]             = (dept_sum["Total_Complaints"] /
                                                 dept_sum["Total_Visits"].replace(0, np.nan) * 100).round(2).fillna(0)
-                dept_sum = dept_sum.sort_values("Total_Visits", ascending=False).reset_index(drop=True)
+                # Sort descending for table; barh needs ascending so highest appears at top
+                dept_sum = dept_sum.sort_values("Total_Visits", ascending=True).reset_index(drop=True)
 
                 dc1, dc2 = st.columns(2)
                 with dc1:
@@ -3087,12 +3088,15 @@ with tab6:
                 with dc2:
                     fig2, ax2 = plt.subplots(figsize=(7, max(3.5, len(dept_sum)*0.5)))
                     max_c = dept_sum["Total_Complaints"].max() or 1
-                    c2 = ["#e53e3e" if v > dept_sum["Total_Complaints"].quantile(0.75) and v > 0
+                    _comp_sort = dept_sum.sort_values("Total_Complaints", ascending=True)
+                    max_c = _comp_sort["Total_Complaints"].max() or 1
+                    c2 = ["#e53e3e" if v > _comp_sort["Total_Complaints"].quantile(0.75) and v > 0
                           else "#f59e0b" if v > 0 else "#38a169"
-                          for v in dept_sum["Total_Complaints"]]
-                    bars2 = ax2.barh(dept_sum["Department"], dept_sum["Total_Complaints"],
+                          for v in _comp_sort["Total_Complaints"]]
+                    # Sort by complaints for the complaints chart
+                    bars2 = ax2.barh(_comp_sort["Department"], _comp_sort["Total_Complaints"],
                                      color=c2, edgecolor="white", linewidth=0.5, height=0.6, alpha=0.88)
-                    for bar, val in zip(bars2, dept_sum["Total_Complaints"]):
+                    for bar, val in zip(bars2, _comp_sort["Total_Complaints"]):
                         ax2.text(val + max_c*0.015, bar.get_y()+bar.get_height()/2,
                                  f"{int(val):,}", va="center", fontsize=9, fontweight="700", color="#1a365d")
                     ax2.set_xlabel("Total Patient Complaints", fontsize=10, color="#64748b")
