@@ -738,16 +738,41 @@ def build_dept_map(ind_df, lookup_df):
                     dept_map[pid] = (dept, div or dept)
     return dept_map
 
-# Load indicators now for dept/div mapping
-try:
-    _ind_raw = pd.read_csv(GITHUB_URLS.get("indicators","")) if GITHUB_URLS.get("indicators","") else None
-    if _ind_raw is not None:
-        _ind_raw["Department"] = _ind_raw["Department"].astype(str).str.strip()
-        _ind_raw["Division"]   = _ind_raw["Division"].astype(str).str.strip()
-except Exception:
-    _ind_raw = None
+# Load indicators for dept/div mapping — use same fetch as main data load
+def _fetch_csv(url):
+    if not url or url.startswith("REPLACE"):
+        return None
+    for enc in ["utf-8", "latin-1", "cp1252"]:
+        try:
+            df = pd.read_csv(url, encoding=enc)
+            return df
+        except UnicodeDecodeError:
+            continue
+        except Exception:
+            return None
+    return None
 
-_dept_div_map = build_dept_map(_ind_raw, physician_lookup)
+_ind_raw = _fetch_csv(GITHUB_URLS.get("indicators", ""))
+if _ind_raw is not None:
+    _ind_raw["Department"] = _ind_raw["Department"].astype(str).str.strip()
+    _ind_raw["Division"]   = _ind_raw["Division"].astype(str).str.strip()
+
+# Also reload lookup using same fetch for all 3 years to maximize coverage
+_lookup_frames = []
+for _lk in ["lookup_2023", "lookup_2024", "lookup_2025"]:
+    _ldf = _fetch_csv(GITHUB_URLS.get(_lk, ""))
+    if _ldf is not None:
+        _ldf.columns = _ldf.columns.str.strip()
+        _ldf["OriginalID"] = _ldf["OriginalID"].astype(str).str.strip().str.lower()
+        _ldf = _ldf.rename(columns={"DEPARTMENT": "Department", "DIVISION": "Division"})
+        _ldf["physician_id_key"] = _ldf["OriginalID"]
+        _lookup_frames.append(_ldf[["physician_id_key", "Department", "Division"]])
+
+_lookup_combined = pd.concat(_lookup_frames, ignore_index=True).drop_duplicates(
+    subset=["physician_id_key"]) if _lookup_frames else pd.DataFrame(
+    columns=["physician_id_key", "Department", "Division"])
+
+_dept_div_map = build_dept_map(_ind_raw, _lookup_combined)
 
 # Apply to all_phys — use all available sources
 all_phys["_key"]       = all_phys["physician_id"].astype(str).str.strip().str.lower()
