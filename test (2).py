@@ -760,7 +760,7 @@ all_phys["Division"]   = all_phys["Division"].where(
 
 # Physicians with no department match → label clearly
 all_phys["Department"] = all_phys["Department"].replace("", "Unassigned")
-all_phys["Division"]   = all_phys["Division"].replace("", all_phys["Department"])
+all_phys["Division"]   = all_phys["Division"].where(all_phys["Division"] != "", all_phys["Department"])
 all_phys["FullName"]   = all_phys["physician_id"]  # suppress real names
 all_phys = all_phys.drop(columns=["_key"], errors="ignore")
 
