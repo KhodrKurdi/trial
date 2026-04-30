@@ -597,7 +597,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.15"):
+def load_from_github(urls, min_f, threshold, _version="v5.16"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -643,7 +643,7 @@ with st.spinner("Loading data..."):
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.15"
+        _version="v5.16"
     )
 
 # Build combined physician table from available departments
@@ -697,9 +697,16 @@ if not physician_lookup.empty:
     all_phys["Division"] = all_phys["Division"].fillna(all_phys["Department"])
 else:
     all_phys["FullName"]   = ""
+    all_phys["_AnonCode"]  = ["PHY-" + str(i+1).zfill(3) for i in range(len(all_phys))]
     all_phys["Department"] = ""
     all_phys["Division"]   = ""
 
+
+# ─── ANONYMIZATION TOGGLE ────────────────────────────────────────────────────
+with st.sidebar:
+    st.markdown("### Display Settings")
+    ANONYMIZE = st.toggle("Anonymize Physician Names", value=False,
+                          help="Replace physician names with anonymous codes (PHY-001 etc.) for privacy")
 
 # ─── MAIN HEADER ─────────────────────────────────────────────────────────────
 _logo_b64 = "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"
@@ -750,7 +757,7 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
 # TAB 1 — EXECUTIVE SUMMARY
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab1:
-    st.markdown('<div class="section-header">Key Performance Indicators 2025</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Key Performance Indicators</div>', unsafe_allow_html=True)
 
     # Project + Department + Division filters
     t1f1, t1f2, t1f3 = st.columns(3)
@@ -1101,6 +1108,10 @@ Sum of all 4 flags:
         "negative_outlier":   "Neg. Sentiment",
         "risk_score":         "Risk Score",
     }
+    # Apply anonymization to display
+    if ANONYMIZE and "_AnonCode" in df_view.columns:
+        df_view = df_view.copy()
+        df_view["Physician Name"] = df_view["_AnonCode"]
     show_df = df_view[[c for c in display_cols if c in df_view.columns]].copy()
     show_df.columns = [display_cols[c] for c in show_df.columns]
     if "Avg Score" in show_df.columns:
@@ -1210,7 +1221,7 @@ Sum of all 4 flags:
 
             dept_val = row.get("Department", "") or "—"
             div_val  = row.get("Division",   "") or "—"
-            name_val = row.get("FullName",   "") or "—"
+            name_val = (row.get("_AnonCode", "") if ANONYMIZE else row.get("FullName", "")) or "—"
             dd_info1, dd_info2, dd_info3 = st.columns(3)
             with dd_info1: st.metric("Physician Name", name_val)
             with dd_info2: st.metric("Department",     dept_val)
@@ -2786,7 +2797,7 @@ with tab6:
     st.markdown('<div class="section-header">Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.15"):
+    def load_indicators(url, _version="v5.16"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2813,7 +2824,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.15")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.16")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -3142,6 +3153,15 @@ with tab6:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+# ─── ANONYMIZATION HELPER ────────────────────────────────────────────────────
+# Apply anonymization to the working dataframe
+if ANONYMIZE and "_AnonCode" in all_phys.columns:
+    all_phys["Physician Name"] = all_phys["_AnonCode"]
+else:
+    all_phys["Physician Name"] = all_phys.get("FullName", pd.Series(dtype=str)).fillna(
+        all_phys["physician_id"] if "physician_id" in all_phys.columns else ""
+    )
+
 # TAB 7 — AI ASSISTANT
 # ═══════════════════════════════════════════════════════════════════════════════
 with tab7:
@@ -3342,7 +3362,7 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.15") if "load_indicators" in dir() else None
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.16") if "load_indicators" in dir() else None
     context = build_context(all_phys, data, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
