@@ -597,7 +597,7 @@ GITHUB_URLS = {
 
 # ─── DATA LOADING ────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
-def load_from_github(urls, min_f, threshold, _version="v5.19"):
+def load_from_github(urls, min_f, threshold, _version="v5.21"):
     def fetch(url):
         if not url or url.startswith("REPLACE"):
             return None
@@ -649,7 +649,7 @@ with st.spinner("Loading data..."):
         GITHUB_URLS,
         min_forms,
         sent_thresh,
-        _version="v5.19"
+        _version="v5.21"
     )
 
 # Build combined physician table from available departments
@@ -663,7 +663,9 @@ if not all_phys_frames:
     st.stop()
 
 all_phys = pd.concat(all_phys_frames, ignore_index=True)
-available_depts = [n for n, (r,p,s) in data.items() if p is not None and len(p) > 0]
+available_depts_raw = [n for n, (r,p,s) in data.items() if p is not None and len(p) > 0]
+# Anonymize project names if toggle is on
+available_depts = [_proj_anon_map.get(n, n) if ANONYMIZE else n for n in available_depts_raw]
 
 # ── Load physician lookup (Name, Department, Division) ───────────────────────
 @st.cache_data(show_spinner=False)
@@ -2824,7 +2826,7 @@ with tab6:
     st.markdown('<div class="section-header">Departments & Divisions — Clinical Indicators</div>', unsafe_allow_html=True)
 
     @st.cache_data(show_spinner=False)
-    def load_indicators(url, _version="v5.19"):
+    def load_indicators(url, _version="v5.21"):
         if not url or url.startswith("REPLACE"):
             return None
         try:
@@ -2851,7 +2853,7 @@ with tab6:
                 df["Department"] = mapped.fillna("Other")
         return df
 
-    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.19")
+    ind_df = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.21")
 
     if ind_df is None:
         st.info("Indicators data not available. Add the indicators URL to GITHUB_URLS['indicators'].")
@@ -3190,7 +3192,7 @@ with tab7:
 
     # ── Build context summary from loaded data ────────────────────────────────
     @st.cache_data(show_spinner=False)
-    def build_context(_all_phys, _data, _available_depts, _ind_df):  # v2
+    def build_context(_all_phys, _data, _available_depts_raw, _available_depts, _ind_df):  # v2
         lines = []
         lines.append("=" * 60)
         lines.append("AUBMC PHYSICIAN PERFORMANCE DASHBOARD — DATA CONTEXT")
@@ -3198,12 +3200,18 @@ with tab7:
         lines.append("")
 
         # ── IMPORTANT TERMINOLOGY ─────────────────────────────────────────
+        # Terminology section
+        is_anon = any("PROJECT" in str(d) for d in _available_depts)
         lines.append("IMPORTANT TERMINOLOGY:")
-        lines.append("- 'Project groups' or 'Survey groups': AUBMC, ED, Pathology")
-        lines.append("  These are the 3 groups used in the behavior survey project.")
-        lines.append("  AUBMC = main hospital group, ED = Emergency Department group,")
-        lines.append("  Pathology = Pathology & Lab group.")
-        lines.append("  These are NOT clinical departments — they are project data groups.")
+        if is_anon:
+            lines.append("- Data is anonymized. Project groups, departments, divisions and physician names are replaced with codes.")
+            lines.append(f"- Survey groups in this dataset: {', '.join(_available_depts)}")
+        else:
+            lines.append("- 'Project groups' or 'Survey groups': AUBMC, ED, Pathology")
+            lines.append("  These are the 3 groups used in the behavior survey project.")
+            lines.append("  AUBMC = main hospital group, ED = Emergency Department group,")
+            lines.append("  Pathology = Pathology & Lab group.")
+            lines.append("  These are NOT clinical departments — they are project data groups.")
         lines.append("")
         lines.append("- 'Departments': The actual AUBMC clinical departments,")
         lines.append("  e.g. Internal Medicine, Surgery, Ob/Gyn, Pediatrics, etc.")
@@ -3238,10 +3246,10 @@ with tab7:
         div_lookup   = _all_phys.set_index("physician_id")["Division"].to_dict()   if "Division"   in _all_phys.columns else {}
         name_lookup  = _all_phys.set_index("physician_id")["FullName"].to_dict()   if "FullName"   in _all_phys.columns else {}
 
-        for grp in _available_depts:
-            _, phys, _ = _data[grp]
+        for grp_raw, grp_display in zip(_available_depts_raw, _available_depts):
+            _, phys, _ = _data[grp_raw]
             if phys is None or phys.empty: continue
-            lines.append(f"Survey group: {grp}")
+            lines.append(f"Survey group: {grp_display}")
             lines.append(f"  Physicians: {len(phys)}")
             lines.append(f"  Avg score: {phys['avg_behavior_score'].mean():.3f}")
             lines.append(f"  Priority: {(phys['risk_score']>=3).sum()}, Monitor: {phys['risk_score'].between(1,2).sum()}, Clear: {(phys['risk_score']==0).sum()}")
@@ -3382,8 +3390,18 @@ with tab7:
         return "\n".join(lines)
 
     # Load indicators for context (may be None if not configured)
-    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.19") if "load_indicators" in dir() else None
-    context = build_context(all_phys, data, available_depts, _ind_for_ctx)
+    _ind_for_ctx = load_indicators(GITHUB_URLS.get("indicators", ""), _version="v5.21") if "load_indicators" in dir() else None
+# Anonymize indicator data if toggle is ON
+if _ind_for_ctx is not None and ANONYMIZE:
+    for _col in ["Department", "Division"]:
+        if _col in _ind_for_ctx.columns:
+            _map = _dept_anon_map if _col == "Department" else _div_anon_map
+            _ind_for_ctx[_col] = _ind_for_ctx[_col].map(lambda x: _map.get(str(x), "?") if pd.notna(x) else x)
+    if "Physician Name" in _ind_for_ctx.columns:
+        _fn_to_code = dict(zip(all_phys.get("FullName", pd.Series()), all_phys["_AnonCode"])) if "_AnonCode" in all_phys.columns else {}
+        _ind_for_ctx["Physician Name"] = _ind_for_ctx["Physician Name"].map(lambda x: _fn_to_code.get(str(x), x) if pd.notna(x) else x)
+
+    context = build_context(all_phys, data, available_depts_raw, available_depts, _ind_for_ctx)
 
     # ── Chat UI ───────────────────────────────────────────────────────────────
     if "chat_history" not in st.session_state:
