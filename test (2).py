@@ -596,7 +596,7 @@ GITHUB_URLS = {
     "patho_25": "Patho,Lab, Behavior raw data 2025.csv",
 
     # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
-    "indicators": "Physicians_Indicators_Anonymized.csv",
+    "indicators": "Physicians indicators.csv",
 
     # ── Physician lookup CSVs (Name, Department, Division per year) ──────────
     "lookup_2023": "Datasource, cycle 2023.csv",
@@ -693,27 +693,74 @@ def load_physician_lookup(urls, _version="v1.1"):
         return pd.DataFrame(columns=["physician_id", "FullName", "Department", "Division"])
     lookup = pd.concat(frames, ignore_index=True).drop_duplicates(subset=["OriginalID"])
     lookup["OriginalID"] = lookup["OriginalID"].astype(str).str.strip().str.lower()
-    lookup["Division"] = lookup["DIVISION"].fillna(lookup["DEPARTMENT"])
+    # Rename columns
+    lookup = lookup.rename(columns={"DEPARTMENT": "Department", "DIVISION": "Division_raw"})
+    lookup["Division"] = lookup["Division_raw"].fillna(lookup["Department"])
     lookup["Division"] = lookup["Division"].where(
-        lookup["Division"].astype(str).str.strip() != "", lookup["DEPARTMENT"])
-    lookup = lookup.rename(columns={"DEPARTMENT": "Department", "FullName": "FullName"})
+        lookup["Division"].astype(str).str.strip() != "", lookup["Department"])
+    # physician_id_key = full PHYS_xxxx ID (already anonymized — no suffix needed)
     lookup["physician_id_key"] = lookup["OriginalID"]
+    # Suppress real names — use ID as display name
+    lookup["FullName"] = lookup["physician_id_key"]
     return lookup[["physician_id_key", "FullName", "Department", "Division"]].drop_duplicates(subset=["physician_id_key"])
 
 physician_lookup = load_physician_lookup(GITHUB_URLS, _version="v1.1")
 
-# Merge Department + Division onto all_phys using suffix key (Data29_aa → aa)
-if not physician_lookup.empty:
-    all_phys["_key"] = all_phys["physician_id"].astype(str).str.split("_", n=1).str[-1].str.lower()
-    all_phys = all_phys.merge(
-        physician_lookup[["physician_id_key", "FullName", "Department", "Division"]],
-        left_on="_key", right_on="physician_id_key", how="left"
-    ).drop(columns=["_key", "physician_id_key"], errors="ignore")
-    all_phys["Division"] = all_phys["Division"].fillna(all_phys["Department"])
-else:
-    all_phys["FullName"]   = ""
-    all_phys["Department"] = ""
-    all_phys["Division"]   = ""
+# ── Map Department + Division onto all_phys ──────────────────────────────────
+# Primary source: Indicators CSV (Aubnetid → Department, Division)
+# Fallback: Physician Lookup CSV (OriginalID → DEPARTMENT, DIVISION)
+# IDs are PHYS_xxxx format — match directly, no suffix extraction needed
+
+def build_dept_map(ind_df, lookup_df):
+    """Build {phys_id_lower: (Department, Division)} from best available source."""
+    dept_map = {}
+    # 1. From lookup CSV
+    if not lookup_df.empty and "physician_id_key" in lookup_df.columns:
+        for _, row in lookup_df.iterrows():
+            pid  = str(row["physician_id_key"]).strip().lower()
+            dept = str(row.get("Department", "")).strip()
+            div  = str(row.get("Division",   "")).strip()
+            if pid and dept:
+                dept_map[pid] = (dept, div or dept)
+    # 2. From indicators CSV — fills gaps or overrides with more specific data
+    if ind_df is not None and not ind_df.empty:
+        for col in ["Aubnetid", "physician_id", "Physician Name"]:
+            if col in ind_df.columns:
+                id_col = col; break
+        else:
+            id_col = None
+        if id_col:
+            for _, row in ind_df.iterrows():
+                pid  = str(row[id_col]).strip().lower()
+                dept = str(row.get("Department", "")).strip()
+                div  = str(row.get("Division",   "")).strip()
+                if pid and dept:
+                    dept_map[pid] = (dept, div or dept)
+    return dept_map
+
+# Load indicators now for dept/div mapping
+try:
+    _ind_raw = pd.read_csv(GITHUB_URLS.get("indicators","")) if GITHUB_URLS.get("indicators","") else None
+    if _ind_raw is not None:
+        _ind_raw["Department"] = _ind_raw["Department"].astype(str).str.strip()
+        _ind_raw["Division"]   = _ind_raw["Division"].astype(str).str.strip()
+except Exception:
+    _ind_raw = None
+
+_dept_div_map = build_dept_map(_ind_raw, physician_lookup)
+
+# Apply to all_phys
+all_phys["_key"]       = all_phys["physician_id"].astype(str).str.strip().str.lower()
+all_phys["Department"] = all_phys["_key"].map(lambda x: _dept_div_map.get(x, ("", ""))[0])
+all_phys["Division"]   = all_phys["_key"].map(lambda x: _dept_div_map.get(x, ("", ""))[1])
+all_phys["Division"]   = all_phys["Division"].where(all_phys["Division"] != "", all_phys["Department"])
+all_phys["FullName"]   = all_phys["physician_id"]  # suppress real names
+all_phys = all_phys.drop(columns=["_key"], errors="ignore")
+
+_dept_mapped = all_phys["Department"].notna().sum()
+_dept_filled = (all_phys["Department"] != "").sum()
+if _dept_filled == 0:
+    st.warning("⚠️ Department/Division data not loaded — check indicators or lookup CSV paths.")
 
 
 # ─── MAIN HEADER ─────────────────────────────────────────────────────────────
