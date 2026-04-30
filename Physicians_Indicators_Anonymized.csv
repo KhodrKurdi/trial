@@ -1,0 +1,726 @@
+Aubnetid,FiscalCycle,Physician Name,Division,ClinicVisits,ClinicWaitingTime,PatientComplaints,ContractEffectiveDate,Department
+PHYS_8f59f6be6839,Cycle 2022-2023,PHYS_8f59f6be6839,Obstetrics and Gynecology  ,269,40.67,,7/1/2011,Obstetrics and Gynecology  
+PHYS_8f59f6be6839,Cycle 2023-2024,PHYS_8f59f6be6839,Obstetrics and Gynecology,236,25.97,,7/1/2011,Obstetrics and Gynecology
+PHYS_8f59f6be6839,Cycle 2024-2025,PHYS_8f59f6be6839,Obstetrics and Gynecology,270,27.78,,7/1/2011,Obstetrics and Gynecology
+PHYS_0f7dbc32ada3,Cycle 2022-2023,PHYS_0f7dbc32ada3,Endocrinology,1087,93.74,,7/1/2011,Internal Medicine
+PHYS_0f7dbc32ada3,Cycle 2023-2024,PHYS_0f7dbc32ada3,Endocrinology,1283,82.16,,7/1/2011,Internal Medicine
+PHYS_0f7dbc32ada3,Cycle 2024-2025,PHYS_0f7dbc32ada3,Endocrinology,1582,96.76,,7/1/2011,Internal Medicine
+PHYS_18d9d60a1ec8,Cycle 2023-2024,PHYS_18d9d60a1ec8,Neurosurgery,166,50.13,,10/17/2023,Surgery
+PHYS_18d9d60a1ec8,Cycle 2024-2025,PHYS_18d9d60a1ec8,Neurosurgery,429,83.18,,10/17/2023,Surgery
+PHYS_d96d1fbcd51c,Cycle 2022-2023,PHYS_d96d1fbcd51c,Infectious Diseases,553,49.46,,7/1/2011,Internal Medicine
+PHYS_d96d1fbcd51c,Cycle 2023-2024,PHYS_d96d1fbcd51c,Infectious Diseases,670,55.44,,7/1/2011,Internal Medicine
+PHYS_d96d1fbcd51c,Cycle 2024-2025,PHYS_d96d1fbcd51c,Infectious Diseases,644,59.66,1,7/1/2011,Internal Medicine
+PHYS_0f6500b55151,Cycle 2022-2023,PHYS_0f6500b55151,Neurology ,1334,63.97,,7/1/2011,Neurology 
+PHYS_0f6500b55151,Cycle 2023-2024,PHYS_0f6500b55151,Neurology,1366,49.61,,7/1/2011,Neurology
+PHYS_0f6500b55151,Cycle 2024-2025,PHYS_0f6500b55151,Neurology,1157,53.28,,7/1/2011,Neurology
+PHYS_85c37beeac3a,Cycle 2022-2023,PHYS_85c37beeac3a,Ophthalmology ,2929,60.16,,9/13/2017,Ophthalmology 
+PHYS_85c37beeac3a,Cycle 2023-2024,PHYS_85c37beeac3a,Ophthalmology,3233,64.98,,9/13/2017,Ophthalmology
+PHYS_85c37beeac3a,Cycle 2024-2025,PHYS_85c37beeac3a,Ophthalmology,3576,38.02,,9/13/2017,Ophthalmology
+PHYS_5a42763cd787,Cycle 2022-2023,PHYS_5a42763cd787,Nephrology,1455,40.09,,7/1/2011,Internal Medicine
+PHYS_5a42763cd787,Cycle 2023-2024,PHYS_5a42763cd787,Nephrology,1367,49.75,,7/1/2011,Internal Medicine
+PHYS_5a42763cd787,Cycle 2024-2025,PHYS_5a42763cd787,Nephrology,1407,45.45,1,7/1/2011,Internal Medicine
+PHYS_23568ae5ca82,Cycle 2022-2023,PHYS_23568ae5ca82,Neurology,280,15.5,,10/11/2022,Neurology
+PHYS_088c3a358426,Cycle 2022-2023,PHYS_088c3a358426,Urology,3546,59.46,,7/9/2013,Surgery
+PHYS_088c3a358426,Cycle 2023-2024,PHYS_088c3a358426,Urology,3627,57.64,2,7/9/2013,Surgery
+PHYS_088c3a358426,Cycle 2024-2025,PHYS_088c3a358426,Urology,3505,62.06,5,7/9/2013,Surgery
+PHYS_d920f5a00584,Cycle 2022-2023,PHYS_d920f5a00584,Dermatology,1562,40.14,,7/1/2011,Dermatology
+PHYS_d920f5a00584,Cycle 2023-2024,PHYS_d920f5a00584,Dermatology,1567,31.07,,7/1/2011,Dermatology
+PHYS_d920f5a00584,Cycle 2024-2025,PHYS_d920f5a00584,Dermatology,1453,33.95,,7/1/2011,Dermatology
+PHYS_8061021ecd7b,Cycle 2022-2023,PHYS_8061021ecd7b,Orthodontics,412,,,1/13/2015,Dentofacial Medicine
+PHYS_8061021ecd7b,Cycle 2023-2024,PHYS_8061021ecd7b,Dentofacial,520,,,1/13/2015,Dentofacial Medicine
+PHYS_8061021ecd7b,Cycle 2024-2025,PHYS_8061021ecd7b,Dentofacial,370,,,1/13/2015,Dentofacial Medicine
+PHYS_bc751199ad00,Cycle 2022-2023,PHYS_bc751199ad00,Pulmonary and Critical Care,1405,22.6,,7/1/2011,Internal Medicine
+PHYS_bc751199ad00,Cycle 2023-2024,PHYS_bc751199ad00,Pulmonary and Critical Care,2572,22.26,2,7/1/2011,Internal Medicine
+PHYS_bc751199ad00,Cycle 2024-2025,PHYS_bc751199ad00,Pulmonary and Critical Care,2026,18.32,,7/1/2011,Internal Medicine
+PHYS_a1dcdacf9fcc,Cycle 2022-2023,PHYS_a1dcdacf9fcc,Otorhinolaryngology - Head and Neck Surgery,842,101.55,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+PHYS_a1dcdacf9fcc,Cycle 2023-2024,PHYS_a1dcdacf9fcc,Otorhinolaryngology - Head and Neck Surgery,1143,63.41,1,7/1/2011,"Otolaryngology, Head & Neck surgery"
+PHYS_a1dcdacf9fcc,Cycle 2024-2025,PHYS_a1dcdacf9fcc,Otorhinolaryngology - Head and Neck Surgery,817,58.27,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+PHYS_92df458d73ce,Cycle 2022-2023,PHYS_92df458d73ce,Obstetrics and Gynecology  ,1945,40.17,,7/1/2011,Obstetrics and Gynecology  
+PHYS_92df458d73ce,Cycle 2023-2024,PHYS_92df458d73ce,Obstetrics and Gynecology,1781,88.67,,7/1/2011,Obstetrics and Gynecology
+PHYS_92df458d73ce,Cycle 2024-2025,PHYS_92df458d73ce,Obstetrics and Gynecology,1459,24.97,,7/1/2011,Obstetrics and Gynecology
+PHYS_e5e9dae8fdb9,Cycle 2022-2023,PHYS_e5e9dae8fdb9,Plastic Surgery,2442,44.72,,8/26/2014,Surgery
+PHYS_e5e9dae8fdb9,Cycle 2023-2024,PHYS_e5e9dae8fdb9,Plastic Surgery,3223,38.89,3,8/26/2014,Surgery
+PHYS_e5e9dae8fdb9,Cycle 2024-2025,PHYS_e5e9dae8fdb9,Plastic Surgery,2579,35.39,1,8/26/2014,Surgery
+PHYS_2a2d2e824a25,Cycle 2022-2023,PHYS_2a2d2e824a25,Pediatrics and Adolescent Medicine  ,526,59.66,2,7/8/2014,Pediatrics and Adolescent Medicine  
+PHYS_2a2d2e824a25,Cycle 2023-2024,PHYS_2a2d2e824a25,Pediatrics and Adolescent Medicine,474,58.42,1,7/8/2014,Pediatrics and Adolescent Medicine
+PHYS_2a2d2e824a25,Cycle 2024-2025,PHYS_2a2d2e824a25,Pediatrics and Adolescent Medicine,438,58.76,,7/8/2014,Pediatrics and Adolescent Medicine
+PHYS_c01b77b1fef3,Cycle 2023-2024,PHYS_c01b77b1fef3,Obstetrics and Gynecology,,,1,7/1/2011,Obstetrics and Gynecology
+PHYS_c01b77b1fef3,Cycle 2024-2025,PHYS_c01b77b1fef3,Obstetrics and Gynecology,,,1,7/1/2011,Obstetrics and Gynecology
+PHYS_31fe380f2465,Cycle 2022-2023,PHYS_31fe380f2465,Neurology,21,34.78,,5/15/2014,Neurology
+PHYS_31fe380f2465,Cycle 2023-2024,PHYS_31fe380f2465,Neurology,16,25.2,,5/15/2014,Neurology
+PHYS_23630ec6bd44,Cycle 2022-2023,PHYS_23630ec6bd44,Dentofacial,2950,90,,7/1/2011,Dentofacial Medicine
+PHYS_23630ec6bd44,Cycle 2023-2024,PHYS_23630ec6bd44,Dentofacial,3700,126.07,,7/1/2011,Dentofacial Medicine
+PHYS_23630ec6bd44,Cycle 2024-2025,PHYS_23630ec6bd44,Dentofacial,3227,95.44,,7/1/2011,Dentofacial Medicine
+PHYS_b7c50165ca33,Cycle 2022-2023,PHYS_b7c50165ca33,Obstetrics and Gynecology  ,3006,33.17,,7/1/2011,Obstetrics and Gynecology  
+PHYS_b7c50165ca33,Cycle 2023-2024,PHYS_b7c50165ca33,Obstetrics and Gynecology,2919,64.3,2,7/1/2011,Obstetrics and Gynecology
+PHYS_b7c50165ca33,Cycle 2024-2025,PHYS_b7c50165ca33,Obstetrics and Gynecology,2758,24.63,1,7/1/2011,Obstetrics and Gynecology
+PHYS_bd9d261c765d,Cycle 2022-2023,PHYS_bd9d261c765d,Cardiology,4585,22.15,,7/1/2011,Internal Medicine
+PHYS_bd9d261c765d,Cycle 2023-2024,PHYS_bd9d261c765d,Cardiology,4776,22.07,,7/1/2011,Internal Medicine
+PHYS_bd9d261c765d,Cycle 2024-2025,PHYS_bd9d261c765d,Cardiology,4647,19.59,,7/1/2011,Internal Medicine
+PHYS_749615a95136,Cycle 2022-2023,PHYS_749615a95136,Hematology-Oncology,1998,85.36,,7/1/2011,Internal Medicine
+PHYS_749615a95136,Cycle 2023-2024,PHYS_749615a95136,Hematology-Oncology,2100,76.59,,7/1/2011,Internal Medicine
+PHYS_749615a95136,Cycle 2024-2025,PHYS_749615a95136,Hematology-Oncology,1780,75.95,,7/1/2011,Internal Medicine
+PHYS_86b3510033de,Cycle 2022-2023,PHYS_86b3510033de,Gastroenterology,1504,25.86,,7/1/2011,Internal Medicine
+PHYS_86b3510033de,Cycle 2023-2024,PHYS_86b3510033de,Gastroenterology,1507,31.08,,7/1/2011,Internal Medicine
+PHYS_86b3510033de,Cycle 2024-2025,PHYS_86b3510033de,Gastroenterology,1191,27.74,1,7/1/2011,Internal Medicine
+PHYS_796363ed88b6,Cycle 2022-2023,PHYS_796363ed88b6,Gastroenterology,72,31.45,,7/1/2011,Internal Medicine
+PHYS_796363ed88b6,Cycle 2023-2024,PHYS_796363ed88b6,Gastroenterology,1133,33.6,,7/1/2011,Internal Medicine
+PHYS_796363ed88b6,Cycle 2024-2025,PHYS_796363ed88b6,Gastroenterology,897,34.52,2,7/1/2011,Internal Medicine
+PHYS_f06180426561,Cycle 2023-2024,PHYS_f06180426561,Emergency Medicine,,,1,9/12/2023,Emergency Medicine
+PHYS_89fd008a1248,Cycle 2022-2023,PHYS_89fd008a1248,Orthopaedic Surgery,156,26.21,,10/23/2015,Surgery
+PHYS_12590e0e5875,Cycle 2022-2023,PHYS_12590e0e5875,Orthopaedic Surgery,5280,20,,7/1/2011,Surgery
+PHYS_12590e0e5875,Cycle 2023-2024,PHYS_12590e0e5875,Orthopaedic Surgery,5449,12.91,1,7/1/2011,Surgery
+PHYS_12590e0e5875,Cycle 2024-2025,PHYS_12590e0e5875,Orthopaedic Surgery,4806,9.58,1,7/1/2011,Surgery
+PHYS_17b1b91e9add,Cycle 2022-2023,PHYS_17b1b91e9add,Hematology-Oncology,1861,54.71,1,7/1/2011,Internal Medicine
+PHYS_17b1b91e9add,Cycle 2023-2024,PHYS_17b1b91e9add,Hematology-Oncology,2091,37.72,,7/1/2011,Internal Medicine
+PHYS_17b1b91e9add,Cycle 2024-2025,PHYS_17b1b91e9add,Hematology-Oncology,1872,33.1,1,7/1/2011,Internal Medicine
+PHYS_4bf042862ce8,Cycle 2022-2023,PHYS_4bf042862ce8,Hematology-Oncology,811,38.69,,7/1/2011,Internal Medicine
+PHYS_4bf042862ce8,Cycle 2023-2024,PHYS_4bf042862ce8,Hematology-Oncology,935,31.65,,7/1/2011,Internal Medicine
+PHYS_4bf042862ce8,Cycle 2024-2025,PHYS_4bf042862ce8,Hematology-Oncology,789,36.62,1,7/1/2011,Internal Medicine
+PHYS_c1199ce2ddd8,Cycle 2022-2023,PHYS_c1199ce2ddd8,Pediatric Surgery,332,31.59,,8/9/2017,Surgery
+PHYS_c1199ce2ddd8,Cycle 2023-2024,PHYS_c1199ce2ddd8,Pediatric Surgery Service,497,34.2,,8/9/2017,Surgery
+PHYS_c1199ce2ddd8,Cycle 2024-2025,PHYS_c1199ce2ddd8,Pediatric Surgery Service,46,21.61,,8/9/2017,Surgery
+PHYS_85a5920c4590,Cycle 2022-2023,PHYS_85a5920c4590,Infectious Diseases,250,43.93,,4/11/2014,Internal Medicine
+PHYS_85a5920c4590,Cycle 2023-2024,PHYS_85a5920c4590,Infectious Diseases,308,45.96,,4/11/2014,Internal Medicine
+PHYS_85a5920c4590,Cycle 2024-2025,PHYS_85a5920c4590,Infectious Diseases,416,50.71,,4/11/2014,Internal Medicine
+PHYS_f0ddc75d7edf,Cycle 2022-2023,PHYS_f0ddc75d7edf,Plastic Surgery,,,1,7/1/2011,Surgery
+PHYS_645df9a1917f,Cycle 2022-2023,PHYS_645df9a1917f,Cardiology,875,38.1,1,7/26/2011,Internal Medicine
+PHYS_645df9a1917f,Cycle 2023-2024,PHYS_645df9a1917f,Cardiology,1568,32.53,,7/26/2011,Internal Medicine
+PHYS_645df9a1917f,Cycle 2024-2025,PHYS_645df9a1917f,Cardiology,1515,30.31,,7/26/2011,Internal Medicine
+PHYS_dfb9ba07dcc1,Cycle 2022-2023,PHYS_dfb9ba07dcc1,Pediatric Nephrology,,43.45,,6/28/2012,Internal Medicine
+PHYS_a54560881f80,Cycle 2022-2023,PHYS_a54560881f80,Hematology-Oncology,1635,57.11,,7/1/2012,Internal Medicine
+PHYS_a54560881f80,Cycle 2023-2024,PHYS_a54560881f80,Hematology-Oncology,1599,55.16,1,7/1/2012,Internal Medicine
+PHYS_a54560881f80,Cycle 2024-2025,PHYS_a54560881f80,Hematology-Oncology,2000,50.64,2,7/1/2012,Internal Medicine
+PHYS_e99cfcaa6789,Cycle 2022-2023,PHYS_e99cfcaa6789,Urology,136,41.6,,1/14/2016,Surgery
+PHYS_e99cfcaa6789,Cycle 2023-2024,PHYS_e99cfcaa6789,Urology,1292,44.67,,1/14/2016,Surgery
+PHYS_e99cfcaa6789,Cycle 2024-2025,PHYS_e99cfcaa6789,Urology,1737,42.33,,1/14/2016,Surgery
+PHYS_2ab54f384310,Cycle 2022-2023,PHYS_2ab54f384310,Family Medicine ,1412,31.71,,7/1/2011,Family Medicine 
+PHYS_2ab54f384310,Cycle 2023-2024,PHYS_2ab54f384310,Family Medicine,1263,40.75,,7/1/2011,Family Medicine
+PHYS_2ab54f384310,Cycle 2024-2025,PHYS_2ab54f384310,Family Medicine,1368,27.22,,7/1/2011,Family Medicine
+PHYS_81a7aa72e7dc,Cycle 2022-2023,PHYS_81a7aa72e7dc,Psychiatry ,591,46.91,,7/1/2011,Psychiatry 
+PHYS_81a7aa72e7dc,Cycle 2023-2024,PHYS_81a7aa72e7dc,Psychiatry,609,42.89,,7/1/2011,Psychiatry
+PHYS_81a7aa72e7dc,Cycle 2024-2025,PHYS_81a7aa72e7dc,Psychiatry,381,72.91,,7/1/2011,Psychiatry
+PHYS_7aa4bfb13ec8,Cycle 2022-2023,PHYS_7aa4bfb13ec8,Ophthalmology ,4707,15.24,,7/1/2011,Ophthalmology 
+PHYS_7aa4bfb13ec8,Cycle 2023-2024,PHYS_7aa4bfb13ec8,Ophthalmology,5002,16.36,,7/1/2011,Ophthalmology
+PHYS_7aa4bfb13ec8,Cycle 2024-2025,PHYS_7aa4bfb13ec8,Ophthalmology,4672,20.21,,7/1/2011,Ophthalmology
+PHYS_9facd75e78af,Cycle 2022-2023,PHYS_9facd75e78af,Family Medicine ,1308,24.49,1,7/1/2011,Family Medicine 
+PHYS_9facd75e78af,Cycle 2023-2024,PHYS_9facd75e78af,Family Medicine,1188,23.71,,7/1/2011,Family Medicine
+PHYS_9facd75e78af,Cycle 2024-2025,PHYS_9facd75e78af,Family Medicine,1136,22.93,,7/1/2011,Family Medicine
+PHYS_eb066433ad96,Cycle 2022-2023,PHYS_eb066433ad96,Orthopaedic Surgery,1448,25.06,,7/1/2011,Surgery
+PHYS_eb066433ad96,Cycle 2023-2024,PHYS_eb066433ad96,Orthopaedic Surgery,1810,23.85,,7/1/2011,Surgery
+PHYS_eb066433ad96,Cycle 2024-2025,PHYS_eb066433ad96,Orthopaedic Surgery,1413,21.67,1,7/1/2011,Surgery
+PHYS_fa6a74aacd93,Cycle 2023-2024,PHYS_fa6a74aacd93,Nephrology and Hypertension,233,35.24,,7/20/2015,Internal Medicine
+PHYS_fa6a74aacd93,Cycle 2024-2025,PHYS_fa6a74aacd93,Nephrology and Hypertension,24,25.33,,7/20/2015,Internal Medicine
+PHYS_b9976f810e5d,Cycle 2022-2023,PHYS_b9976f810e5d,Radiation Oncology ,1610,37.73,,7/17/2012,Radiation Oncology 
+PHYS_b9976f810e5d,Cycle 2023-2024,PHYS_b9976f810e5d,Radiation Oncology ,1589,104.7,,7/17/2012,Radiation Oncology 
+PHYS_b9976f810e5d,Cycle 2024-2025,PHYS_b9976f810e5d,Radiation Oncology ,1378,39.88,,7/17/2012,Radiation Oncology 
+PHYS_7e2b1beb5fa0,Cycle 2022-2023,PHYS_7e2b1beb5fa0,Ophthalmology ,2577,43.64,,7/1/2011,Ophthalmology 
+PHYS_7e2b1beb5fa0,Cycle 2023-2024,PHYS_7e2b1beb5fa0,Ophthalmology,2604,53.84,,7/1/2011,Ophthalmology
+PHYS_7e2b1beb5fa0,Cycle 2024-2025,PHYS_7e2b1beb5fa0,Ophthalmology,2422,32.83,,7/1/2011,Ophthalmology
+PHYS_a039d9fc7752,Cycle 2024-2025,PHYS_a039d9fc7752,Pediatrics and Adolescent Medicine,730,48.04,1,6/11/2024,Pediatrics and Adolescent Medicine
+PHYS_cb68dae93506,Cycle 2022-2023,PHYS_cb68dae93506,Dentofacial,395,137,,12/21/2021,Dentofacial Medicine
+PHYS_cb68dae93506,Cycle 2023-2024,PHYS_cb68dae93506,Dentofacial,466,42.8,,12/21/2021,Dentofacial Medicine
+PHYS_cb68dae93506,Cycle 2024-2025,PHYS_cb68dae93506,Dentofacial,586,75.4,,12/21/2021,Dentofacial Medicine
+PHYS_ea6d64e1b42f,Cycle 2023-2024,PHYS_ea6d64e1b42f,Plastic Surgery,24,353.75,,9/12/2023,Surgery
+PHYS_ea6d64e1b42f,Cycle 2024-2025,PHYS_ea6d64e1b42f,Plastic Surgery,203,67.89,,9/12/2023,Surgery
+PHYS_95623973f2e3,Cycle 2023-2024,PHYS_95623973f2e3,Endocrinology,340,25.89,,9/12/2023,Internal Medicine
+PHYS_890d65abe662,Cycle 2022-2023,PHYS_890d65abe662,Family Medicine ,391,25.2,,1/12/2018,Family Medicine 
+PHYS_890d65abe662,Cycle 2023-2024,PHYS_890d65abe662,Family Medicine,440,48.81,,1/12/2018,Family Medicine
+PHYS_890d65abe662,Cycle 2024-2025,PHYS_890d65abe662,Family Medicine,445,24.04,,1/12/2018,Family Medicine
+PHYS_ed3fe1ca099a,Cycle 2022-2023,PHYS_ed3fe1ca099a,Psychiatry ,880,61.07,,1/21/2020,Psychiatry 
+PHYS_ed3fe1ca099a,Cycle 2023-2024,PHYS_ed3fe1ca099a,Psychiatry,803,50.83,,1/21/2020,Psychiatry
+PHYS_ed3fe1ca099a,Cycle 2024-2025,PHYS_ed3fe1ca099a,Psychiatry,863,64.3,,1/21/2020,Psychiatry
+PHYS_386184a463dd,Cycle 2022-2023,PHYS_386184a463dd,Obstetrics and Gynecology  ,3059,41.61,1,8/26/2014,Obstetrics and Gynecology  
+PHYS_386184a463dd,Cycle 2023-2024,PHYS_386184a463dd,Obstetrics and Gynecology,3045,106.26,1,8/26/2014,Obstetrics and Gynecology
+PHYS_386184a463dd,Cycle 2024-2025,PHYS_386184a463dd,Obstetrics and Gynecology,2970,38.75,,8/26/2014,Obstetrics and Gynecology
+PHYS_14f9b9c484ab,Cycle 2022-2023,PHYS_14f9b9c484ab,Cardiology,752,23.5,,7/1/2011,Internal Medicine
+PHYS_14f9b9c484ab,Cycle 2023-2024,PHYS_14f9b9c484ab,Cardiology,803,22.91,1,7/1/2011,Internal Medicine
+PHYS_14f9b9c484ab,Cycle 2024-2025,PHYS_14f9b9c484ab,Cardiology,783,24.31,,7/1/2011,Internal Medicine
+PHYS_d2d3093fa489,Cycle 2023-2024,PHYS_d2d3093fa489,Pediatrics and Adolescent Medicine,111,15.56,,8/8/2023,Pediatrics and Adolescent Medicine
+PHYS_d2d3093fa489,Cycle 2024-2025,PHYS_d2d3093fa489,Pediatrics and Adolescent Medicine,293,18.38,,8/8/2023,Pediatrics and Adolescent Medicine
+PHYS_05378cdaf36f,Cycle 2022-2023,PHYS_05378cdaf36f,Pulmonary and Critical Care,1021,23.94,,7/1/2011,Internal Medicine
+PHYS_05378cdaf36f,Cycle 2023-2024,PHYS_05378cdaf36f,Pulmonary and Critical Care,1063,15.73,,7/1/2011,Internal Medicine
+PHYS_05378cdaf36f,Cycle 2024-2025,PHYS_05378cdaf36f,Pulmonary and Critical Care,739,13.22,,7/1/2011,Internal Medicine
+PHYS_2a818d4619d8,Cycle 2022-2023,PHYS_2a818d4619d8,Pediatrics and Adolescent Medicine  ,469,193.58,,9/19/2018,Pediatrics and Adolescent Medicine  
+PHYS_2a818d4619d8,Cycle 2023-2024,PHYS_2a818d4619d8,Pediatrics and Adolescent Medicine,684,280.17,,9/19/2018,Pediatrics and Adolescent Medicine
+PHYS_2a818d4619d8,Cycle 2024-2025,PHYS_2a818d4619d8,Pediatrics and Adolescent Medicine,620,240.26,,9/19/2018,Pediatrics and Adolescent Medicine
+PHYS_c29a281f814e,Cycle 2024-2025,PHYS_c29a281f814e,Pediatrics and Adolescent Medicine,,18.58,,3/5/2015,Pediatrics
+PHYS_e35a3c84c2fe,Cycle 2022-2023,PHYS_e35a3c84c2fe,Pediatrics and Adolescent Medicine,,39.92,,7/1/2011,Pediatrics
+PHYS_e35a3c84c2fe,Cycle 2023-2024,PHYS_e35a3c84c2fe,Pediatrics and Adolescent Medicine,,52.11,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_e35a3c84c2fe,Cycle 2024-2025,PHYS_e35a3c84c2fe,Pediatrics and Adolescent Medicine,,41.01,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_57b12d3fa561,Cycle 2022-2023,PHYS_57b12d3fa561,Family Medicine ,745,35.13,,7/1/2011,Family Medicine 
+PHYS_57b12d3fa561,Cycle 2023-2024,PHYS_57b12d3fa561,Family Medicine,709,34.62,,7/1/2011,Family Medicine
+PHYS_57b12d3fa561,Cycle 2024-2025,PHYS_57b12d3fa561,Family Medicine,685,35.48,,7/1/2011,Family Medicine
+PHYS_b54000757d05,Cycle 2022-2023,PHYS_b54000757d05,Dermatology,1239,50.27,,10/1/2018,Dermatology
+PHYS_b54000757d05,Cycle 2023-2024,PHYS_b54000757d05,Dermatology,1453,89.47,,10/1/2018,Dermatology
+PHYS_b54000757d05,Cycle 2024-2025,PHYS_b54000757d05,Dermatology,1232,55.63,,10/1/2018,Dermatology
+PHYS_4ee2261d072c,Cycle 2022-2023,PHYS_4ee2261d072c,Otorhinolaryngology - Head and Neck Surgery,2128,11.45,,1/14/2020,"Otolaryngology, Head & Neck surgery"
+PHYS_4ee2261d072c,Cycle 2023-2024,PHYS_4ee2261d072c,Otorhinolaryngology - Head and Neck Surgery,2218,8.93,,1/14/2020,"Otolaryngology, Head & Neck surgery"
+PHYS_4ee2261d072c,Cycle 2024-2025,PHYS_4ee2261d072c,Otorhinolaryngology - Head and Neck Surgery,2374,9.03,,1/14/2020,"Otolaryngology, Head & Neck surgery"
+PHYS_dc16685e7615,Cycle 2022-2023,PHYS_dc16685e7615,Psychiatry ,287,15.03,,9/20/2022,Psychiatry 
+PHYS_dc16685e7615,Cycle 2023-2024,PHYS_dc16685e7615,Psychiatry,836,38.09,,9/20/2022,Psychiatry
+PHYS_dc16685e7615,Cycle 2024-2025,PHYS_dc16685e7615,Psychiatry,798,37.74,,9/20/2022,Psychiatry
+PHYS_eae50c46a2b2,Cycle 2022-2023,PHYS_eae50c46a2b2,Pediatrics and Adolescent Medicine  ,521,194.17,,12/21/2021,Pediatrics and Adolescent Medicine  
+PHYS_eae50c46a2b2,Cycle 2023-2024,PHYS_eae50c46a2b2,Pediatrics and Adolescent Medicine,762,219.75,,12/21/2021,Pediatrics and Adolescent Medicine
+PHYS_eae50c46a2b2,Cycle 2024-2025,PHYS_eae50c46a2b2,Pediatrics and Adolescent Medicine,587,153.84,,12/21/2021,Pediatrics and Adolescent Medicine
+PHYS_75f2f98bdf72,Cycle 2022-2023,PHYS_75f2f98bdf72,Psychiatry ,1038,39.45,,9/1/2019,Psychiatry 
+PHYS_75f2f98bdf72,Cycle 2023-2024,PHYS_75f2f98bdf72,Psychiatry,1050,32.56,,9/1/2019,Psychiatry
+PHYS_75f2f98bdf72,Cycle 2024-2025,PHYS_75f2f98bdf72,Psychiatry,889,35.26,,9/1/2019,Psychiatry
+PHYS_275b50e0b410,Cycle 2022-2023,PHYS_275b50e0b410,Obstetrics and Gynecology  ,989,27.55,,1/14/2014,Obstetrics and Gynecology  
+PHYS_275b50e0b410,Cycle 2023-2024,PHYS_275b50e0b410,Obstetrics and Gynecology,948,112.43,,1/14/2014,Obstetrics and Gynecology
+PHYS_275b50e0b410,Cycle 2024-2025,PHYS_275b50e0b410,Obstetrics and Gynecology,973,26.7,,1/14/2014,Obstetrics and Gynecology
+PHYS_747c833974d5,Cycle 2022-2023,PHYS_747c833974d5,General Surgery,524,72.89,,7/8/2014,Surgery
+PHYS_747c833974d5,Cycle 2023-2024,PHYS_747c833974d5,General Surgery,789,61.6,2,7/8/2014,Surgery
+PHYS_747c833974d5,Cycle 2024-2025,PHYS_747c833974d5,General Surgery,398,43.16,3,7/8/2014,Surgery
+PHYS_d7f2fcf5aab1,Cycle 2022-2023,PHYS_d7f2fcf5aab1,General Surgery,193,47.46,,7/1/2011,Surgery
+PHYS_d7f2fcf5aab1,Cycle 2023-2024,PHYS_d7f2fcf5aab1,General Surgery,219,75.96,,7/1/2011,Surgery
+PHYS_d7f2fcf5aab1,Cycle 2024-2025,PHYS_d7f2fcf5aab1,General Surgery,141,61.18,,7/1/2011,Surgery
+PHYS_b871429a7b4d,Cycle 2023-2024,PHYS_b871429a7b4d,Infectious Diseases,163,40.75,,9/20/2022,Internal Medicine
+PHYS_a4882d110f22,Cycle 2022-2023,PHYS_a4882d110f22,Pediatrics and Adolescent Medicine  ,1623,186.49,,7/1/2012,Pediatrics and Adolescent Medicine  
+PHYS_a4882d110f22,Cycle 2023-2024,PHYS_a4882d110f22,Pediatrics and Adolescent Medicine,1760,283.19,,7/1/2012,Pediatrics and Adolescent Medicine
+PHYS_a4882d110f22,Cycle 2024-2025,PHYS_a4882d110f22,Pediatrics and Adolescent Medicine,1576,204.25,,7/1/2012,Pediatrics and Adolescent Medicine
+PHYS_9fee67614a36,Cycle 2023-2024,PHYS_9fee67614a36,Pediatrics and Adolescent Medicine,79,169.5,,11/12/2019,Pediatrics and Adolescent Medicine
+PHYS_9fee67614a36,Cycle 2024-2025,PHYS_9fee67614a36,Pediatrics and Adolescent Medicine,249,121.59,,11/12/2019,Pediatrics and Adolescent Medicine
+PHYS_6ba27db1e944,Cycle 2022-2023,PHYS_6ba27db1e944,Gastroenterology,2442,64.77,,12/1/2014,Internal Medicine
+PHYS_6ba27db1e944,Cycle 2023-2024,PHYS_6ba27db1e944,Gastroenterology,2146,67.4,1,12/1/2014,Internal Medicine
+PHYS_6ba27db1e944,Cycle 2024-2025,PHYS_6ba27db1e944,Gastroenterology,1342,61.12,,12/1/2014,Internal Medicine
+PHYS_2cb7c4ef9c2d,Cycle 2022-2023,PHYS_2cb7c4ef9c2d,Vascular Surgery,1689,103.98,,7/1/2011,Surgery
+PHYS_2cb7c4ef9c2d,Cycle 2023-2024,PHYS_2cb7c4ef9c2d,Vascular Surgery,1733,90.25,1,7/1/2011,Surgery
+PHYS_2cb7c4ef9c2d,Cycle 2024-2025,PHYS_2cb7c4ef9c2d,Vascular Surgery,1747,77.53,1,7/1/2011,Surgery
+PHYS_a8a3ba9e79e5,Cycle 2022-2023,PHYS_a8a3ba9e79e5,Obstetrics and Gynecology  ,95,24.5,,4/16/2013,Obstetrics and Gynecology  
+PHYS_a8a3ba9e79e5,Cycle 2023-2024,PHYS_a8a3ba9e79e5,Obstetrics and Gynecology,130,73.52,,4/16/2013,Obstetrics and Gynecology
+PHYS_a8a3ba9e79e5,Cycle 2024-2025,PHYS_a8a3ba9e79e5,Obstetrics and Gynecology,129,26.6,,4/16/2013,Obstetrics and Gynecology
+PHYS_17812bf2fcaf,Cycle 2023-2024,PHYS_17812bf2fcaf,Hematology-Oncology,630,21.39,1,9/12/2023,Internal Medicine
+PHYS_17812bf2fcaf,Cycle 2024-2025,PHYS_17812bf2fcaf,Hematology-Oncology,1636,42.95,1,9/12/2023,Internal Medicine
+PHYS_7936c3398396,Cycle 2022-2023,PHYS_7936c3398396,Psychiatry ,1138,79.04,,7/1/2011,Psychiatry 
+PHYS_7936c3398396,Cycle 2023-2024,PHYS_7936c3398396,Psychiatry,1470,61.18,,7/1/2011,Psychiatry
+PHYS_7936c3398396,Cycle 2024-2025,PHYS_7936c3398396,Psychiatry,1516,125.6,,7/1/2011,Psychiatry
+PHYS_9886ce9b1b67,Cycle 2022-2023,PHYS_9886ce9b1b67,Pediatrics and Adolescent Medicine  ,859,29.05,,8/9/2017,Pediatrics and Adolescent Medicine  
+PHYS_9886ce9b1b67,Cycle 2023-2024,PHYS_9886ce9b1b67,Pediatrics and Adolescent Medicine,818,27.03,,8/9/2017,Pediatrics and Adolescent Medicine
+PHYS_9886ce9b1b67,Cycle 2024-2025,PHYS_9886ce9b1b67,Pediatrics and Adolescent Medicine,787,30.25,,8/9/2017,Pediatrics and Adolescent Medicine
+PHYS_581bbef004e2,Cycle 2022-2023,PHYS_581bbef004e2,Gastroenterology,2254,42.18,,7/1/2011,Internal Medicine
+PHYS_581bbef004e2,Cycle 2023-2024,PHYS_581bbef004e2,Gastroenterology,2276,43.1,1,7/1/2011,Internal Medicine
+PHYS_581bbef004e2,Cycle 2024-2025,PHYS_581bbef004e2,Gastroenterology,1571,43.58,,7/1/2011,Internal Medicine
+PHYS_d405cd7aa8ea,Cycle 2022-2023,PHYS_d405cd7aa8ea,Cardiology,1788,25.41,,1/23/2017,Internal Medicine
+PHYS_d405cd7aa8ea,Cycle 2023-2024,PHYS_d405cd7aa8ea,Cardiology,1927,23.86,2,1/23/2017,Internal Medicine
+PHYS_d405cd7aa8ea,Cycle 2024-2025,PHYS_d405cd7aa8ea,Cardiology,2021,25.43,1,1/23/2017,Internal Medicine
+PHYS_9559b23f8d4b,Cycle 2022-2023,PHYS_9559b23f8d4b,Psychiatry ,1958,47.87,,7/1/2011,Psychiatry 
+PHYS_9559b23f8d4b,Cycle 2023-2024,PHYS_9559b23f8d4b,Psychiatry,2151,49.53,,7/1/2011,Psychiatry
+PHYS_9559b23f8d4b,Cycle 2024-2025,PHYS_9559b23f8d4b,Psychiatry,2013,52.6,,7/1/2011,Psychiatry
+PHYS_b329c20113ca,Cycle 2022-2023,PHYS_b329c20113ca,Nephrology,15,29.5,,7/1/2011,Internal Medicine
+PHYS_b329c20113ca,Cycle 2023-2024,PHYS_b329c20113ca,Nephrology,24,25.66,,7/1/2011,Internal Medicine
+PHYS_b329c20113ca,Cycle 2024-2025,PHYS_b329c20113ca,Nephrology,32,28.05,,7/1/2011,Internal Medicine
+PHYS_7e91f7e56fd6,Cycle 2022-2023,PHYS_7e91f7e56fd6,Infectious Diseases,442,81.54,,7/1/2011,Internal Medicine
+PHYS_7e91f7e56fd6,Cycle 2023-2024,PHYS_7e91f7e56fd6,Infectious Diseases,454,83.82,1,7/1/2011,Internal Medicine
+PHYS_7e91f7e56fd6,Cycle 2024-2025,PHYS_7e91f7e56fd6,Infectious Diseases,375,74.98,,7/1/2011,Internal Medicine
+PHYS_68bd26c55254,Cycle 2022-2023,PHYS_68bd26c55254,General Surgery,764,44,,7/1/2011,Surgery
+PHYS_68bd26c55254,Cycle 2023-2024,PHYS_68bd26c55254,General Surgery,818,47.8,1,7/1/2011,Surgery
+PHYS_68bd26c55254,Cycle 2024-2025,PHYS_68bd26c55254,General Surgery,743,39.81,,7/1/2011,Surgery
+PHYS_d91a160645c6,Cycle 2024-2025,PHYS_d91a160645c6,Plastic Surgery,443,59.67,,7/1/2011,Surgery
+PHYS_3be61421ac27,Cycle 2022-2023,PHYS_3be61421ac27,Family Medicine ,1467,47.57,,9/13/2017,Family Medicine 
+PHYS_3be61421ac27,Cycle 2023-2024,PHYS_3be61421ac27,Family Medicine,1427,48.7,,9/13/2017,Family Medicine
+PHYS_3be61421ac27,Cycle 2024-2025,PHYS_3be61421ac27,Family Medicine,1339,36.1,,9/13/2017,Family Medicine
+PHYS_90834d12f35a,Cycle 2024-2025,PHYS_90834d12f35a,Emergency Medicine,,,1,2/1/2012,Emergency Medicine
+PHYS_f357a96b073f,Cycle 2024-2025,PHYS_f357a96b073f,Otorhinolaryngology - Head and Neck Surgery,427,9.19,,4/16/2024,"Otolaryngology, Head & Neck surgery"
+PHYS_3230e0ecc6b3,Cycle 2022-2023,PHYS_3230e0ecc6b3,Pediatrics and Adolescent Medicine  ,2466,87.33,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_3230e0ecc6b3,Cycle 2023-2024,PHYS_3230e0ecc6b3,Pediatrics and Adolescent Medicine,1856,80.29,1,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_3230e0ecc6b3,Cycle 2024-2025,PHYS_3230e0ecc6b3,Pediatrics and Adolescent Medicine,1606,71.47,3,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_c0ec96466136,Cycle 2022-2023,PHYS_c0ec96466136,Endocrinology,914,52.62,,7/1/2011,Internal Medicine
+PHYS_c0ec96466136,Cycle 2023-2024,PHYS_c0ec96466136,Endocrinology,889,45.43,,7/1/2011,Internal Medicine
+PHYS_c0ec96466136,Cycle 2024-2025,PHYS_c0ec96466136,Endocrinology,8,33.17,,7/1/2011,Internal Medicine
+PHYS_128eb7334060,Cycle 2022-2023,PHYS_128eb7334060,Obstetrics and Gynecology  ,7328,77.79,,7/1/2011,Obstetrics and Gynecology  
+PHYS_128eb7334060,Cycle 2023-2024,PHYS_128eb7334060,Obstetrics and Gynecology,7471,122.27,1,7/1/2011,Obstetrics and Gynecology
+PHYS_128eb7334060,Cycle 2024-2025,PHYS_128eb7334060,Obstetrics and Gynecology,6904,80.2,1,7/1/2011,Obstetrics and Gynecology
+PHYS_cb0a8cb3e016,Cycle 2022-2023,PHYS_cb0a8cb3e016,Psychiatry ,196,59.25,,8/11/2014,Psychiatry 
+PHYS_cb0a8cb3e016,Cycle 2023-2024,PHYS_cb0a8cb3e016,Psychiatry,203,77.53,,8/11/2014,Psychiatry
+PHYS_cb0a8cb3e016,Cycle 2024-2025,PHYS_cb0a8cb3e016,Psychiatry,305,57.86,,8/11/2014,Psychiatry
+PHYS_97b131d8958d,Cycle 2024-2025,PHYS_97b131d8958d,Pulmonary and Critical Care,343,41.33,,3/12/2024,Internal Medicine
+PHYS_3046138e37d2,Cycle 2022-2023,PHYS_3046138e37d2,General Surgery,203,51.98,,7/1/2011,Surgery
+PHYS_3046138e37d2,Cycle 2023-2024,PHYS_3046138e37d2,General Surgery,120,69.64,,7/1/2011,Surgery
+PHYS_3046138e37d2,Cycle 2024-2025,PHYS_3046138e37d2,General Surgery,72,82.64,,7/1/2011,Surgery
+PHYS_6ed006a1754d,Cycle 2024-2025,PHYS_6ed006a1754d,Family Medicine,121,12.35,,8/15/2024,Family Medicine
+PHYS_e89c61e87d73,Cycle 2022-2023,PHYS_e89c61e87d73,Family Medicine ,1460,38.81,,7/1/2011,Family Medicine 
+PHYS_e89c61e87d73,Cycle 2023-2024,PHYS_e89c61e87d73,Family Medicine,1207,140.89,,7/1/2011,Family Medicine
+PHYS_e89c61e87d73,Cycle 2024-2025,PHYS_e89c61e87d73,Family Medicine,1210,35.36,,7/1/2011,Family Medicine
+PHYS_d8edd729a644,Cycle 2022-2023,PHYS_d8edd729a644,Neurosurgery,1668,102,,7/1/2011,Surgery
+PHYS_d8edd729a644,Cycle 2023-2024,PHYS_d8edd729a644,Neurosurgery,1659,88.21,2,7/1/2011,Surgery
+PHYS_d8edd729a644,Cycle 2024-2025,PHYS_d8edd729a644,Neurosurgery,1233,78.72,2,7/1/2011,Surgery
+PHYS_35d232ae4201,Cycle 2022-2023,PHYS_35d232ae4201,Otorhinolaryngology - Head and Neck Surgery,3301,15.85,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+PHYS_35d232ae4201,Cycle 2023-2024,PHYS_35d232ae4201,Otorhinolaryngology - Head and Neck Surgery,3195,11.82,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+PHYS_35d232ae4201,Cycle 2024-2025,PHYS_35d232ae4201,Otorhinolaryngology - Head and Neck Surgery,3041,10.61,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+PHYS_674ccaddbf58,Cycle 2022-2023,PHYS_674ccaddbf58,Hematology-Oncology,2342,57.41,1,6/9/2014,Internal Medicine
+PHYS_674ccaddbf58,Cycle 2023-2024,PHYS_674ccaddbf58,Hematology-Oncology,2314,65.18,1,6/9/2014,Internal Medicine
+PHYS_674ccaddbf58,Cycle 2024-2025,PHYS_674ccaddbf58,Hematology-Oncology,1948,44.51,,6/9/2014,Internal Medicine
+PHYS_7e84a74a69f8,Cycle 2022-2023,PHYS_7e84a74a69f8,Pulmonary and Critical Care,235,26.46,,9/8/2020,Internal Medicine
+PHYS_7e84a74a69f8,Cycle 2023-2024,PHYS_7e84a74a69f8,Pulmonary and Critical Care,281,19.46,,9/8/2020,Internal Medicine
+PHYS_7e84a74a69f8,Cycle 2024-2025,PHYS_7e84a74a69f8,Pulmonary and Critical Care,249,13.41,1,9/8/2020,Internal Medicine
+PHYS_b55c7f237e30,Cycle 2022-2023,PHYS_b55c7f237e30,Cardiology,1809,35.57,,7/1/2011,Internal Medicine
+PHYS_b55c7f237e30,Cycle 2023-2024,PHYS_b55c7f237e30,Cardiology,2045,30.72,2,7/1/2011,Internal Medicine
+PHYS_b55c7f237e30,Cycle 2024-2025,PHYS_b55c7f237e30,Cardiology,1903,35.46,2,7/1/2011,Internal Medicine
+PHYS_c3c94ba18c88,Cycle 2022-2023,PHYS_c3c94ba18c88,Neurosurgery,2134,74.79,,3/1/2018,Surgery
+PHYS_c3c94ba18c88,Cycle 2023-2024,PHYS_c3c94ba18c88,Neurosurgery,2632,73.51,,3/1/2018,Surgery
+PHYS_c3c94ba18c88,Cycle 2024-2025,PHYS_c3c94ba18c88,Neurosurgery,2578,74.8,1,3/1/2018,Surgery
+PHYS_1d0fc2c6d865,Cycle 2022-2023,PHYS_1d0fc2c6d865,Neurology ,1760,52.45,,7/13/2021,Neurology 
+PHYS_1d0fc2c6d865,Cycle 2023-2024,PHYS_1d0fc2c6d865,Neurology,1916,52.27,,7/13/2021,Neurology
+PHYS_1d0fc2c6d865,Cycle 2024-2025,PHYS_1d0fc2c6d865,Neurology,1552,50.46,,7/13/2021,Neurology
+PHYS_d44da182a73e,Cycle 2022-2023,PHYS_d44da182a73e,Geriatrics,66,18.2,,7/1/2011,Internal Medicine
+PHYS_d44da182a73e,Cycle 2023-2024,PHYS_d44da182a73e,Geriatrics,68,31.02,,7/1/2011,Internal Medicine
+PHYS_78f68b679b71,Cycle 2024-2025,PHYS_78f68b679b71,Diagnostic Radiology,,,1,2/14/2018,Diagnostic Radiology
+PHYS_22a4caf9c4c7,Cycle 2022-2023,PHYS_22a4caf9c4c7,Hematology-Oncology,1428,60.15,,6/18/2019,Internal Medicine
+PHYS_22a4caf9c4c7,Cycle 2023-2024,PHYS_22a4caf9c4c7,Hematology-Oncology,1396,57.37,,6/18/2019,Internal Medicine
+PHYS_22a4caf9c4c7,Cycle 2024-2025,PHYS_22a4caf9c4c7,Hematology-Oncology,1302,57.18,,6/18/2019,Internal Medicine
+PHYS_79ec7590afb8,Cycle 2022-2023,PHYS_79ec7590afb8,Dentofacial,547,15,,1/13/2015,Dentofacial Medicine
+PHYS_79ec7590afb8,Cycle 2023-2024,PHYS_79ec7590afb8,Dentofacial,707,32,,1/13/2015,Dentofacial Medicine
+PHYS_79ec7590afb8,Cycle 2024-2025,PHYS_79ec7590afb8,Dentofacial,653,21,,1/13/2015,Dentofacial Medicine
+PHYS_3a98098f852a,Cycle 2022-2023,PHYS_3a98098f852a,Pediatric Hematology-Oncology,110,121.75,,7/1/2011,Internal Medicine
+PHYS_3a98098f852a,Cycle 2023-2024,PHYS_3a98098f852a,Pediatric Hematology-Oncology,374,302.4,,7/1/2011,Internal Medicine
+PHYS_b69d31e2be04,Cycle 2022-2023,PHYS_b69d31e2be04,Vitreo-Retinal surgery,650,63.56,,7/1/2011,Surgery
+PHYS_b69d31e2be04,Cycle 2023-2024,PHYS_b69d31e2be04,Vitreo-Retinal surgery,202,46.91,,7/1/2011,Surgery
+PHYS_b69d31e2be04,Cycle 2024-2025,PHYS_b69d31e2be04,Vitreo-Retinal surgery,45,21.57,,7/1/2011,Surgery
+PHYS_d980aca02559,Cycle 2022-2023,PHYS_d980aca02559,Family Medicine ,1988,24.16,,8/18/2020,Family Medicine 
+PHYS_d980aca02559,Cycle 2023-2024,PHYS_d980aca02559,Family Medicine,1750,23.48,,8/18/2020,Family Medicine
+PHYS_d980aca02559,Cycle 2024-2025,PHYS_d980aca02559,Family Medicine,1649,27.05,,8/18/2020,Family Medicine
+PHYS_59fb37f7b82b,Cycle 2022-2023,PHYS_59fb37f7b82b,Cardiology,63,27.88,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+PHYS_59fb37f7b82b,Cycle 2023-2024,PHYS_59fb37f7b82b,Cardiology,20,16.1,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+PHYS_5f5a9e7bd1e2,Cycle 2022-2023,PHYS_5f5a9e7bd1e2,Pediatrics and Adolescent Medicine  ,2909,74.84,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_5f5a9e7bd1e2,Cycle 2023-2024,PHYS_5f5a9e7bd1e2,Pediatrics and Adolescent Medicine,3115,68.97,4,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_5f5a9e7bd1e2,Cycle 2024-2025,PHYS_5f5a9e7bd1e2,Pediatrics and Adolescent Medicine,2844,78.19,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_8577099393e3,Cycle 2022-2023,PHYS_8577099393e3,Hematology-Oncology,595,54.17,2,9/16/2019,Internal Medicine
+PHYS_8577099393e3,Cycle 2023-2024,PHYS_8577099393e3,Hematology-Oncology,861,52.57,2,9/16/2019,Internal Medicine
+PHYS_8577099393e3,Cycle 2024-2025,PHYS_8577099393e3,Hematology-Oncology,762,54.9,3,9/16/2019,Internal Medicine
+PHYS_8d8e97de6a84,Cycle 2022-2023,PHYS_8d8e97de6a84,Pulmonary and Critical Care,1539,19.61,,7/1/2011,Internal Medicine
+PHYS_8d8e97de6a84,Cycle 2023-2024,PHYS_8d8e97de6a84,Pulmonary and Critical Care,1435,15.24,,7/1/2011,Internal Medicine
+PHYS_8d8e97de6a84,Cycle 2024-2025,PHYS_8d8e97de6a84,Pulmonary and Critical Care,1045,12.11,,7/1/2011,Internal Medicine
+PHYS_962bd8579c2a,Cycle 2024-2025,PHYS_962bd8579c2a,Orthopaedic Surgery,882,41.9,1,7/9/2024,Surgery
+PHYS_a181ee51a3bd,Cycle 2022-2023,PHYS_a181ee51a3bd,Endocrinology,3139,25.93,,7/1/2011,Internal Medicine
+PHYS_a181ee51a3bd,Cycle 2023-2024,PHYS_a181ee51a3bd,Endocrinology,2654,25.78,,7/1/2011,Internal Medicine
+PHYS_5a6d025ce91f,Cycle 2022-2023,PHYS_5a6d025ce91f,Obstetrics and Gynecology  ,2344,62.57,,7/1/2011,Obstetrics and Gynecology  
+PHYS_5a6d025ce91f,Cycle 2023-2024,PHYS_5a6d025ce91f,Obstetrics and Gynecology,2318,203.72,2,7/1/2011,Obstetrics and Gynecology
+PHYS_5a6d025ce91f,Cycle 2024-2025,PHYS_5a6d025ce91f,Obstetrics and Gynecology,2075,30.65,1,7/1/2011,Obstetrics and Gynecology
+PHYS_4a8090d81fa2,Cycle 2022-2023,PHYS_4a8090d81fa2,"Allergy, Immunology & Rheumatology",4598,54.4,,7/1/2011,Internal Medicine
+PHYS_4a8090d81fa2,Cycle 2023-2024,PHYS_4a8090d81fa2,"Allergy, Immunology & Rheumatology",4651,47.58,,7/1/2011,Internal Medicine
+PHYS_4a8090d81fa2,Cycle 2024-2025,PHYS_4a8090d81fa2,"Allergy, Immunology & Rheumatology",1883,23.05,,7/1/2011,Internal Medicine
+PHYS_c095cef8c27f,Cycle 2023-2024,PHYS_c095cef8c27f,General Surgery,,,1,7/1/2011,Surgery
+PHYS_c095cef8c27f,Cycle 2024-2025,PHYS_c095cef8c27f,General Surgery,,,2,7/1/2011,Surgery
+PHYS_0a63f66fcd2d,Cycle 2022-2023,PHYS_0a63f66fcd2d,Family Medicine ,2474,43.65,,7/1/2011,Family Medicine 
+PHYS_0a63f66fcd2d,Cycle 2023-2024,PHYS_0a63f66fcd2d,Family Medicine,2094,37.31,,7/1/2011,Family Medicine
+PHYS_0a63f66fcd2d,Cycle 2024-2025,PHYS_0a63f66fcd2d,Family Medicine,1654,41.35,,7/1/2011,Family Medicine
+PHYS_41b703870205,Cycle 2022-2023,PHYS_41b703870205,Dermatology,1064,47.54,,1/1/2017,Dermatology
+PHYS_41b703870205,Cycle 2023-2024,PHYS_41b703870205,Dermatology,1235,46.05,,1/1/2017,Dermatology
+PHYS_41b703870205,Cycle 2024-2025,PHYS_41b703870205,Dermatology,1208,48.3,,1/1/2017,Dermatology
+PHYS_e5fce5405103,Cycle 2022-2023,PHYS_e5fce5405103,Cardiothoracic Surgery,,52,,2/14/2018,Surgery
+PHYS_8b430a0c69bc,Cycle 2022-2023,PHYS_8b430a0c69bc,Hematology-Oncology,904,66.48,,4/23/2015,Internal Medicine
+PHYS_8b430a0c69bc,Cycle 2023-2024,PHYS_8b430a0c69bc,Hematology-Oncology,1066,69.43,3,4/23/2015,Internal Medicine
+PHYS_8b430a0c69bc,Cycle 2024-2025,PHYS_8b430a0c69bc,Hematology-Oncology,1028,60.68,,4/23/2015,Internal Medicine
+PHYS_b6b7b2f9ec57,Cycle 2022-2023,PHYS_b6b7b2f9ec57,Dentofacial,3678,94.22,,7/1/2011,Dentofacial Medicine
+PHYS_b6b7b2f9ec57,Cycle 2023-2024,PHYS_b6b7b2f9ec57,Dentofacial,4277,146.02,,7/1/2011,Dentofacial Medicine
+PHYS_b6b7b2f9ec57,Cycle 2024-2025,PHYS_b6b7b2f9ec57,Dentofacial,4175,61.68,,7/1/2011,Dentofacial Medicine
+PHYS_121eb1f56864,Cycle 2024-2025,PHYS_121eb1f56864,Corneal/Refractive Surgery,17,,,8/1/2024,Surgery
+PHYS_94bbf5d2e8eb,Cycle 2022-2023,PHYS_94bbf5d2e8eb,Vascular Surgery,1190,68.07,,7/1/2011,Surgery
+PHYS_94bbf5d2e8eb,Cycle 2023-2024,PHYS_94bbf5d2e8eb,Vascular Surgery,1268,92.29,,7/1/2011,Surgery
+PHYS_94bbf5d2e8eb,Cycle 2024-2025,PHYS_94bbf5d2e8eb,Vascular Surgery,1178,83.48,,7/1/2011,Surgery
+PHYS_181ce205eac5,Cycle 2022-2023,PHYS_181ce205eac5,Family Medicine ,1528,33.53,,7/1/2011,Family Medicine 
+PHYS_181ce205eac5,Cycle 2023-2024,PHYS_181ce205eac5,Family Medicine,1618,42.06,,7/1/2011,Family Medicine
+PHYS_181ce205eac5,Cycle 2024-2025,PHYS_181ce205eac5,Family Medicine,1555,35.07,,7/1/2011,Family Medicine
+PHYS_04f7a28faaf6,Cycle 2022-2023,PHYS_04f7a28faaf6,Pediatrics and Adolescent Medicine  ,80,72.43,,7/13/2021,Pediatrics and Adolescent Medicine  
+PHYS_04f7a28faaf6,Cycle 2023-2024,PHYS_04f7a28faaf6,Pediatrics and Adolescent Medicine,101,53.09,,7/13/2021,Pediatrics and Adolescent Medicine
+PHYS_04f7a28faaf6,Cycle 2024-2025,PHYS_04f7a28faaf6,Pediatrics and Adolescent Medicine,109,68.85,,7/13/2021,Pediatrics and Adolescent Medicine
+PHYS_3092b5fd6b03,Cycle 2022-2023,PHYS_3092b5fd6b03,Family Medicine ,2244,60.58,,7/1/2011,Family Medicine 
+PHYS_3092b5fd6b03,Cycle 2023-2024,PHYS_3092b5fd6b03,Family Medicine,2317,55.66,,7/1/2011,Family Medicine
+PHYS_3092b5fd6b03,Cycle 2024-2025,PHYS_3092b5fd6b03,Family Medicine,1634,59.56,,7/1/2011,Family Medicine
+PHYS_66c9388ca309,Cycle 2022-2023,PHYS_66c9388ca309,Ophthalmology ,2425,50.21,,9/13/2017,Ophthalmology 
+PHYS_66c9388ca309,Cycle 2023-2024,PHYS_66c9388ca309,Ophthalmology,2599,48.04,,9/13/2017,Ophthalmology
+PHYS_66c9388ca309,Cycle 2024-2025,PHYS_66c9388ca309,Ophthalmology,2566,53.17,,9/13/2017,Ophthalmology
+PHYS_1f2767fa9421,Cycle 2022-2023,PHYS_1f2767fa9421,Neurology,2,2.5,,10/13/2015,Neurology
+PHYS_1f2767fa9421,Cycle 2023-2024,PHYS_1f2767fa9421,Neurology,4,,,10/13/2015,Neurology
+PHYS_1f2767fa9421,Cycle 2024-2025,PHYS_1f2767fa9421,Neurology,2,48,,10/13/2015,Neurology
+PHYS_62f1bae5c53b,Cycle 2022-2023,PHYS_62f1bae5c53b,Family Medicine ,1055,64.76,,7/1/2011,Family Medicine 
+PHYS_62f1bae5c53b,Cycle 2023-2024,PHYS_62f1bae5c53b,Family Medicine,1078,50.77,,7/1/2011,Family Medicine
+PHYS_62f1bae5c53b,Cycle 2024-2025,PHYS_62f1bae5c53b,Family Medicine,1096,51.28,,7/1/2011,Family Medicine
+PHYS_2b39351adae2,Cycle 2022-2023,PHYS_2b39351adae2,Pediatrics and Adolescent Medicine  ,962,67.27,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_2b39351adae2,Cycle 2023-2024,PHYS_2b39351adae2,Pediatrics and Adolescent Medicine,777,66.14,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_2b39351adae2,Cycle 2024-2025,PHYS_2b39351adae2,Pediatrics and Adolescent Medicine,625,60.21,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_a7715e5b65f0,Cycle 2022-2023,PHYS_a7715e5b65f0,Gastroenterology,1325,43.03,,7/1/2011,Internal Medicine
+PHYS_a7715e5b65f0,Cycle 2023-2024,PHYS_a7715e5b65f0,Gastroenterology,1339,67.35,,7/1/2011,Internal Medicine
+PHYS_a7715e5b65f0,Cycle 2024-2025,PHYS_a7715e5b65f0,Gastroenterology,1064,62.64,,7/1/2011,Internal Medicine
+PHYS_22e7165ee7c8,Cycle 2022-2023,PHYS_22e7165ee7c8,Pediatrics and Adolescent Medicine  ,,53.61,,12/1/2017,Pediatrics and Adolescent Medicine  
+PHYS_22e7165ee7c8,Cycle 2023-2024,PHYS_22e7165ee7c8,Pediatrics and Adolescent Medicine,,49.63,,12/1/2017,Pediatrics and Adolescent Medicine
+PHYS_22e7165ee7c8,Cycle 2024-2025,PHYS_22e7165ee7c8,Pediatrics and Adolescent Medicine,,44.42,,12/1/2017,Pediatrics and Adolescent Medicine
+PHYS_b6f8dfc141bf,Cycle 2024-2025,PHYS_b6f8dfc141bf,Emergency Medicine,,,1,9/11/2012,Emergency Medicine
+PHYS_ef6863b21a42,Cycle 2022-2023,PHYS_ef6863b21a42,Obstetrics and Gynecology  ,150,19.36,,7/1/2011,Obstetrics and Gynecology  
+PHYS_ef6863b21a42,Cycle 2023-2024,PHYS_ef6863b21a42,Obstetrics and Gynecology,308,214.79,,7/1/2011,Obstetrics and Gynecology
+PHYS_ef6863b21a42,Cycle 2024-2025,PHYS_ef6863b21a42,Obstetrics and Gynecology,219,58.58,1,7/1/2011,Obstetrics and Gynecology
+PHYS_37bbf38d2487,Cycle 2022-2023,PHYS_37bbf38d2487,Dentofacial,136,128.5,,10/12/2021,Dentofacial Medicine
+PHYS_37bbf38d2487,Cycle 2023-2024,PHYS_37bbf38d2487,Dentofacial,189,162.33,,10/12/2021,Dentofacial Medicine
+PHYS_37bbf38d2487,Cycle 2024-2025,PHYS_37bbf38d2487,Dentofacial,220,105.5,,10/12/2021,Dentofacial Medicine
+PHYS_baf99bfa461c,Cycle 2022-2023,PHYS_baf99bfa461c,Dentofacial,2167,174.5,,2/12/2019,Dentofacial Medicine
+PHYS_baf99bfa461c,Cycle 2023-2024,PHYS_baf99bfa461c,Dentofacial,1187,,,2/12/2019,Dentofacial Medicine
+PHYS_baf99bfa461c,Cycle 2024-2025,PHYS_baf99bfa461c,Dentofacial,1098,63,,2/12/2019,Dentofacial Medicine
+PHYS_de3a95430804,Cycle 2022-2023,PHYS_de3a95430804,Psychiatry ,801,26.98,,7/1/2011,Psychiatry 
+PHYS_de3a95430804,Cycle 2023-2024,PHYS_de3a95430804,Psychiatry,759,25.62,,7/1/2011,Psychiatry
+PHYS_de3a95430804,Cycle 2024-2025,PHYS_de3a95430804,Psychiatry,838,31.82,,7/1/2011,Psychiatry
+PHYS_90673957dd97,Cycle 2022-2023,PHYS_90673957dd97,Pediatrics and Adolescent Medicine  ,1062,61.48,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_90673957dd97,Cycle 2023-2024,PHYS_90673957dd97,Pediatrics and Adolescent Medicine,816,48.55,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_90673957dd97,Cycle 2024-2025,PHYS_90673957dd97,Pediatrics and Adolescent Medicine,700,49.45,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_188031344e32,Cycle 2022-2023,PHYS_188031344e32,Psychiatry ,464,34.1,,7/1/2011,Psychiatry 
+PHYS_188031344e32,Cycle 2023-2024,PHYS_188031344e32,Psychiatry,449,36.94,1,7/1/2011,Psychiatry
+PHYS_188031344e32,Cycle 2024-2025,PHYS_188031344e32,Psychiatry,365,43.94,,7/1/2011,Psychiatry
+PHYS_e8a101cecaa6,Cycle 2022-2023,PHYS_e8a101cecaa6,Radiation Oncology ,438,32.9,,10/12/2021,Radiation Oncology 
+PHYS_e8a101cecaa6,Cycle 2023-2024,PHYS_e8a101cecaa6,Radiation Oncology ,549,40.45,,10/12/2021,Radiation Oncology 
+PHYS_e8a101cecaa6,Cycle 2024-2025,PHYS_e8a101cecaa6,Radiation Oncology ,254,39.47,,10/12/2021,Radiation Oncology 
+PHYS_d260fe146704,Cycle 2023-2024,PHYS_d260fe146704,Pediatrics and Adolescent Medicine,193,19.84,,9/12/2023,Pediatrics and Adolescent Medicine
+PHYS_d260fe146704,Cycle 2024-2025,PHYS_d260fe146704,Pediatrics and Adolescent Medicine,357,31.61,,9/12/2023,Pediatrics and Adolescent Medicine
+PHYS_567629932304,Cycle 2022-2023,PHYS_567629932304,Orthodontics,223,,,2/12/2019,Dentofacial Medicine
+PHYS_567629932304,Cycle 2023-2024,PHYS_567629932304,Dentofacial,71,30,,2/12/2019,Dentofacial Medicine
+PHYS_567629932304,Cycle 2024-2025,PHYS_567629932304,Dentofacial,542,,,2/12/2019,Dentofacial Medicine
+PHYS_f0b1ece20702,Cycle 2022-2023,PHYS_f0b1ece20702,Pediatrics and Adolescent Medicine  ,602,234.17,1,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_f0b1ece20702,Cycle 2023-2024,PHYS_f0b1ece20702,Pediatrics and Adolescent Medicine,818,257.55,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_f0b1ece20702,Cycle 2024-2025,PHYS_f0b1ece20702,Pediatrics and Adolescent Medicine,730,233.3,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_9c82245b0a5d,Cycle 2024-2025,PHYS_9c82245b0a5d,Urology,109,29.38,,11/1/2024,Surgery
+PHYS_c8d7210f1fe6,Cycle 2022-2023,PHYS_c8d7210f1fe6,Pediatrics and Adolescent Medicine  ,1146,80.43,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_c8d7210f1fe6,Cycle 2023-2024,PHYS_c8d7210f1fe6,Pediatrics and Adolescent Medicine,1222,62.63,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_c8d7210f1fe6,Cycle 2024-2025,PHYS_c8d7210f1fe6,Pediatrics and Adolescent Medicine,1219,46.65,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_05d7d01a4662,Cycle 2022-2023,PHYS_05d7d01a4662,Psychiatry ,887,45.44,,2/20/2019,Psychiatry 
+PHYS_05d7d01a4662,Cycle 2023-2024,PHYS_05d7d01a4662,Psychiatry,221,26.73,2,2/20/2019,Psychiatry
+PHYS_05d7d01a4662,Cycle 2024-2025,PHYS_05d7d01a4662,Psychiatry,59,20.95,,2/20/2019,Psychiatry
+PHYS_9ae8114ad5ec,Cycle 2022-2023,PHYS_9ae8114ad5ec,Psychiatry ,648,41.22,,6/14/2018,Psychiatry 
+PHYS_9ae8114ad5ec,Cycle 2023-2024,PHYS_9ae8114ad5ec,Psychiatry,610,45.9,,6/14/2018,Psychiatry
+PHYS_9ae8114ad5ec,Cycle 2024-2025,PHYS_9ae8114ad5ec,Psychiatry,590,37.82,,6/14/2018,Psychiatry
+PHYS_abc008f2ef9c,Cycle 2023-2024,PHYS_abc008f2ef9c,Urology,1,31,1,7/1/2011,Surgery
+PHYS_abc008f2ef9c,Cycle 2024-2025,PHYS_abc008f2ef9c,Urology,1,131,3,7/1/2011,Surgery
+PHYS_1f0f25eeec49,Cycle 2022-2023,PHYS_1f0f25eeec49,Endocrinology,1021,101.81,,7/20/2016,Internal Medicine
+PHYS_1f0f25eeec49,Cycle 2023-2024,PHYS_1f0f25eeec49,Endocrinology,1136,86.27,,7/20/2016,Internal Medicine
+PHYS_1f0f25eeec49,Cycle 2024-2025,PHYS_1f0f25eeec49,Endocrinology,1231,74.08,,7/20/2016,Internal Medicine
+PHYS_5f752ce1a40c,Cycle 2022-2023,PHYS_5f752ce1a40c,Nephrology,381,39.4,,7/1/2011,Internal Medicine
+PHYS_5f752ce1a40c,Cycle 2023-2024,PHYS_5f752ce1a40c,Nephrology,358,30.46,,7/1/2011,Internal Medicine
+PHYS_5f752ce1a40c,Cycle 2024-2025,PHYS_5f752ce1a40c,Nephrology,378,32.06,1,7/1/2011,Internal Medicine
+PHYS_2873d0155fae,Cycle 2022-2023,PHYS_2873d0155fae,Dentofacial,105,,,12/21/2021,Dentofacial Medicine
+PHYS_2873d0155fae,Cycle 2023-2024,PHYS_2873d0155fae,Dentofacial,162,,,12/21/2021,Dentofacial Medicine
+PHYS_2873d0155fae,Cycle 2024-2025,PHYS_2873d0155fae,Dentofacial,167,,,12/21/2021,Dentofacial Medicine
+PHYS_be5415a2e5dd,Cycle 2023-2024,PHYS_be5415a2e5dd,Family Medicine,358,29.13,,7/1/2011,Family Medicine
+PHYS_be5415a2e5dd,Cycle 2024-2025,PHYS_be5415a2e5dd,Family Medicine,1434,23.07,,7/1/2011,Family Medicine
+PHYS_0e2a403e9a4c,Cycle 2023-2024,PHYS_0e2a403e9a4c,Diagnostic Radiology,,,1,11/12/2013,Diagnostic Radiology
+PHYS_5da79e318b50,Cycle 2023-2024,PHYS_5da79e318b50,Pediatric Neurology,366,33.04,,2/21/2023,Neurology
+PHYS_5da79e318b50,Cycle 2024-2025,PHYS_5da79e318b50,Pediatric Neurology,120,18.53,,2/21/2023,Neurology
+PHYS_1ebf0ed0a490,Cycle 2024-2025,PHYS_1ebf0ed0a490,General Surgery,,,1,7/1/2011,Surgery
+PHYS_ab15099660cd,Cycle 2022-2023,PHYS_ab15099660cd,Dentofacial,57,,,7/1/2011,Dentofacial Medicine
+PHYS_ab15099660cd,Cycle 2023-2024,PHYS_ab15099660cd,Dentofacial,86,110.5,,7/1/2011,Dentofacial Medicine
+PHYS_ab15099660cd,Cycle 2024-2025,PHYS_ab15099660cd,Dentofacial,73,8.5,,7/1/2011,Dentofacial Medicine
+PHYS_80aa02b15871,Cycle 2022-2023,PHYS_80aa02b15871,Gynecologic Oncology,100,118.67,,7/1/2011,Internal Medicine
+PHYS_2f693cd39f3a,Cycle 2022-2023,PHYS_2f693cd39f3a,Cardiology,1602,27.28,,7/1/2011,Internal Medicine
+PHYS_2f693cd39f3a,Cycle 2023-2024,PHYS_2f693cd39f3a,Cardiology,1485,28.91,,7/1/2011,Internal Medicine
+PHYS_2f693cd39f3a,Cycle 2024-2025,PHYS_2f693cd39f3a,Cardiology,1621,33.16,1,7/1/2011,Internal Medicine
+PHYS_ff23e6d53ea5,Cycle 2022-2023,PHYS_ff23e6d53ea5,Dermatology,2174,30.13,,7/1/2011,Dermatology
+PHYS_ff23e6d53ea5,Cycle 2023-2024,PHYS_ff23e6d53ea5,Dermatology,2667,19.58,,7/1/2011,Dermatology
+PHYS_ff23e6d53ea5,Cycle 2024-2025,PHYS_ff23e6d53ea5,Dermatology,2550,23.77,,7/1/2011,Dermatology
+PHYS_619b3b7381eb,Cycle 2022-2023,PHYS_619b3b7381eb,General Surgery,1907,53.39,,7/1/2011,Surgery
+PHYS_619b3b7381eb,Cycle 2023-2024,PHYS_619b3b7381eb,General Surgery,1726,53.99,3,7/1/2011,Surgery
+PHYS_619b3b7381eb,Cycle 2024-2025,PHYS_619b3b7381eb,General Surgery,1498,42.97,2,7/1/2011,Surgery
+PHYS_f8e4d4614698,Cycle 2024-2025,PHYS_f8e4d4614698,General Surgery,576,37.74,,1/9/2024,Surgery
+PHYS_2401bb3f8ee0,Cycle 2022-2023,PHYS_2401bb3f8ee0,"Allergy, Immunology & Rheumatology",2164,82.35,,9/16/2016,Internal Medicine
+PHYS_2401bb3f8ee0,Cycle 2023-2024,PHYS_2401bb3f8ee0,"Allergy, Immunology & Rheumatology",2220,77.07,,9/16/2016,Internal Medicine
+PHYS_2401bb3f8ee0,Cycle 2024-2025,PHYS_2401bb3f8ee0,"Allergy, Immunology & Rheumatology",914,43.63,,9/16/2016,Internal Medicine
+PHYS_9e79106aa20e,Cycle 2022-2023,PHYS_9e79106aa20e,Otorhinolaryngology - Head and Neck Surgery,1960,18.54,,5/10/2022,"Otolaryngology, Head & Neck surgery"
+PHYS_9e79106aa20e,Cycle 2023-2024,PHYS_9e79106aa20e,Otorhinolaryngology - Head and Neck Surgery,2502,12.46,,5/10/2022,"Otolaryngology, Head & Neck surgery"
+PHYS_9e79106aa20e,Cycle 2024-2025,PHYS_9e79106aa20e,Otorhinolaryngology - Head and Neck Surgery,2342,12.63,,5/10/2022,"Otolaryngology, Head & Neck surgery"
+PHYS_1043138b4084,Cycle 2022-2023,PHYS_1043138b4084,Pediatrics and Adolescent Medicine  ,,27.52,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_1043138b4084,Cycle 2023-2024,PHYS_1043138b4084,Pediatrics and Adolescent Medicine,,24.73,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_1043138b4084,Cycle 2024-2025,PHYS_1043138b4084,Pediatrics and Adolescent Medicine,,36.19,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_99cce52880ad,Cycle 2023-2024,PHYS_99cce52880ad,Orthopaedic Surgery,2395,71.77,,2/1/2023,Surgery
+PHYS_99cce52880ad,Cycle 2024-2025,PHYS_99cce52880ad,Orthopaedic Surgery,2998,69.21,,2/1/2023,Surgery
+PHYS_81fe7e66b681,Cycle 2022-2023,PHYS_81fe7e66b681,Neurosurgery,1647,67.11,,7/1/2011,Surgery
+PHYS_81fe7e66b681,Cycle 2023-2024,PHYS_81fe7e66b681,Neurosurgery,1595,63.3,,7/1/2011,Surgery
+PHYS_81fe7e66b681,Cycle 2024-2025,PHYS_81fe7e66b681,Neurosurgery,1644,62.14,2,7/1/2011,Surgery
+PHYS_20d06ace891d,Cycle 2022-2023,PHYS_20d06ace891d,Endocrinology,1497,55.73,,7/1/2011,Internal Medicine
+PHYS_20d06ace891d,Cycle 2023-2024,PHYS_20d06ace891d,Endocrinology,1545,53.25,,7/1/2011,Internal Medicine
+PHYS_20d06ace891d,Cycle 2024-2025,PHYS_20d06ace891d,Endocrinology,2002,48.36,,7/1/2011,Internal Medicine
+PHYS_0f5fcee5afc6,Cycle 2022-2023,PHYS_0f5fcee5afc6,Pediatrics and Adolescent Medicine  ,1492,25.42,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_0f5fcee5afc6,Cycle 2023-2024,PHYS_0f5fcee5afc6,Pediatrics and Adolescent Medicine,1602,26.04,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_0f5fcee5afc6,Cycle 2024-2025,PHYS_0f5fcee5afc6,Pediatrics and Adolescent Medicine,1376,23.24,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_53548c7a9704,Cycle 2022-2023,PHYS_53548c7a9704,Family Medicine ,2110,24.78,,7/1/2011,Family Medicine 
+PHYS_53548c7a9704,Cycle 2023-2024,PHYS_53548c7a9704,Family Medicine,2095,26.29,,7/1/2011,Family Medicine
+PHYS_53548c7a9704,Cycle 2024-2025,PHYS_53548c7a9704,Family Medicine,2449,24.26,,7/1/2011,Family Medicine
+PHYS_1a041c68d4b7,Cycle 2022-2023,PHYS_1a041c68d4b7,Pediatric Neurology,394,30.65,,8/18/2016,Neurology
+PHYS_3847a8e22a9f,Cycle 2022-2023,PHYS_3847a8e22a9f,Cardiothoracic Surgery,20,112.84,,7/1/2011,Surgery
+PHYS_3847a8e22a9f,Cycle 2023-2024,PHYS_3847a8e22a9f,Cardiothoracic Surgery,58,314.88,,7/1/2011,Surgery
+PHYS_3847a8e22a9f,Cycle 2024-2025,PHYS_3847a8e22a9f,Cardiothoracic Surgery,54,199.23,,7/1/2011,Surgery
+PHYS_0c6befa9bb8a,Cycle 2022-2023,PHYS_0c6befa9bb8a,Family Medicine ,1874,78.49,,3/1/2012,Family Medicine 
+PHYS_0c6befa9bb8a,Cycle 2023-2024,PHYS_0c6befa9bb8a,Family Medicine,2269,76.05,,3/1/2012,Family Medicine
+PHYS_0c6befa9bb8a,Cycle 2024-2025,PHYS_0c6befa9bb8a,Family Medicine,2322,63.62,,3/1/2012,Family Medicine
+PHYS_727b93c1b6a7,Cycle 2022-2023,PHYS_727b93c1b6a7,Cardiology,1542,35.01,,8/1/2012,Internal Medicine
+PHYS_727b93c1b6a7,Cycle 2023-2024,PHYS_727b93c1b6a7,Cardiology,1483,32.78,2,8/1/2012,Internal Medicine
+PHYS_727b93c1b6a7,Cycle 2024-2025,PHYS_727b93c1b6a7,Cardiology,1299,38.04,1,8/1/2012,Internal Medicine
+PHYS_d85b718fdd5d,Cycle 2022-2023,PHYS_d85b718fdd5d,Endocrinology,3572,51.63,,7/1/2011,Internal Medicine
+PHYS_d85b718fdd5d,Cycle 2023-2024,PHYS_d85b718fdd5d,Endocrinology,3194,46.37,,7/1/2011,Internal Medicine
+PHYS_d85b718fdd5d,Cycle 2024-2025,PHYS_d85b718fdd5d,Endocrinology,2892,47.05,,7/1/2011,Internal Medicine
+PHYS_4187a56a3550,Cycle 2024-2025,PHYS_4187a56a3550,Hematology-Oncology,101,15.29,,10/1/2024,Internal Medicine
+PHYS_f4a3c5b0c273,Cycle 2024-2025,PHYS_f4a3c5b0c273,General Surgery,31,19.31,,10/1/2024,Surgery
+PHYS_ef036574887c,Cycle 2023-2024,PHYS_ef036574887c,Pediatric Ophthalmology & Motility,1,1305,,7/1/2011,Pediatrics
+PHYS_969f594978e0,Cycle 2022-2023,PHYS_969f594978e0,Orthodontics,18,,,10/8/2013,Dentofacial Medicine
+PHYS_969f594978e0,Cycle 2023-2024,PHYS_969f594978e0,Orthodontics,31,70,,10/8/2013,Dentofacial Medicine
+PHYS_969f594978e0,Cycle 2024-2025,PHYS_969f594978e0,Orthodontics,5,,,10/8/2013,Dentofacial Medicine
+PHYS_b28e5dc1b6a6,Cycle 2022-2023,PHYS_b28e5dc1b6a6,Dentofacial,112,43.67,,7/1/2011,Dentofacial Medicine
+PHYS_b28e5dc1b6a6,Cycle 2023-2024,PHYS_b28e5dc1b6a6,Dentofacial,87,34,,7/1/2011,Dentofacial Medicine
+PHYS_b28e5dc1b6a6,Cycle 2024-2025,PHYS_b28e5dc1b6a6,Dentofacial,90,,,7/1/2011,Dentofacial Medicine
+PHYS_3d4ce6827916,Cycle 2022-2023,PHYS_3d4ce6827916,General IM & Geriatrics,330,27.47,,9/14/2021,Internal Medicine
+PHYS_3d4ce6827916,Cycle 2023-2024,PHYS_3d4ce6827916,General IM & Geriatrics,425,40.17,,9/14/2021,Internal Medicine
+PHYS_3d4ce6827916,Cycle 2024-2025,PHYS_3d4ce6827916,General IM & Geriatrics,445,39.07,,9/14/2021,Internal Medicine
+PHYS_b73bb0f57f0a,Cycle 2022-2023,PHYS_b73bb0f57f0a,Dentofacial,65,43.67,,7/1/2011,Dentofacial Medicine
+PHYS_b73bb0f57f0a,Cycle 2023-2024,PHYS_b73bb0f57f0a,Dentofacial,36,,,7/1/2011,Dentofacial Medicine
+PHYS_b73bb0f57f0a,Cycle 2024-2025,PHYS_b73bb0f57f0a,Dentofacial,65,19,,7/1/2011,Dentofacial Medicine
+PHYS_3ed9f4f595ea,Cycle 2022-2023,PHYS_3ed9f4f595ea,Psychiatry ,456,26.21,,11/9/2021,Psychiatry 
+PHYS_3ed9f4f595ea,Cycle 2023-2024,PHYS_3ed9f4f595ea,Psychiatry,596,30.56,,11/9/2021,Psychiatry
+PHYS_3ed9f4f595ea,Cycle 2024-2025,PHYS_3ed9f4f595ea,Psychiatry,610,38.92,,11/9/2021,Psychiatry
+PHYS_df5f76dbc953,Cycle 2022-2023,PHYS_df5f76dbc953,Obstetrics and Gynecology  ,424,58.29,,5/10/2022,Obstetrics and Gynecology  
+PHYS_df5f76dbc953,Cycle 2023-2024,PHYS_df5f76dbc953,Obstetrics and Gynecology,497,194.2,,5/10/2022,Obstetrics and Gynecology
+PHYS_df5f76dbc953,Cycle 2024-2025,PHYS_df5f76dbc953,Obstetrics and Gynecology,495,41.05,,5/10/2022,Obstetrics and Gynecology
+PHYS_437571541151,Cycle 2022-2023,PHYS_437571541151,Gastroenterology,665,41.55,,4/1/2022,Internal Medicine
+PHYS_437571541151,Cycle 2023-2024,PHYS_437571541151,Gastroenterology,581,48.86,,4/1/2022,Internal Medicine
+PHYS_437571541151,Cycle 2024-2025,PHYS_437571541151,Gastroenterology,476,53.84,,4/1/2022,Internal Medicine
+PHYS_21f122001425,Cycle 2022-2023,PHYS_21f122001425,Family Medicine ,980,74.92,,7/1/2011,Family Medicine 
+PHYS_21f122001425,Cycle 2023-2024,PHYS_21f122001425,Family Medicine,1096,100.67,,7/1/2011,Family Medicine
+PHYS_21f122001425,Cycle 2024-2025,PHYS_21f122001425,Family Medicine,1095,76.85,,7/1/2011,Family Medicine
+PHYS_d8f8cc7a2c53,Cycle 2022-2023,PHYS_d8f8cc7a2c53,Neurology ,1566,44.33,,7/11/2017,Neurology 
+PHYS_d8f8cc7a2c53,Cycle 2023-2024,PHYS_d8f8cc7a2c53,Neurology,1614,36.69,1,7/11/2017,Neurology
+PHYS_d8f8cc7a2c53,Cycle 2024-2025,PHYS_d8f8cc7a2c53,Neurology,1422,41.63,,7/11/2017,Neurology
+PHYS_f0ab247db47e,Cycle 2023-2024,PHYS_f0ab247db47e,Emergency Medicine,,,1,6/16/2018,Emergency Medicine
+PHYS_1a0a8309de6c,Cycle 2022-2023,PHYS_1a0a8309de6c,Dermatology,3207,32.59,,7/1/2011,Dermatology
+PHYS_1a0a8309de6c,Cycle 2023-2024,PHYS_1a0a8309de6c,Dermatology,3197,28.66,,7/1/2011,Dermatology
+PHYS_1a0a8309de6c,Cycle 2024-2025,PHYS_1a0a8309de6c,Dermatology,2990,30.12,,7/1/2011,Dermatology
+PHYS_6a8465128a14,Cycle 2022-2023,PHYS_6a8465128a14,Dentofacial,915,21.46,,6/14/2022,Dentofacial Medicine
+PHYS_6a8465128a14,Cycle 2023-2024,PHYS_6a8465128a14,Dentofacial,1276,71,,6/14/2022,Dentofacial Medicine
+PHYS_6a8465128a14,Cycle 2024-2025,PHYS_6a8465128a14,Dentofacial,1685,55.3,,6/14/2022,Dentofacial Medicine
+PHYS_1b486a9e38a8,Cycle 2022-2023,PHYS_1b486a9e38a8,Family Medicine ,1836,29.93,,7/9/2013,Family Medicine 
+PHYS_1b486a9e38a8,Cycle 2023-2024,PHYS_1b486a9e38a8,Family Medicine,1745,199.96,,7/9/2013,Family Medicine
+PHYS_1b486a9e38a8,Cycle 2024-2025,PHYS_1b486a9e38a8,Family Medicine,1730,36.74,,7/9/2013,Family Medicine
+PHYS_8f940181e2b7,Cycle 2022-2023,PHYS_8f940181e2b7,Hematology-Oncology,1003,62.4,,2/8/2022,Internal Medicine
+PHYS_8f940181e2b7,Cycle 2023-2024,PHYS_8f940181e2b7,Hematology-Oncology,1145,51.55,,2/8/2022,Internal Medicine
+PHYS_8f940181e2b7,Cycle 2024-2025,PHYS_8f940181e2b7,Hematology-Oncology,983,49.55,,2/8/2022,Internal Medicine
+PHYS_0c7fca4357ff,Cycle 2022-2023,PHYS_0c7fca4357ff,Infectious Diseases,417,58.7,,7/1/2012,Internal Medicine
+PHYS_0c7fca4357ff,Cycle 2023-2024,PHYS_0c7fca4357ff,Infectious Diseases,460,63.4,1,7/1/2012,Internal Medicine
+PHYS_0c7fca4357ff,Cycle 2024-2025,PHYS_0c7fca4357ff,Infectious Diseases,440,67.57,,7/1/2012,Internal Medicine
+PHYS_134fc473142b,Cycle 2022-2023,PHYS_134fc473142b,Family Medicine ,435,33.1,,7/1/2011,Family Medicine 
+PHYS_134fc473142b,Cycle 2023-2024,PHYS_134fc473142b,Family Medicine,458,33.49,,7/1/2011,Family Medicine
+PHYS_134fc473142b,Cycle 2024-2025,PHYS_134fc473142b,Family Medicine,443,32.55,,7/1/2011,Family Medicine
+PHYS_719ec762a045,Cycle 2022-2023,PHYS_719ec762a045,Hematology-Oncology,1210,77.31,,7/1/2011,Internal Medicine
+PHYS_719ec762a045,Cycle 2023-2024,PHYS_719ec762a045,Hematology-Oncology,1260,65.45,1,7/1/2011,Internal Medicine
+PHYS_719ec762a045,Cycle 2024-2025,PHYS_719ec762a045,Hematology-Oncology,1435,70.75,1,7/1/2011,Internal Medicine
+PHYS_82ab3ac2654c,Cycle 2022-2023,PHYS_82ab3ac2654c,Pediatrics and Adolescent Medicine  ,,31.06,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_82ab3ac2654c,Cycle 2023-2024,PHYS_82ab3ac2654c,Pediatrics and Adolescent Medicine,,31.97,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_82ab3ac2654c,Cycle 2024-2025,PHYS_82ab3ac2654c,Pediatrics and Adolescent Medicine,,28.82,1,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_62c42162d828,Cycle 2024-2025,PHYS_62c42162d828,Pediatrics and Adolescent Medicine,,57.94,,7/11/2023,Pediatrics
+PHYS_a261be663815,Cycle 2022-2023,PHYS_a261be663815,Dermatology,1518,25.12,,7/1/2011,Dermatology
+PHYS_a261be663815,Cycle 2023-2024,PHYS_a261be663815,Dermatology,1774,23.71,,7/1/2011,Dermatology
+PHYS_a261be663815,Cycle 2024-2025,PHYS_a261be663815,Dermatology,1945,23.05,,7/1/2011,Dermatology
+PHYS_6fcda5f120c8,Cycle 2022-2023,PHYS_6fcda5f120c8,Orthodontics,92,,,7/1/2011,Dentofacial Medicine
+PHYS_6fcda5f120c8,Cycle 2023-2024,PHYS_6fcda5f120c8,Dentofacial,89,,,7/1/2011,Dentofacial Medicine
+PHYS_6fcda5f120c8,Cycle 2024-2025,PHYS_6fcda5f120c8,Dentofacial,130,,,7/1/2011,Dentofacial Medicine
+PHYS_ae524137e63d,Cycle 2022-2023,PHYS_ae524137e63d,Pulmonary and Critical Care,1427,18.62,,7/1/2011,Internal Medicine
+PHYS_ae524137e63d,Cycle 2023-2024,PHYS_ae524137e63d,Pulmonary and Critical Care,1271,12.63,,7/1/2011,Internal Medicine
+PHYS_ae524137e63d,Cycle 2024-2025,PHYS_ae524137e63d,Pulmonary and Critical Care,851,12.33,1,7/1/2011,Internal Medicine
+PHYS_fbac4acc1040,Cycle 2022-2023,PHYS_fbac4acc1040,General IM & Geriatrics,37,26.33,,7/1/2022,Internal Medicine
+PHYS_fbac4acc1040,Cycle 2023-2024,PHYS_fbac4acc1040,General IM & Geriatrics,93,23.96,,7/1/2022,Internal Medicine
+PHYS_fbac4acc1040,Cycle 2024-2025,PHYS_fbac4acc1040,General IM & Geriatrics,42,24.62,,7/1/2022,Internal Medicine
+PHYS_e687bc088709,Cycle 2022-2023,PHYS_e687bc088709,Pediatrics and Adolescent Medicine  ,,38.77,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_e687bc088709,Cycle 2023-2024,PHYS_e687bc088709,Pediatrics and Adolescent Medicine,,143.64,1,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_e687bc088709,Cycle 2024-2025,PHYS_e687bc088709,Pediatrics and Adolescent Medicine,,36.76,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_d8b8b891ffc9,Cycle 2022-2023,PHYS_d8b8b891ffc9,Cardiothoracic Surgery,311,62.3,,7/1/2011,Surgery
+PHYS_d8b8b891ffc9,Cycle 2023-2024,PHYS_d8b8b891ffc9,Cardiothoracic Surgery,576,64.19,,7/1/2011,Surgery
+PHYS_d8b8b891ffc9,Cycle 2024-2025,PHYS_d8b8b891ffc9,Cardiothoracic Surgery,555,40.3,1,7/1/2011,Surgery
+PHYS_343af737a77c,Cycle 2022-2023,PHYS_343af737a77c,Obstetrics and Gynecology  ,1722,53.34,,8/20/2015,Obstetrics and Gynecology  
+PHYS_343af737a77c,Cycle 2023-2024,PHYS_343af737a77c,Obstetrics and Gynecology,1892,128.91,1,8/20/2015,Obstetrics and Gynecology
+PHYS_343af737a77c,Cycle 2024-2025,PHYS_343af737a77c,Obstetrics and Gynecology,1646,45.62,2,8/20/2015,Obstetrics and Gynecology
+PHYS_27b83fe71513,Cycle 2022-2023,PHYS_27b83fe71513,Otorhinolaryngology - Head and Neck Surgery,2678,13.54,,9/1/2013,"Otolaryngology, Head & Neck surgery"
+PHYS_27b83fe71513,Cycle 2023-2024,PHYS_27b83fe71513,Otorhinolaryngology - Head and Neck Surgery,2926,10.04,1,9/1/2013,"Otolaryngology, Head & Neck surgery"
+PHYS_27b83fe71513,Cycle 2024-2025,PHYS_27b83fe71513,Otorhinolaryngology - Head and Neck Surgery,2330,8.82,,9/1/2013,"Otolaryngology, Head & Neck surgery"
+PHYS_8aa04f92bb46,Cycle 2022-2023,PHYS_8aa04f92bb46,Ophthalmology ,2599,48.55,,8/18/2016,Ophthalmology 
+PHYS_8aa04f92bb46,Cycle 2023-2024,PHYS_8aa04f92bb46,Ophthalmology,2726,58.36,,8/18/2016,Ophthalmology
+PHYS_8aa04f92bb46,Cycle 2024-2025,PHYS_8aa04f92bb46,Ophthalmology,2479,53.09,,8/18/2016,Ophthalmology
+PHYS_0e40d0aae510,Cycle 2022-2023,PHYS_0e40d0aae510,Pediatrics and Adolescent Medicine  ,332,184.67,,7/13/2021,Pediatrics and Adolescent Medicine  
+PHYS_0e40d0aae510,Cycle 2023-2024,PHYS_0e40d0aae510,Pediatrics and Adolescent Medicine,592,201.78,,7/13/2021,Pediatrics and Adolescent Medicine
+PHYS_0e40d0aae510,Cycle 2024-2025,PHYS_0e40d0aae510,Pediatrics and Adolescent Medicine,559,168.67,,7/13/2021,Pediatrics and Adolescent Medicine
+PHYS_51df892c308a,Cycle 2022-2023,PHYS_51df892c308a,Pediatrics and Adolescent Medicine  ,821,72.88,2,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_51df892c308a,Cycle 2023-2024,PHYS_51df892c308a,Pediatrics and Adolescent Medicine,736,62.38,2,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_51df892c308a,Cycle 2024-2025,PHYS_51df892c308a,Pediatrics and Adolescent Medicine,625,57.39,1,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_72ad63bc88ee,Cycle 2023-2024,PHYS_72ad63bc88ee,Emergency Medicine,,,1,9/11/2014,Emergency Medicine
+PHYS_1563d6861c47,Cycle 2024-2025,PHYS_1563d6861c47,Pediatrics and Adolescent Medicine,,,1,1/1/2018,Pediatrics
+PHYS_32e8dc548132,Cycle 2022-2023,PHYS_32e8dc548132,Orthodontics,22,,,7/1/2011,Dentofacial Medicine
+PHYS_0d0e3dd63767,Cycle 2022-2023,PHYS_0d0e3dd63767,Orthopaedic Surgery,6025,100.44,,7/1/2011,Surgery
+PHYS_0d0e3dd63767,Cycle 2023-2024,PHYS_0d0e3dd63767,Orthopaedic Surgery,6222,89.86,1,7/1/2011,Surgery
+PHYS_0d0e3dd63767,Cycle 2024-2025,PHYS_0d0e3dd63767,Orthopaedic Surgery,6156,94.53,,7/1/2011,Surgery
+PHYS_177f77b135b4,Cycle 2022-2023,PHYS_177f77b135b4,Ophthalmology ,2097,43.56,,7/1/2011,Ophthalmology 
+PHYS_177f77b135b4,Cycle 2023-2024,PHYS_177f77b135b4,Ophthalmology,2420,45.25,1,7/1/2011,Ophthalmology
+PHYS_177f77b135b4,Cycle 2024-2025,PHYS_177f77b135b4,Ophthalmology,2159,37.6,,7/1/2011,Ophthalmology
+PHYS_65af24a9759c,Cycle 2022-2023,PHYS_65af24a9759c,Pediatrics and Adolescent Medicine  ,2353,54.06,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_65af24a9759c,Cycle 2023-2024,PHYS_65af24a9759c,Pediatrics and Adolescent Medicine,2261,56.28,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_65af24a9759c,Cycle 2024-2025,PHYS_65af24a9759c,Pediatrics and Adolescent Medicine,1829,48.89,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_e175501ebe36,Cycle 2022-2023,PHYS_e175501ebe36,General IM & Geriatrics,107,26.73,2,7/1/2011,Internal Medicine
+PHYS_e175501ebe36,Cycle 2023-2024,PHYS_e175501ebe36,General IM & Geriatrics,149,42.03,4,7/1/2011,Internal Medicine
+PHYS_e175501ebe36,Cycle 2024-2025,PHYS_e175501ebe36,General IM & Geriatrics,176,44.48,3,7/1/2011,Internal Medicine
+PHYS_b52b9a0ebf16,Cycle 2022-2023,PHYS_b52b9a0ebf16,Ophthalmology ,2686,75.51,,7/1/2011,Ophthalmology 
+PHYS_b52b9a0ebf16,Cycle 2023-2024,PHYS_b52b9a0ebf16,Ophthalmology,2734,72.76,,7/1/2011,Ophthalmology
+PHYS_b52b9a0ebf16,Cycle 2024-2025,PHYS_b52b9a0ebf16,Ophthalmology,2529,78.19,2,7/1/2011,Ophthalmology
+PHYS_738254be9bf6,Cycle 2022-2023,PHYS_738254be9bf6,Dentofacial,2764,126.43,,7/1/2011,Dentofacial Medicine
+PHYS_738254be9bf6,Cycle 2023-2024,PHYS_738254be9bf6,Dentofacial,2498,298.33,,7/1/2011,Dentofacial Medicine
+PHYS_738254be9bf6,Cycle 2024-2025,PHYS_738254be9bf6,Dentofacial,2512,364.53,,7/1/2011,Dentofacial Medicine
+PHYS_155ddef11442,Cycle 2022-2023,PHYS_155ddef11442,Psychiatry ,454,56.64,,9/20/2022,Psychiatry 
+PHYS_155ddef11442,Cycle 2023-2024,PHYS_155ddef11442,Psychiatry,1016,88.91,,9/20/2022,Psychiatry
+PHYS_155ddef11442,Cycle 2024-2025,PHYS_155ddef11442,Psychiatry,965,51.69,,9/20/2022,Psychiatry
+PHYS_3c48cb2e4643,Cycle 2024-2025,PHYS_3c48cb2e4643,Orthopaedic Surgery,763,15.5,,,Surgery
+PHYS_ec334b6ce571,Cycle 2022-2023,PHYS_ec334b6ce571,Urology,1174,48.42,,7/1/2011,Surgery
+PHYS_ec334b6ce571,Cycle 2023-2024,PHYS_ec334b6ce571,Urology,1297,50.86,,7/1/2011,Surgery
+PHYS_ec334b6ce571,Cycle 2024-2025,PHYS_ec334b6ce571,Urology,1318,46.99,,7/1/2011,Surgery
+PHYS_e5fe76cfc0f5,Cycle 2022-2023,PHYS_e5fe76cfc0f5,Otorhinolaryngology - Head and Neck Surgery,143,24.08,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+PHYS_e5fe76cfc0f5,Cycle 2023-2024,PHYS_e5fe76cfc0f5,Otorhinolaryngology - Head and Neck Surgery,58,13.92,,7/1/2011,"Otolaryngology, Head & Neck surgery"
+PHYS_72576b499f11,Cycle 2022-2023,PHYS_72576b499f11,Urology,3570,40.6,,7/1/2011,Surgery
+PHYS_72576b499f11,Cycle 2023-2024,PHYS_72576b499f11,Urology,3263,37.82,,7/1/2011,Surgery
+PHYS_72576b499f11,Cycle 2024-2025,PHYS_72576b499f11,Urology,2654,38.31,2,7/1/2011,Surgery
+PHYS_ec2a009b0fc7,Cycle 2023-2024,PHYS_ec2a009b0fc7,Vascular Surgery,348,59.78,1,11/9/2021,Surgery
+PHYS_ec2a009b0fc7,Cycle 2024-2025,PHYS_ec2a009b0fc7,Vascular Surgery,731,90.08,,11/9/2021,Surgery
+PHYS_4b557f2781cb,Cycle 2022-2023,PHYS_4b557f2781cb,Neurology ,3495,65.48,,7/1/2011,Neurology 
+PHYS_4b557f2781cb,Cycle 2023-2024,PHYS_4b557f2781cb,Neurology,3867,63.12,,7/1/2011,Neurology
+PHYS_4b557f2781cb,Cycle 2024-2025,PHYS_4b557f2781cb,Neurology,3313,55.84,1,7/1/2011,Neurology
+PHYS_56a6b961f2f5,Cycle 2023-2024,PHYS_56a6b961f2f5,Vascular Surgery,203,28.31,,7/1/2011,Surgery
+PHYS_56a6b961f2f5,Cycle 2024-2025,PHYS_56a6b961f2f5,Vascular Surgery,230,40.5,,7/1/2011,Surgery
+PHYS_d83d142152e6,Cycle 2024-2025,PHYS_d83d142152e6,General IM & Geriatrics,90,48.89,2,6/14/2018,Internal Medicine
+PHYS_8f05f1a538fb,Cycle 2022-2023,PHYS_8f05f1a538fb,Family Medicine ,2639,38.43,,7/1/2011,Family Medicine 
+PHYS_8f05f1a538fb,Cycle 2023-2024,PHYS_8f05f1a538fb,Family Medicine,2862,33.4,,7/1/2011,Family Medicine
+PHYS_8f05f1a538fb,Cycle 2024-2025,PHYS_8f05f1a538fb,Family Medicine,2387,28.76,,7/1/2011,Family Medicine
+PHYS_44aa26beae78,Cycle 2022-2023,PHYS_44aa26beae78,Ophthalmology ,4027,106.33,,7/1/2011,Ophthalmology 
+PHYS_44aa26beae78,Cycle 2023-2024,PHYS_44aa26beae78,Ophthalmology,4023,90.6,,7/1/2011,Ophthalmology
+PHYS_44aa26beae78,Cycle 2024-2025,PHYS_44aa26beae78,Ophthalmology,3994,89.72,,7/1/2011,Ophthalmology
+PHYS_c2db76459ce1,Cycle 2022-2023,PHYS_c2db76459ce1,Obstetrics and Gynecology,122,,,4/15/2016,Ob/Gyn
+PHYS_c2db76459ce1,Cycle 2023-2024,PHYS_c2db76459ce1,Obstetrics and Gynecology,63,7,,4/15/2016,Ob/Gyn
+PHYS_c2db76459ce1,Cycle 2024-2025,PHYS_c2db76459ce1,Obstetrics and Gynecology,69,,,4/15/2016,Ob/Gyn
+PHYS_f430cfb31b6d,Cycle 2022-2023,PHYS_f430cfb31b6d,Ophthalmology ,2,,,7/1/2011,Ophthalmology 
+PHYS_f1e37c991380,Cycle 2023-2024,PHYS_f1e37c991380,Pediatric Surgery Service,430,83.45,,7/1/2011,Surgery
+PHYS_f1e37c991380,Cycle 2024-2025,PHYS_f1e37c991380,Pediatric Surgery Service,636,80.15,1,7/1/2011,Surgery
+PHYS_0c1628118176,Cycle 2022-2023,PHYS_0c1628118176,Cardiology,1420,14.53,,7/1/2011,Internal Medicine
+PHYS_0c1628118176,Cycle 2023-2024,PHYS_0c1628118176,Cardiology,1509,18.75,,7/1/2011,Internal Medicine
+PHYS_0c1628118176,Cycle 2024-2025,PHYS_0c1628118176,Cardiology,1487,18.6,,7/1/2011,Internal Medicine
+PHYS_cba2ea3a0d88,Cycle 2022-2023,PHYS_cba2ea3a0d88,Cardiology,966,20.51,,7/1/2011,Internal Medicine
+PHYS_cba2ea3a0d88,Cycle 2023-2024,PHYS_cba2ea3a0d88,Cardiology,1008,26.48,1,7/1/2011,Internal Medicine
+PHYS_cba2ea3a0d88,Cycle 2024-2025,PHYS_cba2ea3a0d88,Cardiology,953,19.23,,7/1/2011,Internal Medicine
+PHYS_f940253b51c8,Cycle 2022-2023,PHYS_f940253b51c8,Family Medicine ,1856,21.17,,7/1/2011,Family Medicine 
+PHYS_f940253b51c8,Cycle 2023-2024,PHYS_f940253b51c8,Family Medicine,1778,37.04,,7/1/2011,Family Medicine
+PHYS_f940253b51c8,Cycle 2024-2025,PHYS_f940253b51c8,Family Medicine,1811,25.09,,7/1/2011,Family Medicine
+PHYS_7f033bc1f792,Cycle 2022-2023,PHYS_7f033bc1f792,General Surgery,1088,37.43,,11/1/2012,Surgery
+PHYS_7f033bc1f792,Cycle 2023-2024,PHYS_7f033bc1f792,General Surgery,1122,36.69,,11/1/2012,Surgery
+PHYS_7f033bc1f792,Cycle 2024-2025,PHYS_7f033bc1f792,General Surgery,1229,31.68,1,11/1/2012,Surgery
+PHYS_08e98486b3ce,Cycle 2022-2023,PHYS_08e98486b3ce,General Surgery,2489,74.75,,3/5/2015,Surgery
+PHYS_08e98486b3ce,Cycle 2023-2024,PHYS_08e98486b3ce,General Surgery,2517,63.27,2,3/5/2015,Surgery
+PHYS_08e98486b3ce,Cycle 2024-2025,PHYS_08e98486b3ce,General Surgery,2376,61.41,3,3/5/2015,Surgery
+PHYS_a7c9ab176f48,Cycle 2022-2023,PHYS_a7c9ab176f48,Neurology ,1665,51.48,,7/1/2011,Neurology 
+PHYS_a7c9ab176f48,Cycle 2023-2024,PHYS_a7c9ab176f48,Neurology,1585,72.85,,7/1/2011,Neurology
+PHYS_a7c9ab176f48,Cycle 2024-2025,PHYS_a7c9ab176f48,Neurology,1398,41.2,,7/1/2011,Neurology
+PHYS_e93cd54eccca,Cycle 2022-2023,PHYS_e93cd54eccca,Orthodontics,261,,,7/1/2011,Dentofacial Medicine
+PHYS_e93cd54eccca,Cycle 2023-2024,PHYS_e93cd54eccca,Dentofacial,419,,,7/1/2011,Dentofacial Medicine
+PHYS_e93cd54eccca,Cycle 2024-2025,PHYS_e93cd54eccca,Dentofacial,355,,,7/1/2011,Dentofacial Medicine
+PHYS_f865b2d06c16,Cycle 2022-2023,PHYS_f865b2d06c16,Family Medicine ,1689,51.18,,7/1/2011,Family Medicine 
+PHYS_f865b2d06c16,Cycle 2023-2024,PHYS_f865b2d06c16,Family Medicine,1557,41.23,,7/1/2011,Family Medicine
+PHYS_f865b2d06c16,Cycle 2024-2025,PHYS_f865b2d06c16,Family Medicine,1594,44.33,,7/1/2011,Family Medicine
+PHYS_63c6c95d0a19,Cycle 2022-2023,PHYS_63c6c95d0a19,Infectious Diseases,994,54.69,,7/1/2011,Internal Medicine
+PHYS_63c6c95d0a19,Cycle 2023-2024,PHYS_63c6c95d0a19,Infectious Diseases,959,46.79,1,7/1/2011,Internal Medicine
+PHYS_63c6c95d0a19,Cycle 2024-2025,PHYS_63c6c95d0a19,Infectious Diseases,974,45.96,,7/1/2011,Internal Medicine
+PHYS_60db5fc5790a,Cycle 2023-2024,PHYS_60db5fc5790a,Pediatric Infectious Diseases,63,29.94,,9/12/2023,Internal Medicine
+PHYS_60db5fc5790a,Cycle 2024-2025,PHYS_60db5fc5790a,Pediatric Infectious Diseases,9,23.33,,9/12/2023,Internal Medicine
+PHYS_e1fe1dc0cc98,Cycle 2022-2023,PHYS_e1fe1dc0cc98,Pediatric Neurology,644,64.85,,5/10/2022,Neurology
+PHYS_e1fe1dc0cc98,Cycle 2023-2024,PHYS_e1fe1dc0cc98,Pediatrics and Adolescent Medicine,543,51.08,,5/10/2022,Pediatrics and Adolescent Medicine
+PHYS_e1fe1dc0cc98,Cycle 2024-2025,PHYS_e1fe1dc0cc98,Pediatrics and Adolescent Medicine,395,49.76,,5/10/2022,Pediatrics and Adolescent Medicine
+PHYS_11bed525f8a2,Cycle 2022-2023,PHYS_11bed525f8a2,Neurology ,696,19.84,,7/1/2011,Neurology 
+PHYS_11bed525f8a2,Cycle 2023-2024,PHYS_11bed525f8a2,Neurology,718,14.47,,7/1/2011,Neurology
+PHYS_11bed525f8a2,Cycle 2024-2025,PHYS_11bed525f8a2,Neurology,595,12.45,,7/1/2011,Neurology
+PHYS_1688b5a58eea,Cycle 2024-2025,PHYS_1688b5a58eea,Orthopaedic Surgery,,,1,7/1/2011,Surgery
+PHYS_59abdc77e246,Cycle 2022-2023,PHYS_59abdc77e246,Pediatrics and Adolescent Medicine  ,407,142.39,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_59abdc77e246,Cycle 2023-2024,PHYS_59abdc77e246,Pediatrics and Adolescent Medicine,637,258.15,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_59abdc77e246,Cycle 2024-2025,PHYS_59abdc77e246,Pediatrics and Adolescent Medicine,454,129.81,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_d8ccf1500bf7,Cycle 2022-2023,PHYS_d8ccf1500bf7,Family Medicine ,774,53.26,,7/1/2011,Family Medicine 
+PHYS_d8ccf1500bf7,Cycle 2023-2024,PHYS_d8ccf1500bf7,Family Medicine,730,296.04,,7/1/2011,Family Medicine
+PHYS_d8ccf1500bf7,Cycle 2024-2025,PHYS_d8ccf1500bf7,Family Medicine,713,52.51,1,7/1/2011,Family Medicine
+PHYS_a94e0cb739e1,Cycle 2022-2023,PHYS_a94e0cb739e1,Nephrology,1669,45.71,,7/1/2011,Internal Medicine
+PHYS_a94e0cb739e1,Cycle 2023-2024,PHYS_a94e0cb739e1,Nephrology,2028,108.69,2,7/1/2011,Internal Medicine
+PHYS_a94e0cb739e1,Cycle 2024-2025,PHYS_a94e0cb739e1,Nephrology,2233,42.55,,7/1/2011,Internal Medicine
+PHYS_87cc0360be48,Cycle 2022-2023,PHYS_87cc0360be48,Pediatrics and Adolescent Medicine  ,,25.31,,7/1/2011,Pediatrics and Adolescent Medicine  
+PHYS_87cc0360be48,Cycle 2023-2024,PHYS_87cc0360be48,Pediatrics and Adolescent Medicine,,25.1,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_87cc0360be48,Cycle 2024-2025,PHYS_87cc0360be48,Pediatrics and Adolescent Medicine,,21.31,,7/1/2011,Pediatrics and Adolescent Medicine
+PHYS_f86cd3aa057e,Cycle 2022-2023,PHYS_f86cd3aa057e,General Surgery,156,60.08,,4/13/2021,Surgery
+PHYS_f86cd3aa057e,Cycle 2023-2024,PHYS_f86cd3aa057e,General Surgery,164,67.85,,4/13/2021,Surgery
+PHYS_f86cd3aa057e,Cycle 2024-2025,PHYS_f86cd3aa057e,General Surgery,64,43.08,,4/13/2021,Surgery
+PHYS_88588d0b818d,Cycle 2022-2023,PHYS_88588d0b818d,Orthopaedic Surgery,4903,45.34,,7/1/2011,Surgery
+PHYS_88588d0b818d,Cycle 2023-2024,PHYS_88588d0b818d,Orthopaedic Surgery,4941,43.96,1,7/1/2011,Surgery
+PHYS_88588d0b818d,Cycle 2024-2025,PHYS_88588d0b818d,Orthopaedic Surgery,4222,44.28,1,7/1/2011,Surgery
+PHYS_cc70341eaeea,Cycle 2022-2023,PHYS_cc70341eaeea,Pediatric Nephrology,,37.86,,7/1/2011,Internal Medicine
+PHYS_cc70341eaeea,Cycle 2023-2024,PHYS_cc70341eaeea,Pediatric Nephrology,,37.17,,7/1/2011,Internal Medicine
+PHYS_cc70341eaeea,Cycle 2024-2025,PHYS_cc70341eaeea,Pediatric Nephrology,,32.16,,7/1/2011,Internal Medicine
+PHYS_af8e43e0ecda,Cycle 2022-2023,PHYS_af8e43e0ecda,Hematology-Oncology,1949,59.44,,7/1/2011,Internal Medicine
+PHYS_af8e43e0ecda,Cycle 2023-2024,PHYS_af8e43e0ecda,Hematology-Oncology,2003,51.12,1,7/1/2011,Internal Medicine
+PHYS_af8e43e0ecda,Cycle 2024-2025,PHYS_af8e43e0ecda,Hematology-Oncology,1753,49.55,1,7/1/2011,Internal Medicine
+PHYS_2ea5bacd1678,Cycle 2022-2023,PHYS_2ea5bacd1678,Pulmonary and Critical Care,1884,28.19,,7/1/2011,Internal Medicine
+PHYS_2ea5bacd1678,Cycle 2023-2024,PHYS_2ea5bacd1678,Pulmonary and Critical Care,1628,29.04,,7/1/2011,Internal Medicine
+PHYS_2ea5bacd1678,Cycle 2024-2025,PHYS_2ea5bacd1678,Pulmonary and Critical Care,1037,19.53,,7/1/2011,Internal Medicine
+PHYS_77649ca0900b,Cycle 2022-2023,PHYS_77649ca0900b,Obstetrics and Gynecology  ,726,38.22,,7/1/2011,Obstetrics and Gynecology  
+PHYS_77649ca0900b,Cycle 2023-2024,PHYS_77649ca0900b,Obstetrics and Gynecology,774,74.32,1,7/1/2011,Obstetrics and Gynecology
+PHYS_77649ca0900b,Cycle 2024-2025,PHYS_77649ca0900b,Obstetrics and Gynecology,689,27.37,,7/1/2011,Obstetrics and Gynecology
+PHYS_8cabd5ddd3a8,Cycle 2022-2023,PHYS_8cabd5ddd3a8,Radiation Oncology ,1004,53.88,,7/1/2011,Radiation Oncology 
+PHYS_8cabd5ddd3a8,Cycle 2023-2024,PHYS_8cabd5ddd3a8,Radiation Oncology ,853,53.34,,7/1/2011,Radiation Oncology 
+PHYS_8cabd5ddd3a8,Cycle 2024-2025,PHYS_8cabd5ddd3a8,Radiation Oncology ,641,46.56,,7/1/2011,Radiation Oncology 
+PHYS_37ab8eeca1e5,Cycle 2023-2024,PHYS_37ab8eeca1e5,Neurology,409,25.27,,7/1/2022,Neurology
+PHYS_37ab8eeca1e5,Cycle 2024-2025,PHYS_37ab8eeca1e5,Neurology,1070,50.07,,7/1/2022,Neurology
+PHYS_724a08299859,Cycle 2023-2024,PHYS_724a08299859,Neurosurgery,26,19.2,,7/1/2018,Surgery
+PHYS_724a08299859,Cycle 2024-2025,PHYS_724a08299859,Neurosurgery,42,65.75,,7/1/2018,Surgery
+PHYS_0b154e62147a,Cycle 2022-2023,PHYS_0b154e62147a,Family Medicine ,1022,83.8,,7/1/2011,Family Medicine 
+PHYS_0b154e62147a,Cycle 2023-2024,PHYS_0b154e62147a,Family Medicine,919,75.17,1,7/1/2011,Family Medicine
+PHYS_0b154e62147a,Cycle 2024-2025,PHYS_0b154e62147a,Family Medicine,1198,64.46,,7/1/2011,Family Medicine
+PHYS_f04503b55ed4,Cycle 2024-2025,PHYS_f04503b55ed4,Oculoplastics/Orbital/Lacrimal surgery,182,20.98,,10/13/2015,Surgery
+PHYS_f04503b55ed4,Cycle 2024-2025,PHYS_f04503b55ed4,Ophthalmology,26,26.2,,,Ophthalmology
+PHYS_614bab004c69,Cycle 2022-2023,PHYS_614bab004c69,Family Medicine ,2690,39.17,,7/1/2011,Family Medicine 
+PHYS_614bab004c69,Cycle 2023-2024,PHYS_614bab004c69,Family Medicine,2735,43.63,2,7/1/2011,Family Medicine
+PHYS_614bab004c69,Cycle 2024-2025,PHYS_614bab004c69,Family Medicine,2435,43.43,2,7/1/2011,Family Medicine
+PHYS_183de6ed35cf,Cycle 2022-2023,PHYS_183de6ed35cf,Family Medicine ,1374,23.78,,11/11/2014,Family Medicine 
+PHYS_183de6ed35cf,Cycle 2023-2024,PHYS_183de6ed35cf,Family Medicine,1198,23.81,,11/11/2014,Family Medicine
+PHYS_183de6ed35cf,Cycle 2024-2025,PHYS_183de6ed35cf,Family Medicine,1218,27.4,1,11/11/2014,Family Medicine
+PHYS_2dd4c5aa0461,Cycle 2022-2023,PHYS_2dd4c5aa0461,Ophthalmology ,2479,73.78,,9/1/2019,Ophthalmology 
+PHYS_2dd4c5aa0461,Cycle 2023-2024,PHYS_2dd4c5aa0461,Ophthalmology,2591,74.43,,9/1/2019,Ophthalmology
+PHYS_2dd4c5aa0461,Cycle 2024-2025,PHYS_2dd4c5aa0461,Ophthalmology,2832,78.47,,9/1/2019,Ophthalmology
+PHYS_55de23dce1a6,Cycle 2022-2023,PHYS_55de23dce1a6,Nephrology,3789,33.24,,7/1/2011,Internal Medicine
+PHYS_55de23dce1a6,Cycle 2023-2024,PHYS_55de23dce1a6,Nephrology,4034,29.46,2,7/1/2011,Internal Medicine
+PHYS_55de23dce1a6,Cycle 2024-2025,PHYS_55de23dce1a6,Nephrology,3795,26.9,1,7/1/2011,Internal Medicine
+PHYS_ded69ffc7130,Cycle 2022-2023,PHYS_ded69ffc7130,Neurology ,1272,36.57,,1/8/2013,Neurology 
+PHYS_ded69ffc7130,Cycle 2023-2024,PHYS_ded69ffc7130,Neurology,1225,34.28,,1/8/2013,Neurology
+PHYS_ded69ffc7130,Cycle 2024-2025,PHYS_ded69ffc7130,Neurology,1085,33.16,,1/8/2013,Neurology
+PHYS_f24b5ac4ffcc,Cycle 2022-2023,PHYS_f24b5ac4ffcc,Psychiatry ,1799,51.59,,10/18/2017,Psychiatry 
+PHYS_f24b5ac4ffcc,Cycle 2023-2024,PHYS_f24b5ac4ffcc,Psychiatry,1933,50.21,,10/18/2017,Psychiatry
+PHYS_f24b5ac4ffcc,Cycle 2024-2025,PHYS_f24b5ac4ffcc,Psychiatry,1779,50.36,,10/18/2017,Psychiatry
+PHYS_24a62be3fc23,Cycle 2022-2023,PHYS_24a62be3fc23,Plastic Surgery,962,68.32,,2/6/2012,Surgery
+PHYS_24a62be3fc23,Cycle 2023-2024,PHYS_24a62be3fc23,Plastic Surgery,847,72.51,,2/6/2012,Surgery
+PHYS_24a62be3fc23,Cycle 2024-2025,PHYS_24a62be3fc23,Plastic Surgery,774,62.83,5,2/6/2012,Surgery
+PHYS_a5515d805118,Cycle 2024-2025,PHYS_a5515d805118,Endocrinology,1482,54.21,,7/1/2024,Internal Medicine
+PHYS_58f39c63da09,Cycle 2022-2023,PHYS_58f39c63da09,Cardiothoracic Surgery,16,15,,11/9/2021,Surgery
+PHYS_58f39c63da09,Cycle 2023-2024,PHYS_58f39c63da09,Cardiothoracic Surgery,29,,,11/9/2021,Surgery
+PHYS_58f39c63da09,Cycle 2024-2025,PHYS_58f39c63da09,Cardiothoracic Surgery,10,6,,11/9/2021,Surgery
+PHYS_149fefab32b4,Cycle 2024-2025,PHYS_149fefab32b4,General Surgery,198,27.96,,7/9/2024,Surgery
+PHYS_e74ee551fa09,Cycle 2022-2023,PHYS_e74ee551fa09,Gastroenterology,1216,35.31,,5/21/2015,Internal Medicine
+PHYS_e74ee551fa09,Cycle 2023-2024,PHYS_e74ee551fa09,Gastroenterology,1288,39.69,1,5/21/2015,Internal Medicine
+PHYS_e74ee551fa09,Cycle 2024-2025,PHYS_e74ee551fa09,Gastroenterology,777,45.37,1,5/21/2015,Internal Medicine
+PHYS_c367fab96ca6,Cycle 2022-2023,PHYS_c367fab96ca6,Radiation Oncology ,576,62.19,,4/12/2018,Radiation Oncology 
+PHYS_c367fab96ca6,Cycle 2023-2024,PHYS_c367fab96ca6,Radiation Oncology ,762,57.74,,4/12/2018,Radiation Oncology 
+PHYS_c367fab96ca6,Cycle 2024-2025,PHYS_c367fab96ca6,Radiation Oncology ,703,59.79,,4/12/2018,Radiation Oncology 
+PHYS_ac7336a02460,Cycle 2022-2023,PHYS_ac7336a02460,Ophthalmology ,2967,104.74,,7/1/2011,Ophthalmology 
+PHYS_ac7336a02460,Cycle 2023-2024,PHYS_ac7336a02460,Ophthalmology,3409,108.15,,7/1/2011,Ophthalmology
+PHYS_ac7336a02460,Cycle 2024-2025,PHYS_ac7336a02460,Ophthalmology,3360,103.65,,7/1/2011,Ophthalmology
+PHYS_74310b196617,Cycle 2022-2023,PHYS_74310b196617,Pediatrics and Adolescent Medicine  ,362,84.36,,10/2/2015,Pediatrics and Adolescent Medicine  
+PHYS_74310b196617,Cycle 2023-2024,PHYS_74310b196617,Pediatrics and Adolescent Medicine,578,60.43,1,10/2/2015,Pediatrics and Adolescent Medicine
+PHYS_74310b196617,Cycle 2024-2025,PHYS_74310b196617,Pediatrics and Adolescent Medicine,532,67.56,,10/2/2015,Pediatrics and Adolescent Medicine
+PHYS_0c6a6d8731d5,Cycle 2023-2024,PHYS_0c6a6d8731d5,Neurology,50,24.94,,5/9/2023,Neurology
+PHYS_0c6a6d8731d5,Cycle 2024-2025,PHYS_0c6a6d8731d5,Neurology,42,20.63,,5/9/2023,Neurology
+PHYS_7d4639603244,Cycle 2022-2023,PHYS_7d4639603244,Cardiology,620,31.6,,7/1/2011,Internal Medicine
+PHYS_7d4639603244,Cycle 2023-2024,PHYS_7d4639603244,Cardiology,668,30.88,1,7/1/2011,Internal Medicine
+PHYS_7d4639603244,Cycle 2024-2025,PHYS_7d4639603244,Cardiology,628,34.86,,7/1/2011,Internal Medicine
+PHYS_4358aa6d482d,Cycle 2022-2023,PHYS_4358aa6d482d,Infectious Diseases,229,73.67,,7/1/2011,Internal Medicine
+PHYS_4358aa6d482d,Cycle 2023-2024,PHYS_4358aa6d482d,Infectious Diseases,273,63.28,,7/1/2011,Internal Medicine
+PHYS_4358aa6d482d,Cycle 2024-2025,PHYS_4358aa6d482d,Infectious Diseases,273,81.19,1,7/1/2011,Internal Medicine
+PHYS_fb27e93e1ed4,Cycle 2022-2023,PHYS_fb27e93e1ed4,Otorhinolaryngology - Head and Neck Surgery,3022,16.23,,11/17/2016,"Otolaryngology, Head & Neck surgery"
+PHYS_fb27e93e1ed4,Cycle 2023-2024,PHYS_fb27e93e1ed4,Otorhinolaryngology - Head and Neck Surgery,3678,11.45,,11/17/2016,"Otolaryngology, Head & Neck surgery"
+PHYS_fb27e93e1ed4,Cycle 2024-2025,PHYS_fb27e93e1ed4,Otorhinolaryngology - Head and Neck Surgery,3592,11.3,,11/17/2016,"Otolaryngology, Head & Neck surgery"
+PHYS_7cc4e16da108,Cycle 2022-2023,PHYS_7cc4e16da108,Hematology-Oncology,370,36.05,,7/1/2011,Internal Medicine
+PHYS_173bbc0bcea0,Cycle 2024-2025,PHYS_173bbc0bcea0,Infectious Diseases,,,2,7/1/2011,Internal Medicine
