@@ -596,7 +596,7 @@ GITHUB_URLS = {
     "patho_25": "Patho,Lab, Behavior raw data 2025.csv",
 
     # ── Physicians Indicators CSV (Tab 6 — Departments & Divisions) ───────────
-    "indicators": "Physicians indicators.csv",
+    "indicators": "Physicians_Indicators_Anonymized.csv",
 
     # ── Physician lookup CSVs (Name, Department, Division per year) ──────────
     "lookup_2023": "Datasource, cycle 2023.csv",
