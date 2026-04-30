@@ -2904,10 +2904,17 @@ with tab6:
         for col in ["ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]:
             if col in df.columns: df[col] = pd.to_numeric(df[col], errors="coerce")
         # Derive true parent Department from Division using DIV_TO_DEPT mapping
+        # If divisions are anonymized (DIV-xx), mapping returns NaN — keep original Department
         if "Division_norm" in df.columns:
             mapped = df["Division_norm"].map(DIV_TO_DEPT)
+            coverage = mapped.notna().mean()
             if "Department" in df.columns:
-                df["Department"] = mapped.fillna(df["Department"].str.strip())
+                if coverage > 0.5:
+                    # Mapping worked — real division names present
+                    df["Department"] = mapped.fillna(df["Department"].str.strip())
+                else:
+                    # Anonymized divisions — just strip the Department column as-is
+                    df["Department"] = df["Department"].astype(str).str.strip()
             else:
                 df["Department"] = mapped.fillna("Other")
         return df
