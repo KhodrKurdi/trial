@@ -3258,21 +3258,14 @@ with tab7:
 
         # ── IMPORTANT TERMINOLOGY ─────────────────────────────────────────
         lines.append("IMPORTANT TERMINOLOGY:")
-        lines.append("- 'Project groups' or 'Survey groups': AUBMC, ED, Pathology")
-        lines.append("  These are the 3 groups used in the behavior survey project.")
-        lines.append("  AUBMC = main hospital group, ED = Emergency Department group,")
-        lines.append("  Pathology = Pathology & Lab group.")
-        lines.append("  These are NOT clinical departments — they are project data groups.")
+        lines.append(f"- Survey groups in this dataset: {', '.join(_available_depts)}")
+        lines.append("  These are anonymized project groups — NOT clinical departments.")
         lines.append("")
-        lines.append("- 'Departments': The actual AUBMC clinical departments,")
-        lines.append("  e.g. Internal Medicine, Surgery, Ob/Gyn, Pediatrics, etc.")
-        lines.append("  These are available per physician via the lookup merge.")
-        lines.append("  Each physician in the survey data HAS a Department and Division assigned.")
-        lines.append("  You CAN answer questions like 'which department has the most priority physicians'.")
+        lines.append("- 'Departments': Clinical departments e.g. Internal Medicine, Surgery.")
+        lines.append("  Each physician has a Department and Division assigned.")
+        lines.append("  You CAN answer: 'which department has the most priority physicians'.")
         lines.append("")
-        lines.append("- 'Divisions': Sub-units within departments,")
-        lines.append("  e.g. Cardiology (under Internal Medicine),")
-        lines.append("  General Surgery (under Surgery), etc.")
+        lines.append("- 'Divisions': Sub-units within departments e.g. Cardiology, General Surgery.")
         lines.append("")
 
         # ── BEHAVIOR SURVEY SUMMARY ───────────────────────────────────────
@@ -3477,8 +3470,15 @@ with tab7:
     if st.session_state["_mc_pending"]:
         st.session_state["_mc_pending"] = False
 
-        system_prompt = f"""You are MC, an AI data assistant for the AUBMC Physician Performance Dashboard.
+        system_prompt = f"""You are MC, an AI data assistant for an anonymized physician performance dashboard.
 You help medical administrators and stakeholders understand physician performance data.
+
+CRITICAL ANONYMIZATION RULES — ALWAYS FOLLOW:
+- Survey groups are called PROJECT-1, PROJECT-2, PROJECT-3. NEVER use "AUBMC", "ED", or "Pathology".
+- Physicians are identified by PHYS_xxxx codes only. NEVER use real names.
+- Departments show as DEPT-A, DEPT-B etc. Divisions show as DIV-01, DIV-02 etc.
+- If asked about "AUBMC group" refer to it as PROJECT-1. "ED" = PROJECT-2. "Pathology" = PROJECT-3.
+- All your responses must use only the anonymized codes above — never the real institutional names.
 
 CRITICAL — TERMINOLOGY YOU MUST FOLLOW:
 - "Department" = clinical departments: Internal Medicine, Surgery, Ob/Gyn, Pediatrics, Neurology, etc.
