@@ -718,8 +718,8 @@ def build_dept_map(ind_df, lookup_df):
     if not lookup_df.empty and "physician_id_key" in lookup_df.columns:
         for _, row in lookup_df.iterrows():
             pid  = str(row["physician_id_key"]).strip().lower()
-            dept = str(row.get("Department", "")).strip()
-            div  = str(row.get("Division",   "")).strip()
+            dept = str(row.get("Department", "")).strip().strip()
+            div  = str(row.get("Division",   "")).strip().strip()
             if pid and dept:
                 dept_map[pid] = (dept, div or dept)
     # 2. From indicators CSV — fills gaps or overrides with more specific data
@@ -732,8 +732,8 @@ def build_dept_map(ind_df, lookup_df):
         if id_col:
             for _, row in ind_df.iterrows():
                 pid  = str(row[id_col]).strip().lower()
-                dept = str(row.get("Department", "")).strip()
-                div  = str(row.get("Division",   "")).strip()
+                dept = str(row.get("Department", "")).strip().strip()
+                div  = str(row.get("Division",   "")).strip().strip()
                 if pid and dept:
                     dept_map[pid] = (dept, div or dept)
     return dept_map
@@ -751,25 +751,28 @@ _dept_div_map = build_dept_map(_ind_raw, physician_lookup)
 
 # Apply to all_phys — use all available sources
 all_phys["_key"]       = all_phys["physician_id"].astype(str).str.strip().str.lower()
-all_phys["Department"] = all_phys["_key"].map(lambda x: _dept_div_map.get(x, ("", ""))[0])
-all_phys["Division"]   = all_phys["_key"].map(lambda x: _dept_div_map.get(x, ("", ""))[1])
+all_phys["Department"] = all_phys["_key"].map(lambda x: _dept_div_map.get(x, ("", ""))[0]).str.strip()
+all_phys["Division"]   = all_phys["_key"].map(lambda x: _dept_div_map.get(x, ("", ""))[1]).str.strip()
 
-# Also try matching via "department" column (survey group tag) as last resort
-all_phys["Division"]   = all_phys["Division"].where(
-    all_phys["Division"].astype(str).str.strip() != "", all_phys["Department"])
+# Fill empty Division with Department
+all_phys["Division"] = all_phys["Division"].where(
+    all_phys["Division"].str.strip() != "", all_phys["Department"])
 
-# Physicians with no department match → label clearly
-all_phys["Department"] = all_phys["Department"].replace("", "Unassigned")
-all_phys["Division"]   = all_phys["Division"].where(all_phys["Division"] != "", all_phys["Department"])
+# Only label as Unassigned if truly empty after stripping
+all_phys["Department"] = all_phys["Department"].where(
+    all_phys["Department"].str.strip() != "", "Unassigned")
+all_phys["Division"] = all_phys["Division"].where(
+    all_phys["Division"].str.strip() != "", all_phys["Department"])
 all_phys["FullName"]   = all_phys["physician_id"]  # suppress real names
 all_phys = all_phys.drop(columns=["_key"], errors="ignore")
 
 _dept_filled = (all_phys["Department"] != "Unassigned").sum()
 _total       = len(all_phys)
+# Only warn if MORE than 20% unassigned — small gaps are normal
 if _dept_filled == 0:
     st.warning("⚠️ No Department/Division data found — check that your indicators and lookup CSV paths are correct in GITHUB_URLS.")
-elif _dept_filled < _total:
-    st.info(f"ℹ️ {_total - _dept_filled} of {_total} physicians have no department match — they will show as 'Unassigned'. Check lookup and indicators CSV coverage.")
+elif _dept_filled < _total * 0.8:
+    st.info(f"ℹ️ {_total - _dept_filled} of {_total} physicians have no department match and show as 'Unassigned'.")
 
 
 # ─── MAIN HEADER ─────────────────────────────────────────────────────────────
