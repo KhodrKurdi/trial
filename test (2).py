@@ -817,19 +817,20 @@ st.markdown("---")
 # ── Department / Division filter helpers (from lookup) ────────────────────────
 # ─── SEARCHABLE SELECTBOX HELPER ─────────────────────────────────────────────
 def searchable_select(label, options, key, default="All"):
-    """Selectbox with a search bar above it for long lists."""
+    """Compact searchable selectbox — search input sits flush above the dropdown."""
     search_key = f"_srch_{key}"
-    search     = st.text_input(
-        f"Search {label}", key=search_key,
-        placeholder=f"Type to filter...",
-        label_visibility="collapsed"
+    search = st.text_input(
+        label, key=search_key,
+        placeholder=f"Search {label.lower()}...",
+        label_visibility="visible"
     )
     filtered = [o for o in options if search.strip().lower() in str(o).lower()] if search.strip() else options
     if not filtered:
         filtered = options
     if default in filtered:
         filtered = [default] + [o for o in filtered if o != default]
-    return st.selectbox(label, filtered, index=0, key=key)
+    # Hide the selectbox label since the text_input already serves as label
+    return st.selectbox("", filtered, index=0, key=key, label_visibility="collapsed")
 
 def get_dept_options(df):
     if "Department" in df.columns:
@@ -1278,11 +1279,7 @@ Sum of all 4 flags:
         phys_in_yr = []
     with dd5:
         if phys_in_yr:
-            _deep_search = st.text_input("Search Physician ID", key="deep_id_search",
-                placeholder="Type PHYS_... to filter", label_visibility="visible")
-            _deep_filtered = [p for p in phys_in_yr if _deep_search.strip().lower() in p.lower()] if _deep_search.strip() else phys_in_yr
-            if not _deep_filtered: _deep_filtered = phys_in_yr
-            selected_id = st.selectbox("Physician ID", ["— Select —"] + _deep_filtered, key="deep_id")
+            selected_id = searchable_select("Physician ID", ["— Select —"] + phys_in_yr, key="deep_id", default="— Select —")
             if selected_id == "— Select —":
                 selected_id = None
         else:
@@ -2275,21 +2272,7 @@ with tab5:
 
         all_phys_ids = sorted(raw_d["physician_id"].dropna().unique().tolist())
         if view_mode == "Individual Physician":
-            # Search bar — type ID or partial match to filter the dropdown
-            _phys_search = st.text_input(
-                "Search Physician ID", key="trend_phys_search",
-                placeholder="Type PHYS_... to filter list below",
-                label_visibility="visible"
-            )
-            _filtered_ids = (
-                [p for p in all_phys_ids if _phys_search.strip().lower() in p.lower()]
-                if _phys_search.strip() else all_phys_ids
-            )
-            if not _filtered_ids:
-                _filtered_ids = all_phys_ids  # fallback — show all if no match
-            selected_phys = st.selectbox(
-                "Physician ID", ["— Select —"] + _filtered_ids, key="trend_phys"
-            )
+            selected_phys = searchable_select("Physician ID", ["— Select —"] + all_phys_ids, key="trend_phys", default="— Select —")
             if selected_phys == "— Select —":
                 selected_phys = None
         else:
@@ -3252,11 +3235,7 @@ with tab6:
         with pe1:
             df_pe_pool = df_view if sel_cycle_pe == "All Cycles" else df_view[df_view["FiscalCycle"] == sel_cycle_pe]
             phys_opts = ["All"] + sorted(df_pe_pool["Physician Name"].dropna().unique().tolist())                         if "Physician Name" in df_pe_pool.columns else ["All"]
-            _pe_search = st.text_input("Search Physician ID", key="pe_phys_search",
-                placeholder="Type PHYS_... to filter", label_visibility="visible")
-            _pe_filtered = [p for p in phys_opts if _pe_search.strip().lower() in p.lower()] if _pe_search.strip() else phys_opts
-            if not _pe_filtered: _pe_filtered = phys_opts
-            sel_phys_pe = st.selectbox("Physician", _pe_filtered, key="pe_phys")
+            sel_phys_pe = searchable_select("Physician", phys_opts, key="pe_phys", default=phys_opts[0] if phys_opts else "All")
         with pe2:
             sel_sort_pe = st.selectbox("Sort by",
                 ["Clinic Visits ↓","Patient Complaints ↓","Waiting Time ↓"], key="pe_sort")
