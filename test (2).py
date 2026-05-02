@@ -871,7 +871,7 @@ with tab1:
     # Project + Department + Division filters
     t1f1, t1f2, t1f3 = st.columns(3)
     with t1f1:
-        t1_proj = st.selectbox("Project", ["All"] + available_depts, key="t1_proj")
+        t1_proj = searchable_select("Project", ["All"] + available_depts, key="t1_proj", default="All")
     t1_pool = all_phys if t1_proj == "All" else all_phys[all_phys["department"] == t1_proj]
     with t1f2:
         t1_dept = searchable_select("Department", get_dept_options(t1_pool), key="t1_dept")
