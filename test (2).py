@@ -671,28 +671,46 @@ available_depts = [n for n, (r,p,s) in data.items() if p is not None and len(p) 
 # ── Load physician lookup (Name, Department, Division) ───────────────────────
 @st.cache_data(show_spinner=False)
 def load_physician_lookup(urls, _version="v1.1"):
-    """Load and merge the three annual lookup CSVs into one physician→dept/div map."""
+    """Load and merge the three annual lookup CSVs into one physician→dept/div map.
+    Uses the MOST RECENT year's data for each physician to get latest dept/div.
+    Encoding-robust: tries utf-8, utf-8-sig, latin-1, cp1252."""
     frames = []
-    for key in ["lookup_2023", "lookup_2024", "lookup_2025"]:
+    # Load in reverse order so 2025 overrides 2024 overrides 2023
+    for key in ["lookup_2025", "lookup_2024", "lookup_2023"]:
         url = urls.get(key, "")
-        if not url or url.startswith("REPLACE"):
+        if not url or str(url).strip().startswith("REPLACE"):
             continue
-        try:
-            df = pd.read_csv(url)
-            df.columns = df.columns.str.strip()
-            frames.append(df)
-        except Exception:
-            pass
+        for enc in ["utf-8", "utf-8-sig", "latin-1", "cp1252"]:
+            try:
+                df = pd.read_csv(url, encoding=enc)
+                df.columns = df.columns.str.strip()
+                # Strip whitespace from all string columns
+                for col in df.select_dtypes(include="object").columns:
+                    df[col] = df[col].astype(str).str.strip()
+                frames.append(df)
+                break
+            except UnicodeDecodeError:
+                continue
+            except Exception:
+                break
     if not frames:
-        return pd.DataFrame(columns=["physician_id", "FullName", "Department", "Division"])
-    lookup = pd.concat(frames, ignore_index=True).drop_duplicates(subset=["OriginalID"])
+        return pd.DataFrame(columns=["physician_id_key", "FullName", "Department", "Division"])
+    # Concat all years — do NOT drop duplicates yet
+    lookup = pd.concat(frames, ignore_index=True)
     lookup["OriginalID"] = lookup["OriginalID"].astype(str).str.strip().str.lower()
-    lookup["Division"] = lookup["DIVISION"].fillna(lookup["DEPARTMENT"])
+    # Rename columns
+    if "DEPARTMENT" in lookup.columns:
+        lookup = lookup.rename(columns={"DEPARTMENT": "Department"})
+    if "DIVISION" in lookup.columns:
+        lookup = lookup.rename(columns={"DIVISION": "Division"})
     lookup["Division"] = lookup["Division"].where(
-        lookup["Division"].astype(str).str.strip() != "", lookup["DEPARTMENT"])
-    lookup = lookup.rename(columns={"DEPARTMENT": "Department", "FullName": "FullName"})
+        lookup["Division"].astype(str).str.strip().str.lower() != "nan",
+        lookup["Department"]
+    )
     lookup["physician_id_key"] = lookup["OriginalID"]
-    return lookup[["physician_id_key", "FullName", "Department", "Division"]].drop_duplicates(subset=["physician_id_key"])
+    # Keep most recent (first occurrence since we loaded 2025 first)
+    return lookup[["physician_id_key", "Department", "Division"]].drop_duplicates(
+        subset=["physician_id_key"], keep="first")
 
 physician_lookup = load_physician_lookup(GITHUB_URLS, _version="v1.1")
 
@@ -715,16 +733,7 @@ def _load_csv_safe(url):
 # Build unified dept/div map from lookup + indicators
 _dept_div_map = {}
 
-# From lookup CSV
-if not physician_lookup.empty and "physician_id_key" in physician_lookup.columns:
-    for _, row in physician_lookup.iterrows():
-        pid  = str(row["physician_id_key"]).strip().lower()
-        dept = str(row.get("Department","")).strip()
-        div  = str(row.get("Division","")).strip()
-        if pid and dept and dept != "nan":
-            _dept_div_map[pid] = (dept, div if div and div != "nan" else dept)
-
-# From indicators CSV — fills gaps
+# From indicators CSV first (most complete division data)
 _ind_raw = _load_csv_safe(GITHUB_URLS.get("indicators", ""))
 if _ind_raw is not None and not _ind_raw.empty:
     _id_col = next((c for c in ["Aubnetid","Physician Name","physician_id"] if c in _ind_raw.columns), None)
@@ -733,8 +742,17 @@ if _ind_raw is not None and not _ind_raw.empty:
             pid  = str(row[_id_col]).strip().lower()
             dept = str(row.get("Department","")).strip()
             div  = str(row.get("Division","")).strip()
-            if pid and dept and dept != "nan" and pid not in _dept_div_map:
-                _dept_div_map[pid] = (dept, div if div and div != "nan" else dept)
+            if pid and dept and dept.lower() != "nan":
+                _dept_div_map[pid] = (dept, div if div and div.lower() != "nan" else dept)
+
+# From lookup CSV — fills any gaps not covered by indicators
+if not physician_lookup.empty and "physician_id_key" in physician_lookup.columns:
+    for _, row in physician_lookup.iterrows():
+        pid  = str(row["physician_id_key"]).strip().lower()
+        dept = str(row.get("Department","")).strip()
+        div  = str(row.get("Division","")).strip()
+        if pid and dept and dept.lower() != "nan" and pid not in _dept_div_map:
+            _dept_div_map[pid] = (dept, div if div and div.lower() != "nan" else dept)
 
 # Apply to all_phys using full PHYS_xxxx ID match
 all_phys["_pid_lower"] = all_phys["physician_id"].astype(str).str.strip().str.lower()
@@ -3019,7 +3037,7 @@ with tab6:
                 dept_sum["Avg_Wait"]         = dept_sum["Avg_Wait"].round(1) if "Avg_Wait" in dept_sum.columns else 0
                 dept_sum["Rate"]             = (dept_sum["Total_Complaints"] /
                                                 dept_sum["Total_Visits"].replace(0, np.nan) * 100).round(2).fillna(0)
-                dept_sum = dept_sum.sort_values("Total_Visits", ascending=False).reset_index(drop=True)
+                dept_sum = dept_sum.sort_values("Total_Visits", ascending=True).reset_index(drop=True)
 
                 dc1, dc2 = st.columns(2)
                 with dc1:
@@ -3039,25 +3057,27 @@ with tab6:
                     ax.set_facecolor("white"); fig.patch.set_facecolor("white")
                     plt.tight_layout(); st.pyplot(fig, use_container_width=True); plt.close()
                 with dc2:
-                    fig2, ax2 = plt.subplots(figsize=(7, max(3.5, len(dept_sum)*0.5)))
-                    c2 = ["#e53e3e" if r > dept_sum["Rate"].quantile(0.75) and r > 0
-                          else "#f59e0b" if r > 0 else "#38a169"
-                          for r in dept_sum["Rate"]]
-                    bars2 = ax2.barh(dept_sum["Department"], dept_sum["Rate"],
+                    _comp_sort = dept_sum.sort_values("Total_Complaints", ascending=True)
+                    fig2, ax2  = plt.subplots(figsize=(7, max(3.5, len(_comp_sort)*0.5)))
+                    max_c = _comp_sort["Total_Complaints"].max() or 1
+                    c2 = ["#e53e3e" if v > _comp_sort["Total_Complaints"].quantile(0.75) and v > 0
+                          else "#f59e0b" if v > 0 else "#38a169"
+                          for v in _comp_sort["Total_Complaints"]]
+                    bars2 = ax2.barh(_comp_sort["Department"], _comp_sort["Total_Complaints"],
                                      color=c2, edgecolor="white", linewidth=0.5, height=0.6, alpha=0.88)
-                    for bar, val in zip(bars2, dept_sum["Rate"]):
-                        ax2.text(val + 0.003, bar.get_y()+bar.get_height()/2,
-                                 f"{val:.2f}%", va="center", fontsize=9, fontweight="700", color="#1a365d")
-                    ax2.set_xlabel("Complaints per 100 Visits", fontsize=10, color="#64748b")
-                    ax2.set_title("Complaint Rate by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
+                    for bar, val in zip(bars2, _comp_sort["Total_Complaints"]):
+                        ax2.text(val + max_c*0.015, bar.get_y()+bar.get_height()/2,
+                                 f"{int(val):,}", va="center", fontsize=9, fontweight="700", color="#1a365d")
+                    ax2.set_xlabel("Total Patient Complaints", fontsize=10, color="#64748b")
+                    ax2.set_title("Total Complaints by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
                     ax2.tick_params(colors="#64748b", labelsize=9)
                     for sp in ax2.spines.values(): sp.set_edgecolor("#e2e8f0")
                     ax2.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
                     ax2.set_facecolor("white"); fig2.patch.set_facecolor("white")
                     ax2.legend(handles=[
                         mpatches.Patch(color="#38a169", alpha=0.88, label="No complaints"),
-                        mpatches.Patch(color="#f59e0b", alpha=0.88, label="Low rate"),
-                        mpatches.Patch(color="#e53e3e", alpha=0.88, label="High rate"),
+                        mpatches.Patch(color="#f59e0b", alpha=0.88, label="Low"),
+                        mpatches.Patch(color="#e53e3e", alpha=0.88, label="High"),
                     ], fontsize=8, loc="lower right", framealpha=0.9)
                     plt.tight_layout(); st.pyplot(fig2, use_container_width=True); plt.close()
 
