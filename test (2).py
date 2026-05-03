@@ -923,7 +923,7 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Department Risk Comparison ────────────────────────────────────────────
-    st.markdown('<div class="section-header">Department Risk Comparison</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Project - Survey Group Risk Comparison</div>', unsafe_allow_html=True)
 
     dept_risk_rows = []
     for dept in available_depts:
@@ -1077,7 +1077,7 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
 
     # ── Department Summary Table ──────────────────────────────────────────────
-    st.markdown('<div class="section-header">Department Summary</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Project - Survey Group Summary</div>', unsafe_allow_html=True)
     summary_rows = []
     for dept in available_depts:
         _, phys, _ = data[dept]
