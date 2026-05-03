@@ -636,14 +636,14 @@ def load_from_github(urls, min_f, threshold, _version="v5.15"):
         raw = pd.concat(frames, ignore_index=True)
         return process_dept(raw, name, threshold, min_f=min_f)
 
-    aubmc_raw, aubmc_phys, aubmc_sent = load_dept(["aubmc_23","aubmc_24","aubmc_25"], "AUBMC")
-    ed_raw,    ed_phys,    ed_sent    = load_dept(["ed_23","ed_24","ed_25"],           "ED")
-    patho_raw, patho_phys, patho_sent = load_dept(["patho_23","patho_24","patho_25"], "Pathology")
+    aubmc_raw, aubmc_phys, aubmc_sent = load_dept(["aubmc_23","aubmc_24","aubmc_25"], "PROJECT-1")
+    ed_raw,    ed_phys,    ed_sent    = load_dept(["ed_23","ed_24","ed_25"],           "PROJECT-2")
+    patho_raw, patho_phys, patho_sent = load_dept(["patho_23","patho_24","patho_25"], "PROJECT-3")
 
     return {
-        "AUBMC":     (aubmc_raw, aubmc_phys, aubmc_sent),
-        "ED":        (ed_raw,    ed_phys,    ed_sent),
-        "Pathology": (patho_raw, patho_phys, patho_sent),
+        "PROJECT-1": (aubmc_raw, aubmc_phys, aubmc_sent),
+        "PROJECT-2": (ed_raw,    ed_phys,    ed_sent),
+        "PROJECT-3": (patho_raw, patho_phys, patho_sent),
     }
 
 # ── PROCESS DATA ─────────────────────────────────────────────────────────────
@@ -1218,7 +1218,7 @@ Sum of all 4 flags:
                         row_mask = phys_src_fb["physician_id"] == selected_id
                         if row_mask.any():
                             phys_src = phys_src_fb
-                            st.info(f"Showing {selected_id} from {phys_project} (auto-detected project).")
+                            st.info(f"Showing {selected_id} — loaded from {phys_project}.")
             if phys_src is None or not row_mask.any():
                 st.warning(f"No data found for {selected_id}. Try selecting 'All' in the Project filter.")
         else:
@@ -1298,7 +1298,7 @@ with tab3:
 
         # Pre-compute per-project stats
         proj_data   = {}
-        box_colors  = {"AUBMC": "#1a365d", "ED": "#2b7bc8", "Pathology": "#4b5563"}
+        box_colors  = {"PROJECT-1": "#1a365d", "PROJECT-2": "#2b7bc8", "PROJECT-3": "#4b5563"}
         default_col = "#1a365d"
 
         for dn in available_depts:
