@@ -780,6 +780,22 @@ st.markdown("---")
 
 
 # ── Department / Division filter helpers (from lookup) ────────────────────────
+# ─── SEARCHABLE SELECTBOX HELPER ─────────────────────────────────────────────
+def searchable_select(label, options, key, default="All"):
+    """Text input above a selectbox — type to filter, press Enter to apply."""
+    search = st.text_input(
+        label, key=f"_srch_{key}",
+        placeholder=f"Search {label.lower()}...",
+        label_visibility="visible"
+    )
+    filtered = [o for o in options
+                if search.strip().lower() in str(o).lower()] if search.strip() else options
+    if not filtered:
+        filtered = options
+    if default in filtered:
+        filtered = [default] + [o for o in filtered if o != default]
+    return st.selectbox("", filtered, index=0, key=key, label_visibility="collapsed")
+
 def get_dept_options(df):
     if "Department" in df.columns:
         return ["All"] + sorted(df["Department"].dropna().unique().tolist())
@@ -819,12 +835,12 @@ with tab1:
     # Project + Department + Division filters
     t1f1, t1f2, t1f3 = st.columns(3)
     with t1f1:
-        t1_proj = st.selectbox("Project", ["All"] + available_depts, key="t1_proj")
+        t1_proj = searchable_select("Project", ["All"] + available_depts, key="t1_proj", default="All")
     t1_pool = all_phys if t1_proj == "All" else all_phys[all_phys["department"] == t1_proj]
     with t1f2:
-        t1_dept = st.selectbox("Department", get_dept_options(t1_pool), key="t1_dept")
+        t1_dept = searchable_select("Department", get_dept_options(t1_pool), key="t1_dept", default="All")
     with t1f3:
-        t1_div  = st.selectbox("Division", get_div_options(t1_pool, t1_dept), key="t1_div")
+        t1_div  = searchable_select("Division", get_div_options(t1_pool, t1_dept), key="t1_div", default="All")
     t1_phys = apply_dept_div_filter(t1_pool, t1_dept, t1_div)
 
     total      = len(t1_phys)
@@ -1130,9 +1146,9 @@ Sum of all 4 flags:
     # Department / Division filters
     t2f1, t2f2 = st.columns(2)
     with t2f1:
-        t2_dept = st.selectbox("Department", get_dept_options(all_phys), key="t2_dept")
+        t2_dept = searchable_select("Department", get_dept_options(all_phys), key="t2_dept", default="All")
     with t2f2:
-        t2_div  = st.selectbox("Division",   get_div_options(all_phys, t2_dept), key="t2_div")
+        t2_div  = searchable_select("Division", get_div_options(all_phys, t2_dept), key="t2_div", default="All")
 
     df_view = all_phys.copy()
     if dept_filter != "All":
@@ -1212,9 +1228,9 @@ Sum of all 4 flags:
     # Row 2: Department + Division + Physician (cascading)
     dd3, dd4, dd5 = st.columns(3)
     with dd3:
-        dd_dept_filter = st.selectbox("Department", get_dept_options(all_phys), key="deep_dept_f")
+        dd_dept_filter = searchable_select("Department", get_dept_options(all_phys), key="deep_dept_f", default="All")
     with dd4:
-        dd_div_filter  = st.selectbox("Division", get_div_options(all_phys, dd_dept_filter), key="deep_div_f")
+        dd_div_filter  = searchable_select("Division", get_div_options(all_phys, dd_dept_filter), key="deep_div_f", default="All")
 
     # Build physician list filtered by year + department + division
     if raw_dd is not None:
@@ -1227,7 +1243,7 @@ Sum of all 4 flags:
         phys_in_yr = []
     with dd5:
         if phys_in_yr:
-            selected_id = st.selectbox("Physician ID", ["— Select —"] + phys_in_yr, key="deep_id")
+            selected_id = searchable_select("Physician ID", ["— Select —"] + phys_in_yr, key="deep_id", default="— Select —")
             if selected_id == "— Select —":
                 selected_id = None
         else:
@@ -1487,9 +1503,9 @@ with tab3:
     # Only show depts/divs that belong to the selected project
     proj_phys = all_phys[all_phys["department"] == dept_sel] if "department" in all_phys.columns else all_phys
     with t3f1:
-        t3_dept = st.selectbox("Department", get_dept_options(proj_phys), key="t3_dept")
+        t3_dept = searchable_select("Department", get_dept_options(proj_phys), key="t3_dept", default="All")
     with t3f2:
-        t3_div  = st.selectbox("Division",   get_div_options(proj_phys, t3_dept), key="t3_div")
+        t3_div  = searchable_select("Division", get_div_options(proj_phys, t3_dept), key="t3_div", default="All")
 
     # Filter all_phys by project + department + division — single source of truth
     phys_d = proj_phys.copy()
@@ -1991,9 +2007,9 @@ with tab4:
         with t4f1:
             t4_proj = st.selectbox("Project", ["All"] + available_depts, key="t4_proj")
         with t4f2:
-            t4_dept = st.selectbox("Department", get_dept_options(all_phys), key="t4_dept")
+            t4_dept = searchable_select("Department", get_dept_options(all_phys), key="t4_dept", default="All")
         with t4f3:
-            t4_div  = st.selectbox("Division", get_div_options(all_phys, t4_dept), key="t4_div")
+            t4_div  = searchable_select("Division", get_div_options(all_phys, t4_dept), key="t4_div", default="All")
         # Apply project filter first
         if t4_proj != "All":
             all_sent = all_sent[all_sent["dept"] == t4_proj]
@@ -2234,7 +2250,7 @@ with tab5:
 
         all_phys_ids = sorted(raw_d["physician_id"].dropna().unique().tolist())
         if view_mode == "Individual Physician":
-            selected_phys = st.selectbox("Physician ID", ["— Select —"] + all_phys_ids, key="trend_phys")
+            selected_phys = searchable_select("Physician ID", ["— Select —"] + all_phys_ids, key="trend_phys", default="— Select —")
             if selected_phys == "— Select —":
                 selected_phys = None
         else:
@@ -2904,11 +2920,11 @@ with tab6:
         df_filt = ind_df if sel_cycle == "All" else ind_df[ind_df["FiscalCycle"] == sel_cycle]
         with fc2:
             dept_opts_t6 = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist())                            if "Department" in df_filt.columns else ["All Departments"]
-            sel_dept_t6 = st.selectbox("Department", dept_opts_t6, key="ind_dept_filter")
+            sel_dept_t6 = searchable_select("Department", dept_opts_t6, key="ind_dept_filter", default="All")
         with fc3:
             df_for_div = df_filt if sel_dept_t6 == "All Departments" else df_filt[df_filt["Department"] == sel_dept_t6]
             div_opts_t6 = ["All Divisions"] + sorted(df_for_div["Division_norm"].dropna().unique().tolist())                           if "Division_norm" in df_for_div.columns else ["All Divisions"]
-            sel_div_t6 = st.selectbox("Division", div_opts_t6, key="ind_div_filter")
+            sel_div_t6 = searchable_select("Division", div_opts_t6, key="ind_div_filter", default="All")
 
         # Apply filters — df_view is used by ALL sections below
         df_view = df_filt.copy()
@@ -3187,7 +3203,7 @@ with tab6:
         with pe1:
             df_pe_pool = df_view if sel_cycle_pe == "All Cycles" else df_view[df_view["FiscalCycle"] == sel_cycle_pe]
             phys_opts = ["All"] + sorted(df_pe_pool["Physician Name"].dropna().unique().tolist())                         if "Physician Name" in df_pe_pool.columns else ["All"]
-            sel_phys_pe = st.selectbox("Physician", phys_opts, key="pe_phys")
+            sel_phys_pe = searchable_select("Physician", phys_opts, key="pe_phys", default=phys_opts[0] if phys_opts else "All")
         with pe2:
             sel_sort_pe = st.selectbox("Sort by",
                 ["Clinic Visits ↓","Patient Complaints ↓","Waiting Time ↓"], key="pe_sort")
