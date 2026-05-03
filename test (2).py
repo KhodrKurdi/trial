@@ -636,14 +636,14 @@ def load_from_github(urls, min_f, threshold, _version="v5.15"):
         raw = pd.concat(frames, ignore_index=True)
         return process_dept(raw, name, threshold, min_f=min_f)
 
-    aubmc_raw, aubmc_phys, aubmc_sent = load_dept(["aubmc_23","aubmc_24","aubmc_25"], "PROJECT-1")
-    ed_raw,    ed_phys,    ed_sent    = load_dept(["ed_23","ed_24","ed_25"],           "PROJECT-2")
-    patho_raw, patho_phys, patho_sent = load_dept(["patho_23","patho_24","patho_25"], "PROJECT-3")
+    aubmc_raw, aubmc_phys, aubmc_sent = load_dept(["aubmc_23","aubmc_24","aubmc_25"], "AUBMC")
+    ed_raw,    ed_phys,    ed_sent    = load_dept(["ed_23","ed_24","ed_25"],           "ED")
+    patho_raw, patho_phys, patho_sent = load_dept(["patho_23","patho_24","patho_25"], "Pathology")
 
     return {
-        "PROJECT-1": (aubmc_raw, aubmc_phys, aubmc_sent),
-        "PROJECT-2": (ed_raw,    ed_phys,    ed_sent),
-        "PROJECT-3": (patho_raw, patho_phys, patho_sent),
+        "AUBMC":     (aubmc_raw, aubmc_phys, aubmc_sent),
+        "ED":        (ed_raw,    ed_phys,    ed_sent),
+        "Pathology": (patho_raw, patho_phys, patho_sent),
     }
 
 # ── PROCESS DATA ─────────────────────────────────────────────────────────────
@@ -666,13 +666,7 @@ if not all_phys_frames:
     st.stop()
 
 all_phys = pd.concat(all_phys_frames, ignore_index=True)
-available_depts_raw = [n for n, (r,p,s) in data.items() if p is not None and len(p) > 0]
-
-# ── Anonymize project/survey group names ─────────────────────────────────────
-_proj_anon_map  = {"AUBMC": "PROJECT-1", "ED": "PROJECT-2", "Pathology": "PROJECT-3"}
-available_depts = [_proj_anon_map.get(n, n) for n in available_depts_raw]
-
-# data dict already uses PROJECT-1/2/3 keys from load_from_github
+available_depts = [n for n, (r,p,s) in data.items() if p is not None and len(p) > 0]
 
 # ── Load physician lookup (Name, Department, Division) ───────────────────────
 @st.cache_data(show_spinner=False)
@@ -693,111 +687,27 @@ def load_physician_lookup(urls, _version="v1.1"):
         return pd.DataFrame(columns=["physician_id", "FullName", "Department", "Division"])
     lookup = pd.concat(frames, ignore_index=True).drop_duplicates(subset=["OriginalID"])
     lookup["OriginalID"] = lookup["OriginalID"].astype(str).str.strip().str.lower()
-    # Rename columns
-    lookup = lookup.rename(columns={"DEPARTMENT": "Department", "DIVISION": "Division_raw"})
-    lookup["Division"] = lookup["Division_raw"].fillna(lookup["Department"])
+    lookup["Division"] = lookup["DIVISION"].fillna(lookup["DEPARTMENT"])
     lookup["Division"] = lookup["Division"].where(
-        lookup["Division"].astype(str).str.strip() != "", lookup["Department"])
-    # physician_id_key = full PHYS_xxxx ID (already anonymized — no suffix needed)
+        lookup["Division"].astype(str).str.strip() != "", lookup["DEPARTMENT"])
+    lookup = lookup.rename(columns={"DEPARTMENT": "Department", "FullName": "FullName"})
     lookup["physician_id_key"] = lookup["OriginalID"]
-    # Suppress real names — use ID as display name
-    lookup["FullName"] = lookup["physician_id_key"]
     return lookup[["physician_id_key", "FullName", "Department", "Division"]].drop_duplicates(subset=["physician_id_key"])
 
 physician_lookup = load_physician_lookup(GITHUB_URLS, _version="v1.1")
 
-# ── Map Department + Division onto all_phys ──────────────────────────────────
-# Primary source: Indicators CSV (Aubnetid → Department, Division)
-# Fallback: Physician Lookup CSV (OriginalID → DEPARTMENT, DIVISION)
-# IDs are PHYS_xxxx format — match directly, no suffix extraction needed
-
-def build_dept_map(ind_df, lookup_df):
-    """Build {phys_id_lower: (Department, Division)} from best available source."""
-    dept_map = {}
-    # 1. From lookup CSV
-    if not lookup_df.empty and "physician_id_key" in lookup_df.columns:
-        for _, row in lookup_df.iterrows():
-            pid  = str(row["physician_id_key"]).strip().lower()
-            dept = str(row.get("Department", "")).strip().strip()
-            div  = str(row.get("Division",   "")).strip().strip()
-            if pid and dept:
-                dept_map[pid] = (dept, div or dept)
-    # 2. From indicators CSV — fills gaps or overrides with more specific data
-    if ind_df is not None and not ind_df.empty:
-        for col in ["Aubnetid", "physician_id", "Physician Name"]:
-            if col in ind_df.columns:
-                id_col = col; break
-        else:
-            id_col = None
-        if id_col:
-            for _, row in ind_df.iterrows():
-                pid  = str(row[id_col]).strip().lower()
-                dept = str(row.get("Department", "")).strip().strip()
-                div  = str(row.get("Division",   "")).strip().strip()
-                if pid and dept:
-                    dept_map[pid] = (dept, div or dept)
-    return dept_map
-
-# Load indicators for dept/div mapping — use same fetch as main data load
-def _fetch_csv(url):
-    if not url or url.startswith("REPLACE"):
-        return None
-    for enc in ["utf-8", "latin-1", "cp1252"]:
-        try:
-            df = pd.read_csv(url, encoding=enc)
-            return df
-        except UnicodeDecodeError:
-            continue
-        except Exception:
-            return None
-    return None
-
-_ind_raw = _fetch_csv(GITHUB_URLS.get("indicators", ""))
-if _ind_raw is not None:
-    _ind_raw["Department"] = _ind_raw["Department"].astype(str).str.strip()
-    _ind_raw["Division"]   = _ind_raw["Division"].astype(str).str.strip()
-
-# Also reload lookup using same fetch for all 3 years to maximize coverage
-_lookup_frames = []
-for _lk in ["lookup_2023", "lookup_2024", "lookup_2025"]:
-    _ldf = _fetch_csv(GITHUB_URLS.get(_lk, ""))
-    if _ldf is not None:
-        _ldf.columns = _ldf.columns.str.strip()
-        _ldf["OriginalID"] = _ldf["OriginalID"].astype(str).str.strip().str.lower()
-        _ldf = _ldf.rename(columns={"DEPARTMENT": "Department", "DIVISION": "Division"})
-        _ldf["physician_id_key"] = _ldf["OriginalID"]
-        _lookup_frames.append(_ldf[["physician_id_key", "Department", "Division"]])
-
-_lookup_combined = pd.concat(_lookup_frames, ignore_index=True).drop_duplicates(
-    subset=["physician_id_key"]) if _lookup_frames else pd.DataFrame(
-    columns=["physician_id_key", "Department", "Division"])
-
-_dept_div_map = build_dept_map(_ind_raw, _lookup_combined)
-
-# Apply to all_phys — use all available sources
-all_phys["_key"]       = all_phys["physician_id"].astype(str).str.strip().str.lower()
-all_phys["Department"] = all_phys["_key"].map(lambda x: _dept_div_map.get(x, ("", ""))[0]).str.strip()
-all_phys["Division"]   = all_phys["_key"].map(lambda x: _dept_div_map.get(x, ("", ""))[1]).str.strip()
-
-# Fill empty Division with Department
-all_phys["Division"] = all_phys["Division"].where(
-    all_phys["Division"].str.strip() != "", all_phys["Department"])
-
-# Only label as Unassigned if truly empty after stripping
-all_phys["Department"] = all_phys["Department"].where(
-    all_phys["Department"].str.strip() != "", "Unassigned")
-all_phys["Division"] = all_phys["Division"].where(
-    all_phys["Division"].str.strip() != "", all_phys["Department"])
-all_phys["FullName"]   = all_phys["physician_id"]  # suppress real names
-all_phys = all_phys.drop(columns=["_key"], errors="ignore")
-
-_dept_filled = (all_phys["Department"] != "Unassigned").sum()
-_total       = len(all_phys)
-# Only warn if MORE than 20% unassigned — small gaps are normal
-if _dept_filled == 0:
-    st.warning("⚠️ No Department/Division data found — check that your indicators and lookup CSV paths are correct in GITHUB_URLS.")
-elif _dept_filled < _total * 0.8:
-    st.info(f"ℹ️ {_total - _dept_filled} of {_total} physicians have no department match and show as 'Unassigned'.")
+# Merge Department + Division onto all_phys using suffix key (Data29_aa → aa)
+if not physician_lookup.empty:
+    all_phys["_key"] = all_phys["physician_id"].astype(str).str.split("_", n=1).str[-1].str.lower()
+    all_phys = all_phys.merge(
+        physician_lookup[["physician_id_key", "FullName", "Department", "Division"]],
+        left_on="_key", right_on="physician_id_key", how="left"
+    ).drop(columns=["_key", "physician_id_key"], errors="ignore")
+    all_phys["Division"] = all_phys["Division"].fillna(all_phys["Department"])
+else:
+    all_phys["FullName"]   = ""
+    all_phys["Department"] = ""
+    all_phys["Division"]   = ""
 
 
 # ─── MAIN HEADER ─────────────────────────────────────────────────────────────
@@ -815,23 +725,6 @@ st.markdown("---")
 
 
 # ── Department / Division filter helpers (from lookup) ────────────────────────
-# ─── SEARCHABLE SELECTBOX HELPER ─────────────────────────────────────────────
-def searchable_select(label, options, key, default="All"):
-    """Compact searchable selectbox — search input sits flush above the dropdown."""
-    search_key = f"_srch_{key}"
-    search = st.text_input(
-        label, key=search_key,
-        placeholder=f"Search {label.lower()}...",
-        label_visibility="visible"
-    )
-    filtered = [o for o in options if search.strip().lower() in str(o).lower()] if search.strip() else options
-    if not filtered:
-        filtered = options
-    if default in filtered:
-        filtered = [default] + [o for o in filtered if o != default]
-    # Hide the selectbox label since the text_input already serves as label
-    return st.selectbox("", filtered, index=0, key=key, label_visibility="collapsed")
-
 def get_dept_options(df):
     if "Department" in df.columns:
         return ["All"] + sorted(df["Department"].dropna().unique().tolist())
@@ -871,12 +764,12 @@ with tab1:
     # Project + Department + Division filters
     t1f1, t1f2, t1f3 = st.columns(3)
     with t1f1:
-        t1_proj = searchable_select("Project", ["All"] + available_depts, key="t1_proj", default="All")
+        t1_proj = st.selectbox("Project", ["All"] + available_depts, key="t1_proj")
     t1_pool = all_phys if t1_proj == "All" else all_phys[all_phys["department"] == t1_proj]
     with t1f2:
-        t1_dept = searchable_select("Department", get_dept_options(t1_pool), key="t1_dept")
+        t1_dept = st.selectbox("Department", get_dept_options(t1_pool), key="t1_dept")
     with t1f3:
-        t1_div  = searchable_select("Division", get_div_options(t1_pool, t1_dept), key="t1_div")
+        t1_div  = st.selectbox("Division", get_div_options(t1_pool, t1_dept), key="t1_div")
     t1_phys = apply_dept_div_filter(t1_pool, t1_dept, t1_div)
 
     total      = len(t1_phys)
@@ -1182,9 +1075,9 @@ Sum of all 4 flags:
     # Department / Division filters
     t2f1, t2f2 = st.columns(2)
     with t2f1:
-        t2_dept = searchable_select("Department", get_dept_options(all_phys), key="t2_dept")
+        t2_dept = st.selectbox("Department", get_dept_options(all_phys), key="t2_dept")
     with t2f2:
-        t2_div  = searchable_select("Division", get_div_options(all_phys, t2_dept), key="t2_div")
+        t2_div  = st.selectbox("Division",   get_div_options(all_phys, t2_dept), key="t2_div")
 
     df_view = all_phys.copy()
     if dept_filter != "All":
@@ -1264,9 +1157,9 @@ Sum of all 4 flags:
     # Row 2: Department + Division + Physician (cascading)
     dd3, dd4, dd5 = st.columns(3)
     with dd3:
-        dd_dept_filter = searchable_select("Department", get_dept_options(all_phys), key="deep_dept_f")
+        dd_dept_filter = st.selectbox("Department", get_dept_options(all_phys), key="deep_dept_f")
     with dd4:
-        dd_div_filter  = searchable_select("Division", get_div_options(all_phys, dd_dept_filter), key="deep_div_f")
+        dd_div_filter  = st.selectbox("Division", get_div_options(all_phys, dd_dept_filter), key="deep_div_f")
 
     # Build physician list filtered by year + department + division
     if raw_dd is not None:
@@ -1279,7 +1172,7 @@ Sum of all 4 flags:
         phys_in_yr = []
     with dd5:
         if phys_in_yr:
-            selected_id = searchable_select("Physician ID", ["— Select —"] + phys_in_yr, key="deep_id", default="— Select —")
+            selected_id = st.selectbox("Physician ID", ["— Select —"] + phys_in_yr, key="deep_id")
             if selected_id == "— Select —":
                 selected_id = None
         else:
@@ -1312,8 +1205,22 @@ Sum of all 4 flags:
             phys_src = phys_src.merge(lookup_cols, on="physician_id", how="left")
 
         row_mask = phys_src["physician_id"] == selected_id if phys_src is not None else pd.Series(False)
+
+        # Fallback: if not found in current project filter, search across ALL physicians
         if phys_src is None or not row_mask.any():
-            st.warning(f"No data found for {selected_id}.")
+            fallback = all_phys[all_phys["physician_id"] == selected_id]
+            if not fallback.empty:
+                # Find which project this physician belongs to and reload their data
+                phys_project = fallback.iloc[0].get("department", None)
+                if phys_project and phys_project in data:
+                    _, phys_src_fb, _ = data[phys_project]
+                    if phys_src_fb is not None and not phys_src_fb.empty:
+                        row_mask = phys_src_fb["physician_id"] == selected_id
+                        if row_mask.any():
+                            phys_src = phys_src_fb
+                            st.info(f"Showing {selected_id} from {phys_project} (auto-detected project).")
+            if phys_src is None or not row_mask.any():
+                st.warning(f"No data found for {selected_id}. Try selecting 'All' in the Project filter.")
         else:
             row = phys_src[row_mask].iloc[0]
             year_label = f" — {dd_year}" if dd_year != "All Years" else " — All Years"
@@ -1391,7 +1298,7 @@ with tab3:
 
         # Pre-compute per-project stats
         proj_data   = {}
-        box_colors  = {"PROJECT-1": "#1a365d", "PROJECT-2": "#2b7bc8", "PROJECT-3": "#4b5563"}
+        box_colors  = {"AUBMC": "#1a365d", "ED": "#2b7bc8", "Pathology": "#4b5563"}
         default_col = "#1a365d"
 
         for dn in available_depts:
@@ -1525,9 +1432,9 @@ with tab3:
     # Only show depts/divs that belong to the selected project
     proj_phys = all_phys[all_phys["department"] == dept_sel] if "department" in all_phys.columns else all_phys
     with t3f1:
-        t3_dept = searchable_select("Department", get_dept_options(proj_phys), key="t3_dept")
+        t3_dept = st.selectbox("Department", get_dept_options(proj_phys), key="t3_dept")
     with t3f2:
-        t3_div  = searchable_select("Division", get_div_options(proj_phys, t3_dept), key="t3_div")
+        t3_div  = st.selectbox("Division",   get_div_options(proj_phys, t3_dept), key="t3_div")
 
     # Filter all_phys by project + department + division — single source of truth
     phys_d = proj_phys.copy()
@@ -2029,9 +1936,9 @@ with tab4:
         with t4f1:
             t4_proj = st.selectbox("Project", ["All"] + available_depts, key="t4_proj")
         with t4f2:
-            t4_dept = searchable_select("Department", get_dept_options(all_phys), key="t4_dept")
+            t4_dept = st.selectbox("Department", get_dept_options(all_phys), key="t4_dept")
         with t4f3:
-            t4_div  = searchable_select("Division", get_div_options(all_phys, t4_dept), key="t4_div")
+            t4_div  = st.selectbox("Division", get_div_options(all_phys, t4_dept), key="t4_div")
         # Apply project filter first
         if t4_proj != "All":
             all_sent = all_sent[all_sent["dept"] == t4_proj]
@@ -2135,9 +2042,9 @@ with tab4:
         with tr1:
             trend_proj_sent = st.selectbox("Project", ["All Projects"] + available_depts, key="sent_trend_proj")
         with tr2:
-            trend_dept_sent = searchable_select("Department", get_dept_options(all_phys), key="sent_trend_dept")
+            trend_dept_sent = st.selectbox("Department", get_dept_options(all_phys), key="sent_trend_dept")
         with tr3:
-            trend_div_sent  = searchable_select("Division", get_div_options(all_phys, trend_dept_sent), key="sent_trend_div")
+            trend_div_sent  = st.selectbox("Division", get_div_options(all_phys, trend_dept_sent), key="sent_trend_div")
 
         # Apply all filters to trend data
         df_trend_sent = all_sent.copy()
@@ -2256,9 +2163,9 @@ with tab5:
     tf3, tf4 = st.columns(2)
     proj_phys_t5 = all_phys[all_phys["department"] == trend_dept] if "department" in all_phys.columns else all_phys
     with tf3:
-        t5_dept = searchable_select("Department", get_dept_options(proj_phys_t5), key="t5_dept")
+        t5_dept = st.selectbox("Department", get_dept_options(proj_phys_t5), key="t5_dept")
     with tf4:
-        t5_div  = searchable_select("Division", get_div_options(proj_phys_t5, t5_dept), key="t5_div")
+        t5_div  = st.selectbox("Division",   get_div_options(proj_phys_t5, t5_dept), key="t5_div")
 
     # Apply dept/div filter to physician pool
     phys_pool_t5 = apply_dept_div_filter(proj_phys_t5, t5_dept, t5_div)["physician_id"].unique()
@@ -2272,7 +2179,7 @@ with tab5:
 
         all_phys_ids = sorted(raw_d["physician_id"].dropna().unique().tolist())
         if view_mode == "Individual Physician":
-            selected_phys = searchable_select("Physician ID", ["— Select —"] + all_phys_ids, key="trend_phys", default="— Select —")
+            selected_phys = st.selectbox("Physician ID", ["— Select —"] + all_phys_ids, key="trend_phys")
             if selected_phys == "— Select —":
                 selected_phys = None
         else:
@@ -2921,17 +2828,10 @@ with tab6:
         for col in ["ClinicVisits", "ClinicWaitingTime", "PatientComplaints"]:
             if col in df.columns: df[col] = pd.to_numeric(df[col], errors="coerce")
         # Derive true parent Department from Division using DIV_TO_DEPT mapping
-        # If divisions are anonymized (DIV-xx), mapping returns NaN — keep original Department
         if "Division_norm" in df.columns:
             mapped = df["Division_norm"].map(DIV_TO_DEPT)
-            coverage = mapped.notna().mean()
             if "Department" in df.columns:
-                if coverage > 0.5:
-                    # Mapping worked — real division names present
-                    df["Department"] = mapped.fillna(df["Department"].str.strip())
-                else:
-                    # Anonymized divisions — just strip the Department column as-is
-                    df["Department"] = df["Department"].astype(str).str.strip()
+                df["Department"] = mapped.fillna(df["Department"].str.strip())
             else:
                 df["Department"] = mapped.fillna("Other")
         return df
@@ -2949,11 +2849,11 @@ with tab6:
         df_filt = ind_df if sel_cycle == "All" else ind_df[ind_df["FiscalCycle"] == sel_cycle]
         with fc2:
             dept_opts_t6 = ["All Departments"] + sorted(df_filt["Department"].dropna().unique().tolist())                            if "Department" in df_filt.columns else ["All Departments"]
-            sel_dept_t6 = searchable_select("Department", dept_opts_t6, key="ind_dept_filter")
+            sel_dept_t6 = st.selectbox("Department", dept_opts_t6, key="ind_dept_filter")
         with fc3:
             df_for_div = df_filt if sel_dept_t6 == "All Departments" else df_filt[df_filt["Department"] == sel_dept_t6]
             div_opts_t6 = ["All Divisions"] + sorted(df_for_div["Division_norm"].dropna().unique().tolist())                           if "Division_norm" in df_for_div.columns else ["All Divisions"]
-            sel_div_t6 = searchable_select("Division", div_opts_t6, key="ind_div_filter")
+            sel_div_t6 = st.selectbox("Division", div_opts_t6, key="ind_div_filter")
 
         # Apply filters — df_view is used by ALL sections below
         df_view = df_filt.copy()
@@ -3082,8 +2982,7 @@ with tab6:
                 dept_sum["Avg_Wait"]         = dept_sum["Avg_Wait"].round(1) if "Avg_Wait" in dept_sum.columns else 0
                 dept_sum["Rate"]             = (dept_sum["Total_Complaints"] /
                                                 dept_sum["Total_Visits"].replace(0, np.nan) * 100).round(2).fillna(0)
-                # Sort descending for table; barh needs ascending so highest appears at top
-                dept_sum = dept_sum.sort_values("Total_Visits", ascending=True).reset_index(drop=True)
+                dept_sum = dept_sum.sort_values("Total_Visits", ascending=False).reset_index(drop=True)
 
                 dc1, dc2 = st.columns(2)
                 with dc1:
@@ -3104,28 +3003,24 @@ with tab6:
                     plt.tight_layout(); st.pyplot(fig, use_container_width=True); plt.close()
                 with dc2:
                     fig2, ax2 = plt.subplots(figsize=(7, max(3.5, len(dept_sum)*0.5)))
-                    max_c = dept_sum["Total_Complaints"].max() or 1
-                    _comp_sort = dept_sum.sort_values("Total_Complaints", ascending=True)
-                    max_c = _comp_sort["Total_Complaints"].max() or 1
-                    c2 = ["#e53e3e" if v > _comp_sort["Total_Complaints"].quantile(0.75) and v > 0
-                          else "#f59e0b" if v > 0 else "#38a169"
-                          for v in _comp_sort["Total_Complaints"]]
-                    # Sort by complaints for the complaints chart
-                    bars2 = ax2.barh(_comp_sort["Department"], _comp_sort["Total_Complaints"],
+                    c2 = ["#e53e3e" if r > dept_sum["Rate"].quantile(0.75) and r > 0
+                          else "#f59e0b" if r > 0 else "#38a169"
+                          for r in dept_sum["Rate"]]
+                    bars2 = ax2.barh(dept_sum["Department"], dept_sum["Rate"],
                                      color=c2, edgecolor="white", linewidth=0.5, height=0.6, alpha=0.88)
-                    for bar, val in zip(bars2, _comp_sort["Total_Complaints"]):
-                        ax2.text(val + max_c*0.015, bar.get_y()+bar.get_height()/2,
-                                 f"{int(val):,}", va="center", fontsize=9, fontweight="700", color="#1a365d")
-                    ax2.set_xlabel("Total Patient Complaints", fontsize=10, color="#64748b")
-                    ax2.set_title("Total Complaints by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
+                    for bar, val in zip(bars2, dept_sum["Rate"]):
+                        ax2.text(val + 0.003, bar.get_y()+bar.get_height()/2,
+                                 f"{val:.2f}%", va="center", fontsize=9, fontweight="700", color="#1a365d")
+                    ax2.set_xlabel("Complaints per 100 Visits", fontsize=10, color="#64748b")
+                    ax2.set_title("Complaint Rate by Department", fontsize=12, fontweight="800", color="#1a365d", pad=8)
                     ax2.tick_params(colors="#64748b", labelsize=9)
                     for sp in ax2.spines.values(): sp.set_edgecolor("#e2e8f0")
                     ax2.grid(axis="x", alpha=0.25, linestyle="--", color="#bfdbfe")
                     ax2.set_facecolor("white"); fig2.patch.set_facecolor("white")
                     ax2.legend(handles=[
                         mpatches.Patch(color="#38a169", alpha=0.88, label="No complaints"),
-                        mpatches.Patch(color="#f59e0b", alpha=0.88, label="Low"),
-                        mpatches.Patch(color="#e53e3e", alpha=0.88, label="High"),
+                        mpatches.Patch(color="#f59e0b", alpha=0.88, label="Low rate"),
+                        mpatches.Patch(color="#e53e3e", alpha=0.88, label="High rate"),
                     ], fontsize=8, loc="lower right", framealpha=0.9)
                     plt.tight_layout(); st.pyplot(fig2, use_container_width=True); plt.close()
 
@@ -3235,7 +3130,7 @@ with tab6:
         with pe1:
             df_pe_pool = df_view if sel_cycle_pe == "All Cycles" else df_view[df_view["FiscalCycle"] == sel_cycle_pe]
             phys_opts = ["All"] + sorted(df_pe_pool["Physician Name"].dropna().unique().tolist())                         if "Physician Name" in df_pe_pool.columns else ["All"]
-            sel_phys_pe = searchable_select("Physician", phys_opts, key="pe_phys", default=phys_opts[0] if phys_opts else "All")
+            sel_phys_pe = st.selectbox("Physician", phys_opts, key="pe_phys")
         with pe2:
             sel_sort_pe = st.selectbox("Sort by",
                 ["Clinic Visits ↓","Patient Complaints ↓","Waiting Time ↓"], key="pe_sort")
@@ -3287,14 +3182,21 @@ with tab7:
 
         # ── IMPORTANT TERMINOLOGY ─────────────────────────────────────────
         lines.append("IMPORTANT TERMINOLOGY:")
-        lines.append(f"- Survey groups in this dataset: {', '.join(_available_depts)}")
-        lines.append("  These are anonymized project groups — NOT clinical departments.")
+        lines.append("- 'Project groups' or 'Survey groups': AUBMC, ED, Pathology")
+        lines.append("  These are the 3 groups used in the behavior survey project.")
+        lines.append("  AUBMC = main hospital group, ED = Emergency Department group,")
+        lines.append("  Pathology = Pathology & Lab group.")
+        lines.append("  These are NOT clinical departments — they are project data groups.")
         lines.append("")
-        lines.append("- 'Departments': Clinical departments e.g. Internal Medicine, Surgery.")
-        lines.append("  Each physician has a Department and Division assigned.")
-        lines.append("  You CAN answer: 'which department has the most priority physicians'.")
+        lines.append("- 'Departments': The actual AUBMC clinical departments,")
+        lines.append("  e.g. Internal Medicine, Surgery, Ob/Gyn, Pediatrics, etc.")
+        lines.append("  These are available per physician via the lookup merge.")
+        lines.append("  Each physician in the survey data HAS a Department and Division assigned.")
+        lines.append("  You CAN answer questions like 'which department has the most priority physicians'.")
         lines.append("")
-        lines.append("- 'Divisions': Sub-units within departments e.g. Cardiology, General Surgery.")
+        lines.append("- 'Divisions': Sub-units within departments,")
+        lines.append("  e.g. Cardiology (under Internal Medicine),")
+        lines.append("  General Surgery (under Surgery), etc.")
         lines.append("")
 
         # ── BEHAVIOR SURVEY SUMMARY ───────────────────────────────────────
@@ -3499,15 +3401,8 @@ with tab7:
     if st.session_state["_mc_pending"]:
         st.session_state["_mc_pending"] = False
 
-        system_prompt = f"""You are MC, an AI data assistant for an anonymized physician performance dashboard.
+        system_prompt = f"""You are MC, an AI data assistant for the AUBMC Physician Performance Dashboard.
 You help medical administrators and stakeholders understand physician performance data.
-
-CRITICAL ANONYMIZATION RULES — ALWAYS FOLLOW:
-- Survey groups are called PROJECT-1, PROJECT-2, PROJECT-3. NEVER use "AUBMC", "ED", or "Pathology".
-- Physicians are identified by PHYS_xxxx codes only. NEVER use real names.
-- Departments show as DEPT-A, DEPT-B etc. Divisions show as DIV-01, DIV-02 etc.
-- If asked about "AUBMC group" refer to it as PROJECT-1. "ED" = PROJECT-2. "Pathology" = PROJECT-3.
-- All your responses must use only the anonymized codes above — never the real institutional names.
 
 CRITICAL — TERMINOLOGY YOU MUST FOLLOW:
 - "Department" = clinical departments: Internal Medicine, Surgery, Ob/Gyn, Pediatrics, Neurology, etc.
