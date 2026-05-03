@@ -696,18 +696,55 @@ def load_physician_lookup(urls, _version="v1.1"):
 
 physician_lookup = load_physician_lookup(GITHUB_URLS, _version="v1.1")
 
-# Merge Department + Division onto all_phys using suffix key (Data29_aa → aa)
-if not physician_lookup.empty:
-    all_phys["_key"] = all_phys["physician_id"].astype(str).str.split("_", n=1).str[-1].str.lower()
-    all_phys = all_phys.merge(
-        physician_lookup[["physician_id_key", "FullName", "Department", "Division"]],
-        left_on="_key", right_on="physician_id_key", how="left"
-    ).drop(columns=["_key", "physician_id_key"], errors="ignore")
-    all_phys["Division"] = all_phys["Division"].fillna(all_phys["Department"])
-else:
-    all_phys["FullName"]   = ""
-    all_phys["Department"] = ""
-    all_phys["Division"]   = ""
+# ── Map Department + Division from all available sources ─────────────────────
+# Source 1: physician_lookup (Datasource CSVs)
+# Source 2: indicators CSV (Aubnetid → Department, Division)
+# Match on full PHYS_xxxx ID — normalize both sides to lowercase
+
+def _load_csv_safe(url):
+    if not url or str(url).strip().startswith("REPLACE"): return None
+    for enc in ["utf-8", "utf-8-sig", "latin-1", "cp1252"]:
+        try:
+            df = pd.read_csv(url, encoding=enc)
+            df.columns = df.columns.str.strip()
+            return df
+        except UnicodeDecodeError: continue
+        except Exception: return None
+    return None
+
+# Build unified dept/div map from lookup + indicators
+_dept_div_map = {}
+
+# From lookup CSV
+if not physician_lookup.empty and "physician_id_key" in physician_lookup.columns:
+    for _, row in physician_lookup.iterrows():
+        pid  = str(row["physician_id_key"]).strip().lower()
+        dept = str(row.get("Department","")).strip()
+        div  = str(row.get("Division","")).strip()
+        if pid and dept and dept != "nan":
+            _dept_div_map[pid] = (dept, div if div and div != "nan" else dept)
+
+# From indicators CSV — fills gaps
+_ind_raw = _load_csv_safe(GITHUB_URLS.get("indicators", ""))
+if _ind_raw is not None and not _ind_raw.empty:
+    _id_col = next((c for c in ["Aubnetid","Physician Name","physician_id"] if c in _ind_raw.columns), None)
+    if _id_col:
+        for _, row in _ind_raw.iterrows():
+            pid  = str(row[_id_col]).strip().lower()
+            dept = str(row.get("Department","")).strip()
+            div  = str(row.get("Division","")).strip()
+            if pid and dept and dept != "nan" and pid not in _dept_div_map:
+                _dept_div_map[pid] = (dept, div if div and div != "nan" else dept)
+
+# Apply to all_phys using full PHYS_xxxx ID match
+all_phys["_pid_lower"] = all_phys["physician_id"].astype(str).str.strip().str.lower()
+all_phys["Department"] = all_phys["_pid_lower"].map(lambda x: _dept_div_map.get(x, ("",""))[0])
+all_phys["Division"]   = all_phys["_pid_lower"].map(lambda x: _dept_div_map.get(x, ("",""))[1])
+all_phys["Division"]   = all_phys["Division"].where(all_phys["Division"].str.strip() != "", all_phys["Department"])
+all_phys["Department"] = all_phys["Department"].where(all_phys["Department"].str.strip() != "", "Unassigned")
+all_phys["Division"]   = all_phys["Division"].where(all_phys["Division"].str.strip() != "", "Unassigned")
+all_phys["FullName"]   = all_phys["physician_id"]  # suppress real names
+all_phys = all_phys.drop(columns=["_pid_lower"], errors="ignore")
 
 
 # ─── MAIN HEADER ─────────────────────────────────────────────────────────────
